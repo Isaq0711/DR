@@ -194,6 +194,7 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
                 onPressed: clearImages,
               ),
               actions: <Widget>[
+                  if (_files!.length > 1)
                 TextButton(
                   onPressed: () => uploadVotations(
                    user.uid!,
