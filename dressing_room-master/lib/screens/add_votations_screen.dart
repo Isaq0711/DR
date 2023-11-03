@@ -229,7 +229,7 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
                         },
                         itemBuilder: (context, pageIndex) {
                           return SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.5,
+                            height: MediaQuery.of(context).size.height * 0.55,
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(10.0),
                               child: Image.memory(
@@ -242,27 +242,7 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
                           );
                         },
                       ),
-                      if (_currentPageIndex > 0)
-                        Positioned(
-                          top: MediaQuery.of(context).size.height / 2 - 15.0,
-                          left: 16.0,
-                          child: GestureDetector(
-                            onTap: () {
-                              _pageController.animateToPage(_currentPageIndex - 1, duration: const Duration(milliseconds: 300), curve: Curves.ease);
-                            },
-                            
-                          ),
-                        ),
-                      if (_currentPageIndex < _files!.length - 1)
-                        Positioned(
-                          top: MediaQuery.of(context).size.height / 2 - 15.0,
-                          right: 16.0,
-                          child: GestureDetector(
-                            onTap: () {
-                              _pageController.animateToPage(_currentPageIndex + 1, duration: const Duration(milliseconds: 300), curve: Curves.ease);
-                            },
-                          ),
-                        ),
+                     
                     ],
                   ),
                 ),

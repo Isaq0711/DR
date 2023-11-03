@@ -107,7 +107,7 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
       body: Stack(
         children: [
           PageView(
-            children: homeScreenItems, // Replace this with your list of pages
+          children: homeScreenItems, // Replace this with your list of pages
             controller: pageController,
             onPageChanged: onPageChanged,
           ),

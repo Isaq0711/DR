@@ -140,6 +140,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
             body: Container(),
           )
         : Scaffold(
+          
             appBar: AppBar(
               backgroundColor: AppTheme.nearlyWhite,
               leading: IconButton(
@@ -199,7 +200,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                             },
                             itemBuilder: (context, pageIndex) {
                               return SizedBox(
-                                height: MediaQuery.of(context).size.height * 0.5,
+                                height: MediaQuery.of(context).size.height * 0.55,
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(10.0),
 

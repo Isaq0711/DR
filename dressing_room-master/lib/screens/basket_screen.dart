@@ -114,6 +114,7 @@ class _BasketScreenState extends State<BasketScreen> {
   Scaffold _buildContent(User user) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: AppTheme.vinho,
         title: const Text(
           'My basket',
@@ -121,100 +122,90 @@ class _BasketScreenState extends State<BasketScreen> {
         ),
         centerTitle: true,
       ),
-       body: SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(height: MediaQuery.of(context).size.height * 0.008),
-          Container(
-            
-            padding: EdgeInsets.all(8.0),
-            decoration: BoxDecoration(
-             
-              borderRadius: BorderRadius.circular(10.0),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(height: MediaQuery.of(context).size.height * 0.008),
+            Container(
+              padding: EdgeInsets.all(8.0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Container(
+                    width: MediaQuery.of(context).size.width * 0.2,
+                    child: ElevatedButton(
+                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                        primary: AppTheme.vinho,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                      ),
+                      child: Text('TOP',  style: AppTheme.subtitlewhite),
+                    ),
+                  ),
+                  Container(
+                    width: MediaQuery.of(context).size.width * 0.25,
+                    child: ElevatedButton(
+                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                        primary: AppTheme.vinho,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                      ),
+                      child: Text('BOTTOM',  style: AppTheme.subtitlewhite),
+                    ),
+                  ),
+                  Container(
+                    width: MediaQuery.of(context).size.width * 0.2,
+                    child: ElevatedButton(
+                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                        primary: AppTheme.vinho,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                      ),
+                      child: Text('SHOES', style: AppTheme.subtitlewhite,),
+                    ),
+                  ),
+                  Container(
+                    width: MediaQuery.of(context).size.width * 0.2,
+                    child: ElevatedButton(
+                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                        primary: AppTheme.vinho,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                      ),
+                      child: Text('COATS' ,style: AppTheme.subtitlewhite),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Container(
-                  width: MediaQuery.of(context).size.width * 0.2,
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      primary: AppTheme.vinho,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                    ),
-                    child: Text('TOP',  style: AppTheme.subtitlewhite),
-                  ),
-                ),
-                Container(
-                  width: MediaQuery.of(context).size.width * 0.25,
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      primary: AppTheme.vinho,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                    ),
-                    child: Text('BOTTOM',  style: AppTheme.subtitlewhite),
-                  ),
-                ),
-                Container(
-                  width: MediaQuery.of(context).size.width * 0.2,
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      primary: AppTheme.vinho,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                    ),
-                    child: Text('SHOES', style: AppTheme.subtitlewhite,),
-                  ),
-                ),
-                Container(
-                  width: MediaQuery.of(context).size.width * 0.2,
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      primary: AppTheme.vinho,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                    ),
-                    child: Text('COATS' ,style: AppTheme.subtitlewhite),
-                  ),
-                ),
-              ],
-            ),
-          ),
-            
             Container(height: MediaQuery.of(context).size.height * 0.008),
             Container(
               width: MediaQuery.of(context).size.width,
               height: MediaQuery.of(context).size.height * 0.8,
               padding: EdgeInsets.symmetric(horizontal: 8.0),
-              child: CustomScrollView(
-                scrollDirection: Axis.vertical,
-                slivers: [
-                  SliverGrid(
-                    gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: MediaQuery.of(context).size.width * 0.25,
-                      childAspectRatio: 0.8,
-                      crossAxisSpacing: 8.0,
-                      mainAxisSpacing: 8.0,
-                    ),
-                    delegate: SliverChildBuilderDelegate(
-                      (BuildContext context, int index) {
-                        return buildGridViewItem(index);
-                      },
-                      childCount: (_files?.length ?? 0) + 1,
-                    ),
-                  ),
-                ],
+              child: GridView.builder(
+                gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: MediaQuery.of(context).size.width * 0.25,
+                  childAspectRatio: 0.8,
+                  crossAxisSpacing: 8.0,
+                  mainAxisSpacing: 8.0,
+                ),
+                itemCount: (_files?.length ?? 0) + 1,
+                itemBuilder: (BuildContext context, int index) {
+                  return buildGridViewItem(index);
+                },
               ),
             ),
           ],
