@@ -70,7 +70,7 @@ class AddPage extends StatelessWidget {
                 ),
                 padding: EdgeInsets.symmetric(horizontal: buttonWidth, vertical: 20),
               ),
-              child: Text('C', style: TextStyle(fontSize: 24)),
+              child: Text(' Dressing Room  ', style: AppTheme.headlinewhite),
             ),
           ],
         ),

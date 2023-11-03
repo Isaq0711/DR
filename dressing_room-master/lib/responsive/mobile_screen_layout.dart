@@ -1,7 +1,8 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:dressing_room/utils/colors.dart';
 import 'package:dressing_room/utils/global_variable.dart';
+
 class MobileScreenLayout extends StatefulWidget {
   const MobileScreenLayout({Key? key}) : super(key: key);
 
@@ -11,12 +12,16 @@ class MobileScreenLayout extends StatefulWidget {
 
 class _MobileScreenLayoutState extends State<MobileScreenLayout> {
   int _page = 0;
-  late PageController pageController; // for tabs animation
+  late PageController pageController;
+  late double _panelHeightOpen;
+  late double _panelHeightClosed;
+  late bool _isPanelVisible;
 
   @override
   void initState() {
     super.initState();
     pageController = PageController();
+    _isPanelVisible = false;
   }
 
   @override
@@ -32,25 +37,20 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
   }
 
   void navigateToFeedPage() {
-    // Navigates to the FeedPage by changing the page index
     pageController.jumpToPage(0);
   }
 
   void navigationTapped(int page) {
-    // Animating Page
     pageController.jumpToPage(page);
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: PageView(
-        children: homeScreenItems,
-        controller: pageController,
-        onPageChanged: onPageChanged,
+  Widget _buildPanel(ScrollController sc) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.vinho,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
       ),
-      bottomNavigationBar: CupertinoTabBar(
-        backgroundColor: AppTheme.vinho,
+      child: BottomNavigationBar(
         items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(
@@ -58,7 +58,6 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
               color: (_page == 0) ? AppTheme.nearlyWhite : Colors.grey,
             ),
             label: '',
-            backgroundColor: AppTheme.nearlyWhite,
           ),
           BottomNavigationBarItem(
             icon: Icon(
@@ -66,12 +65,13 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
               color: (_page == 1) ? AppTheme.nearlyWhite : Colors.grey,
             ),
             label: '',
-            backgroundColor: AppTheme.nearlyWhite,
           ),
           BottomNavigationBarItem(
-            icon: SizedBox.shrink(), // Remove o ícone "add" original
+            icon: Icon(
+              Icons.add,
+              color: (_page == 2) ? AppTheme.nearlyWhite : Colors.grey,
+            ),
             label: '',
-            backgroundColor: AppTheme.nearlyWhite,
           ),
           BottomNavigationBarItem(
             icon: Icon(
@@ -79,7 +79,6 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
               color: (_page == 3) ? AppTheme.nearlyWhite : Colors.grey,
             ),
             label: '',
-            backgroundColor: AppTheme.nearlyWhite,
           ),
           BottomNavigationBarItem(
             icon: Icon(
@@ -87,55 +86,60 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
               color: (_page == 4) ? AppTheme.nearlyWhite : Colors.grey,
             ),
             label: '',
-            backgroundColor: AppTheme.nearlyWhite,
           ),
         ],
         onTap: navigationTapped,
         currentIndex: _page,
+        backgroundColor: Colors.transparent,
+        selectedItemColor: AppTheme.nearlyWhite,
+        unselectedItemColor: Colors.grey,
+        type: BottomNavigationBarType.fixed,
       ),
-      floatingActionButton: Container(
-        margin: EdgeInsets.only(bottom: 16.0),
-        child: Align(
-          alignment: Alignment.bottomCenter,
-          child: FractionallySizedBox(
-            widthFactor: 0.5, // Define a largura do botão como metade da tela
-            child: FlutterActionButton(
-              onPressed: () {
-                navigationTapped(2);
-              },
-              child: Icon(Icons.add, size: 25),
-            ),
-          ),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
-}
-
-class FlutterActionButton extends StatelessWidget {
-  final VoidCallback onPressed;
-  final Widget child;
-
-  const FlutterActionButton({
-    Key? key,
-    required this.onPressed,
-    required this.child,
-  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      elevation: 4.0,
-      shape: CircleBorder(),
-      clipBehavior: Clip.hardEdge,
-      color: AppTheme.vinho,
-      child: InkWell(
-        onTap: onPressed,
-        child: Padding(
-          padding: EdgeInsets.all(10.0),
-          child: child,
-        ),
+    _panelHeightOpen = MediaQuery.of(context).size.height * 0.1;
+    _panelHeightClosed = MediaQuery.of(context).size.height * 0.03;
+
+    return Scaffold(
+      body: Stack(
+        children: [
+          PageView(
+            children: homeScreenItems, // Replace this with your list of pages
+            controller: pageController,
+            onPageChanged: onPageChanged,
+          ),
+          SlidingUpPanel(
+            color: AppTheme.vinho,
+            maxHeight: _panelHeightOpen,
+            minHeight: _panelHeightClosed,
+            parallaxEnabled: true,
+            parallaxOffset: 0.5,
+            body: Container(),
+            panelBuilder: (scrollController) => _buildPanel(scrollController),
+            collapsed: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _isPanelVisible = !_isPanelVisible;
+                });
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppTheme.vinho,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(24.0),
+                    topRight: Radius.circular(24.0),
+                  ),
+                ),
+                child: Center(
+                  child: Icon(Icons.remove),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -288,37 +288,56 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
                   ),
                 ),
                 // ...
-            Container(
-              height: MediaQuery.of(context).size.height * 0.15,
-              child: GridView.count(
-                padding: EdgeInsets.all(8.0),
-                crossAxisCount: 4,
-                childAspectRatio: 1,
-                mainAxisSpacing: 8.0,
-                crossAxisSpacing: 8.0,
-                children: List.generate(_files!.length, (index) {
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _currentPageIndex = index;
-                        _pageController.animateToPage(
-                          index,
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.ease,
-                        );
-                      });
-                    },
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10.0),
-                      child: Image.memory(
-                        _files![index],
-                        fit: BoxFit.cover,
-                      ),
+           
+                      Container(
+                        height: MediaQuery.of(context).size.height * 0.15,
+                        child: CustomScrollView(
+                      scrollDirection: Axis.horizontal,
+                      slivers: [
+                        SliverGrid(
+                          gridDelegate:
+                              SliverGridDelegateWithMaxCrossAxisExtent(
+                             maxCrossAxisExtent: 200,
+                          childAspectRatio: 3 / 2,
+                          crossAxisSpacing: 20,
+                          mainAxisSpacing: 10,
+                          ),
+                          delegate: SliverChildBuilderDelegate(
+                            (BuildContext context, int index) {
+                              return GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _currentPageIndex = index;
+                                    _pageController.animateToPage(
+                                      index,
+                                      duration: const Duration(milliseconds: 300),
+                                      curve: Curves.ease,
+                                    );
+                                  });
+                                },
+                                 child: Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: _currentPageIndex == index ? AppTheme.vinho : Colors.transparent,
+                                    width: 3.0,
+                                  ),
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  child: Image.memory(
+                                    _files![index],
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                               ) );
+                            },
+                            childCount: _files!.length,
+                          ),
+                        ),
+                      ],
                     ),
-                  );
-                }),
-              ),
-            ),
+                  ),
                 SizedBox(
                   height: 100.0,
                   child: Padding(

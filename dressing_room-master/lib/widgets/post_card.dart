@@ -70,6 +70,7 @@ class _PostCardState extends State<PostCard> {
     }
   }
 
+
   deleteAnonymousPost(String postId) async {
     try {
       await FireStoreMethods().deleteAnonymousPost(postId);
@@ -128,6 +129,7 @@ if (currentImageIndex < 0) {
 
   @override
  Widget build(BuildContext context) {
+
     return Consumer<UserProvider>(
       builder: (context, userProvider, _) {
         model.User? user = userProvider.getUser;
@@ -135,7 +137,9 @@ if (currentImageIndex < 0) {
         if (user == null) {
           return Container(); 
         }
-    
+  
+        
+  
     
     return Container(
       // boundary needed for web
@@ -149,11 +153,6 @@ if (currentImageIndex < 0) {
       
       child: Column(
         children: [
-          // HEADER SECTION OF THE POST
-      
-
-          // IMAGE SECTION OF THE POST
-          
         GestureDetector(
  onDoubleTap: () {
  
@@ -271,7 +270,7 @@ if (currentImageIndex < 0) {
                             }
                           },
                           child: Text(
-                            widget.snap['username'],
+                             widget.snap['username'],
                             style: AppTheme.subtitle,
                           ),
                         ),
@@ -491,5 +490,5 @@ if (currentImageIndex < 0) {
       ),
     );
  });
-  }
+     }
 }

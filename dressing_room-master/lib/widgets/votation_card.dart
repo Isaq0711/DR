@@ -104,6 +104,8 @@ class _VotationCardState extends State<VotationCard> {
         if (user == null) {
           return Container(); 
         }
+    
+
 
     return Container(
       decoration: BoxDecoration(
@@ -231,7 +233,7 @@ class _VotationCardState extends State<VotationCard> {
                             }
                           },
                           child: Text(
-                            "Votation by ${widget.snap['username']}",
+                            "Votation by ${ widget.snap['username']}",
                             style: AppTheme.subtitle,
                           ),
                         ),
@@ -450,5 +452,5 @@ class _VotationCardState extends State<VotationCard> {
       ),
     );
  });
-  }
+ }
 }

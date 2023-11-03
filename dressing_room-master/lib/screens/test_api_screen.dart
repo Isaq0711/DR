@@ -1,7 +1,13 @@
 import 'dart:typed_data';
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:dressing_room/utils/colors.dart';
+import 'package:dressing_room/providers/user_provider.dart';
+import 'package:dressing_room/models/user.dart';
+import 'package:provider/provider.dart';
 import 'package:dressing_room/widgets/select_image_dialog.dart';
+import 'package:dressing_room/utils/colors.dart';
+import 'basket_screen.dart';
+import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 class TestAPIScreen extends StatefulWidget {
   const TestAPIScreen({Key? key}) : super(key: key);
@@ -14,12 +20,33 @@ class _TestAPIScreenState extends State<TestAPIScreen> {
   List<Uint8List>? _files;
   List<Uint8List>? _bigfiles;
   bool isLoading = false;
+  bool _showNetworkImage = false;
+  Timer? _timer;
   List<int> selectedIndexes = [];
 
   @override
   void initState() {
     super.initState();
-    _selectBigImage(context);
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
+      _selectBigImage(context);
+    });
+  }
+
+  void _showNetworkImageOnLongPress() {
+    _timer = Timer(Duration(seconds: 1), () {
+      setState(() {
+        _showNetworkImage = true;
+      });
+    });
+  }
+
+  void _resetNetworkImage() {
+    if (_timer != null && _timer!.isActive) {
+      _timer!.cancel();
+    }
+    setState(() {
+      _showNetworkImage = false;
+    });
   }
 
   void _selectImage(BuildContext parentContext) async {
@@ -55,6 +82,7 @@ class _TestAPIScreenState extends State<TestAPIScreen> {
   }
 
   Widget buildGridViewItem(int index) {
+   
     final isSelected = selectedIndexes.contains(index);
     if (index == 0) {
       return InkWell(
@@ -97,10 +125,12 @@ class _TestAPIScreenState extends State<TestAPIScreen> {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(10.0),
-            child: Image.memory(
-              _files![index - 1],
-              fit: BoxFit.cover,
-            ),
+            child:  index > 0 && _files != null && _files!.isNotEmpty
+                    ? Image.memory(
+                        _files![index - 1],
+                        fit: BoxFit.cover,
+                      )
+                    : Container(),
           ),
         ),
       );
@@ -109,101 +139,112 @@ class _TestAPIScreenState extends State<TestAPIScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppTheme.vinho,
-        title: const Text('Test API'),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: MediaQuery.of(context).size.height * 0.008),
-            SizedBox(
-              height: MediaQuery.of(context).size.height * 0.3,
-              width: double.infinity,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.3,
-                    width: double.infinity,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10.0),
-                      child: _bigfiles != null && _bigfiles!.isNotEmpty
-                          ? Image.memory(
-                              _bigfiles![0],
-                              fit: BoxFit.cover,
-                            )
-                          : GestureDetector(
-                              onTap: () {
-                                _selectBigImage(context);
-                              },
-                              child: Image.network(
-                                'https://t4.ftcdn.net/jpg/01/64/16/59/360_F_164165971_ELxPPwdwHYEhg4vZ3F4Ej7OmZVzqq4Ov.jpg',
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(AppTheme.vinho),
-                  ),
-                  onPressed: () {
-                    // TODO: Implement logic for check out
-                  },
-                  child: const Text('TRY OUTFIT'),
-                ),
-              ),
-            ),
-            Container(
-              height: MediaQuery.of(context).size.height * 0.2,
-              child: GridView.count(
-                padding: EdgeInsets.all(8.0),
-                crossAxisCount: 5,
-                childAspectRatio: 0.7,
-                mainAxisSpacing: 8.0,
-                crossAxisSpacing: 8.0,
-                children: List.generate((_files?.length ?? 0) + 1, (index) {
-                  return buildGridViewItem(index);
-                }),
-              ),
-            ),
-            SizedBox(
-              height: MediaQuery.of(context).size.height * 0.3,
-              width: double.infinity,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.3,
-                    width: double.infinity,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10.0),
-                      child: _bigfiles != null && _bigfiles!.isNotEmpty
-                          ? Image.memory(
-                              _bigfiles![0],
-                              fit: BoxFit.cover,
-                            )
-                          : Image.network(
-                              'https://www.example.com/your_large_image.jpg',
-                              fit: BoxFit.cover,
-                            ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+    return Consumer<UserProvider>(
+      builder: (context, userProvider, _) {
+        var user = userProvider.getUser;
+        if (user != null) {
+          return _buildContent(user);
+        } else {
+          return Container();
+        }
+      },
     );
   }
-}
+
+  Scaffold _buildContent(User user) {
+    return _bigfiles == null
+        ? Scaffold(
+            body: Container(),
+          )
+        : Scaffold(
+            appBar: AppBar(
+              backgroundColor: AppTheme.vinho,
+              title: const Text('Test API' , style: AppTheme.subheadlinewhite,
+              ),
+              
+            ),
+            body: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                   Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.55,
+                          width: double.infinity,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10.0),
+                            
+                            child: GestureDetector(
+                              onLongPress: () {
+                                _showNetworkImageOnLongPress();
+                              },
+                               onLongPressEnd: (details) {
+                                  _resetNetworkImage();
+                                },
+                              child: _showNetworkImage
+                                  ? Image.network(
+                                      'https://i0.wp.com/inspi.com.br/wp-content/uploads/2019/11/bliss-Charles-ORear.jpg?fit=1000%2C804&ssl=1',
+                                      fit: BoxFit.cover,
+                                      height: double.infinity,
+                                    width: double.infinity,
+                                    )
+                                  : Image.memory(
+                                      _bigfiles![0],
+                                      fit: BoxFit.cover,
+                                      height: double.infinity,
+                                    width: double.infinity,
+                                    ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                   Container(
+                  height: MediaQuery.of(context).size.height * 0.008), 
+                 
+              Container(
+                  height: MediaQuery.of(context).size.height * 0.13,
+                  child: CustomScrollView(
+                    scrollDirection: Axis.horizontal,
+                    slivers: [
+                      SliverGrid(
+                        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                          maxCrossAxisExtent: 200,
+                          childAspectRatio: 3 / 2,
+                          crossAxisSpacing: 20,
+                          mainAxisSpacing: 10,
+                        ),
+                        delegate: SliverChildBuilderDelegate(
+                          (BuildContext context, int index) {
+                            return buildGridViewItem(index);
+                          },
+                          childCount: (_files?.length ?? 0) + 1,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                 Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: ElevatedButton(
+                        style: ButtonStyle(
+                          backgroundColor:
+                              MaterialStateProperty.all<Color>(AppTheme.vinho),
+                        ),
+                        onPressed: () {
+                          // TODO: Implement logic for check out
+                        },
+                        child: const Text('TRY OUTFIT', style: AppTheme.subtitlewhite,),
+                      ),
+                    ),
+                  ),
+                   
+              ],
+            ),
+            
+          ),
+        );
+}}

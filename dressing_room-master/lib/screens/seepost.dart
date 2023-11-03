@@ -79,7 +79,7 @@ class _SeePostState extends State<SeePost> {
                   return Text('Error: ${snapshot.error}');
                 }
                 if (!snapshot.hasData || !snapshot.data!.exists) {
-                  return Text('Post not found');
+                
                 }
                 final post = snapshot.data!.data();
                 return PostCard(snap: post);
@@ -111,7 +111,7 @@ class _SeePostState extends State<SeePost> {
                   return Text('Error: ${snapshot.error}');
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return Text('Votation not found');
+                  
                 }
                 final votations = snapshot.data!.docs.map((doc) => doc.data()).toList();
                 return Column(
