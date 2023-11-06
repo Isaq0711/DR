@@ -90,7 +90,7 @@ class _TestAPIScreenState extends State<TestAPIScreen> {
   @override
   Widget build(BuildContext context) {
     _panelHeightOpen = MediaQuery.of(context).size.height * 0.7;
-    _panelHeightClosed = MediaQuery.of(context).size.height * 0.05;
+    _panelHeightClosed = MediaQuery.of(context).size.height * 0.03;
 
     return Consumer<UserProvider>(
       builder: (context, userProvider, _) {
@@ -247,6 +247,23 @@ class _TestAPIScreenState extends State<TestAPIScreen> {
                           ],
                         ),
                       ),
+                       Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: ElevatedButton(
+                            style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all<Color>(AppTheme.vinho),
+                            ),
+                            onPressed: () {
+                              // TODO: Implement logic for check out
+                            },
+                            child: const Text(
+                              'TRY OUTFIT',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ),
                       SizedBox(height: MediaQuery.of(context).size.height * 0.008),
                       Container(
                         height: MediaQuery.of(context).size.height * 0.13,
@@ -297,23 +314,7 @@ class _TestAPIScreenState extends State<TestAPIScreen> {
                           ],
                         ),
                       ),
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: ElevatedButton(
-                            style: ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all<Color>(AppTheme.vinho),
-                            ),
-                            onPressed: () {
-                              // TODO: Implement logic for check out
-                            },
-                            child: const Text(
-                              'TRY OUTFIT',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          ),
-                        ),
-                      ),
+                     
                     ],
                   ),
                 ),
@@ -340,7 +341,7 @@ class _TestAPIScreenState extends State<TestAPIScreen> {
                         ),
                       ),
                       child: Center(
-                        child: Icon(Icons.remove),
+                        child: Text("Add itens", style: AppTheme.subheadlinewhite),
                       ),
                     ),
                   ),

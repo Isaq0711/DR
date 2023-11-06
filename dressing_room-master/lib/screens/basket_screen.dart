@@ -19,6 +19,7 @@ class _BasketScreenState extends State<BasketScreen> {
   bool isLoading = false;
   Timer? _timer;
   List<int> selectedIndexes = [];
+  int? selectedButtonIndex;
 
   @override
   void initState() {
@@ -70,27 +71,35 @@ class _BasketScreenState extends State<BasketScreen> {
           setState(() {
             if (isSelected) {
               selectedIndexes.remove(index);
+              selectedButtonIndex = null;
             } else {
+              selectedIndexes.clear();
               selectedIndexes.add(index);
+              selectedButtonIndex = index;
             }
           });
         },
         child: Container(
           decoration: BoxDecoration(
             border: Border.all(
-              color: isSelected ? AppTheme.vinho : Colors.transparent,
+              color: isSelected ? AppTheme.vinhoescuro : Colors.transparent,
               width: 3.0,
             ),
             borderRadius: BorderRadius.circular(10.0),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(10.0),
-            child: index > 0 && _files != null && _files!.isNotEmpty
-                ? Image.memory(
-                    _files![index - 1],
-                    fit: BoxFit.cover,
-                  )
-                : Container(),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              child: index > 0 && _files != null && _files!.isNotEmpty
+                  ? Image.memory(
+                      _files![index - 1],
+                      fit: BoxFit.cover,
+                    )
+                  : Container(),
+            ),
           ),
         ),
       );
@@ -122,80 +131,91 @@ class _BasketScreenState extends State<BasketScreen> {
         ),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(height: MediaQuery.of(context).size.height * 0.008),
-            Container(
-              padding: EdgeInsets.all(8.0),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Container(
-                    width: MediaQuery.of(context).size.width * 0.2,
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        primary: AppTheme.vinho,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                      ),
-                      child: Text('TOP',  style: AppTheme.subtitlewhite),
-                    ),
-                  ),
-                  Container(
-                    width: MediaQuery.of(context).size.width * 0.25,
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        primary: AppTheme.vinho,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                      ),
-                      child: Text('BOTTOM',  style: AppTheme.subtitlewhite),
-                    ),
-                  ),
-                  Container(
-                    width: MediaQuery.of(context).size.width * 0.2,
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        primary: AppTheme.vinho,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                      ),
-                      child: Text('SHOES', style: AppTheme.subtitlewhite,),
-                    ),
-                  ),
-                  Container(
-                    width: MediaQuery.of(context).size.width * 0.2,
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        primary: AppTheme.vinho,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                      ),
-                      child: Text('COATS' ,style: AppTheme.subtitlewhite),
-                    ),
-                  ),
-                ],
-              ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(height: MediaQuery.of(context).size.height * 0.008),
+          Container(
+            padding: EdgeInsets.all(8.0),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10.0),
             ),
-            Container(height: MediaQuery.of(context).size.height * 0.008),
-            Container(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      selectedButtonIndex = 1;
+                      selectedIndexes.clear();
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    primary: selectedButtonIndex == 1 ? AppTheme.vinhoescuro : AppTheme.vinho,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                  ),
+                  child: Text('TOP', style: AppTheme.subtitlewhite),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      selectedButtonIndex = 2;
+                      selectedIndexes.clear();
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    primary: selectedButtonIndex == 2 ? AppTheme.vinhoescuro : AppTheme.vinho,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                  ),
+                  child: Text('BOTTOM', style: AppTheme.subtitlewhite),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      selectedButtonIndex = 3;
+                      selectedIndexes.clear();
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    primary: selectedButtonIndex == 3 ? AppTheme.vinhoescuro : AppTheme.vinho,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                  ),
+                  child: Text(
+                    'SHOES',
+                    style: AppTheme.subtitlewhite,
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      selectedButtonIndex = 4;
+                      selectedIndexes.clear();
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    primary: selectedButtonIndex == 4 ? AppTheme.vinhoescuro : AppTheme.vinho,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                  ),
+                  child: Text('COATS', style: AppTheme.subtitlewhite),
+                ),
+              ],
+            ),
+          ),
+          Container(height: MediaQuery.of(context).size.height * 0.008),
+          Expanded(
+            child: Container(
               width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height * 0.8,
               padding: EdgeInsets.symmetric(horizontal: 8.0),
               child: GridView.builder(
+                physics: AlwaysScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
                   maxCrossAxisExtent: MediaQuery.of(context).size.width * 0.25,
                   childAspectRatio: 0.8,
@@ -208,8 +228,8 @@ class _BasketScreenState extends State<BasketScreen> {
                 },
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

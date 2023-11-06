@@ -1,3 +1,4 @@
+import 'package:dressing_room/models/votations.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -79,7 +80,7 @@ class _SeePostState extends State<SeePost> {
                   return Text('Error: ${snapshot.error}');
                 }
                 if (!snapshot.hasData || !snapshot.data!.exists) {
-                
+                  return Container();
                 }
                 final post = snapshot.data!.data();
                 return PostCard(snap: post);
@@ -111,12 +112,16 @@ class _SeePostState extends State<SeePost> {
                   return Text('Error: ${snapshot.error}');
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  
+                  return Container(); // handle the case where data does not exist
                 }
-                final votations = snapshot.data!.docs.map((doc) => doc.data()).toList();
-                return Column(
-                  children: votations.map((votation) => VotationCard(snap: votation)).toList(),
-                ); 
+                final votations = snapshot.data!.docs;
+                return ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: votations.length,
+                  itemBuilder: (context, index) {
+                    return VotationCard(snap: votations[index].data());
+                  },
+                );
               },
             ),
           ],
