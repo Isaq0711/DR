@@ -1,24 +1,19 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:dressing_room/providers/user_provider.dart';
-import 'package:dressing_room/models/user.dart';
-import 'package:provider/provider.dart';
-import 'package:dressing_room/widgets/select_image_dialog.dart';
 import 'package:dressing_room/utils/colors.dart';
-
-
 
 class ShoppingCart extends StatefulWidget {
   @override
-  _ShoppingcartState createState() => _ShoppingcartState();
+  _ShoppingCartState createState() => _ShoppingCartState();
 }
 
-class _ShoppingcartState extends State<ShoppingCart> {
-  List picked = [false, false];
+class _ShoppingCartState extends State<ShoppingCart> {
+  List<bool> picked = [false, false, false, false, false, false, false];
+  List<int> itemPrices = [50, 60, 70, 80, 90, 100, 110];
+  List<int> itemCounts = [1, 1, 1, 1, 1, 1, 1];
 
   int totalAmount = 0;
 
-  pickToggle(index) {
+  pickToggle(int index) {
     setState(() {
       picked[index] = !picked[index];
       getTotalAmount();
@@ -29,20 +24,34 @@ class _ShoppingcartState extends State<ShoppingCart> {
     var count = 0;
     for (int i = 0; i < picked.length; i++) {
       if (picked[i]) {
-        count = count + 1;
-      }
-      if (i == picked.length - 1) {
-        setState(() {
-          totalAmount = 248 * count;
-        });
+        count += itemPrices[i] * itemCounts[i];
       }
     }
+    setState(() {
+      totalAmount = count;
+    });
+  }
+
+  void incrementCount(int index) {
+    setState(() {
+      itemCounts[index]++;
+      getTotalAmount();
+    });
+  }
+
+  void decrementCount(int index) {
+    setState(() {
+      if (itemCounts[index] > 1) {
+        itemCounts[index]--;
+        getTotalAmount();
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-       appBar: AppBar(
+      appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: AppTheme.vinho,
         title: const Text(
@@ -50,66 +59,51 @@ class _ShoppingcartState extends State<ShoppingCart> {
           style: AppTheme.subheadlinewhite,
         ),
         centerTitle: true,
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(50.0),
+          child: Container(
+            width: double.infinity,
+            color: Colors.white,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                Text('Total: \$' + totalAmount.toString(), style: AppTheme.subtitle),
+                SizedBox(width: 10.0),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      primary: AppTheme.vinho, // background
+                      onPrimary: const Color.fromARGB(255, 255, 226, 226), // foreground
+                    ),
+                    child: Text('Pay Now'),
+                  ),
+                )
+              ],
+            ),
+          ),
+        ),
       ),
-      body: ListView(shrinkWrap: true, children: <Widget>[
-        Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
-          Stack(children: [
-            Stack(children: <Widget>[
-              Container(
-                height: MediaQuery.of(context).size.height,
-                width: double.infinity,
-              ),
-         
-              Positioned(
-                top: MediaQuery.of(context).size.height * 0.008,
-                child: Column(
-                  children: <Widget>[
-                    itemCard('Camisa', 'gray', '248',
-                        '', true, 0),
-                    itemCard('Calça', 'gray', '248',
-                        'assets/anotherchair.jpg', true, 1),
-                    itemCard('Casaco', 'gray', '248',
-                        'assets/chair.jpg', false, 2),
-                        itemCard('Camisa2', 'gray', '248',
-                        '', true, 0),
-                    itemCard('Calça', 'gray', '248',
-                        'assets/anotherchair.jpg', true, 1),
-                    itemCard('Casaco', 'gray', '248',
-                        'assets/chair.jpg', false, 2)
-                  ],
-                ),
-              ),
-              Container(
-                      width: double.infinity,
-                      color: Colors.white,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: <Widget>[
-                          Text('Total: \$' + totalAmount.toString(), style: AppTheme.subtitle),
-                          SizedBox(width: 10.0),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: ElevatedButton(
-                              onPressed: () {},
-                              style: ElevatedButton.styleFrom(
-                                primary: AppTheme.vinho, // background
-                                onPrimary: Colors.white, // foreground
-                              ),
-                              child: Text(
-                                'Pay Now',
-                              ),
-                            ),
-                          )
-                        ],
-                      ))
-            ])
-          ])
-        ])
-      ]),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: 7,
+              itemBuilder: (context, index) {
+                return itemCard('Item $index', 'gray', itemPrices[index].toString(), 'L',
+                    'https://m.media-amazon.com/images/I/51fjba7LiFL._AC_SX569_.jpg', true, index);
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget itemCard(itemName, color, price, imgPath, available, i) {
+  Widget itemCard(String itemName, String color, String price, String size, String imgPath, bool available, int i) {
     return InkWell(
       onTap: () {
         if (available) {
@@ -117,122 +111,148 @@ class _ShoppingcartState extends State<ShoppingCart> {
         }
       },
       child: Padding(
-          padding: EdgeInsets.all(10.0),
-          child: Material(
+        padding: EdgeInsets.all(10.0),
+        child: Material(
+          borderRadius: BorderRadius.circular(10.0),
+          elevation: 3.0,
+          child: Container(
+            padding: EdgeInsets.only(left: 15.0, right: 10.0),
+            width: MediaQuery.of(context).size.width - 20.0,
+            height: 150.0,
+            decoration: BoxDecoration(
+              color: Colors.white,
               borderRadius: BorderRadius.circular(10.0),
-              elevation: 3.0,
-              child: Container(
-                  padding: EdgeInsets.only(left: 15.0, right: 10.0),
-                  width: MediaQuery.of(context).size.width - 20.0,
+            ),
+            child: Row(
+              children: <Widget>[
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Container(
+                      height: 25.0,
+                      width: 25.0,
+                      decoration: BoxDecoration(
+                        color: available ? Colors.grey.withOpacity(0.4) : Colors.red.withOpacity(0.4),
+                        borderRadius: BorderRadius.circular(12.5),
+                      ),
+                      child: Center(
+                        child: available
+                            ? Container(
+                                height: 12.0,
+                                width: 12.0,
+                                decoration: BoxDecoration(
+                                  color: picked[i] ? AppTheme.vinho : Colors.grey.withOpacity(0.4),
+                                  borderRadius: BorderRadius.circular(6.0),
+                                ),
+                              )
+                            : Container(),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(width: 10.0),
+                Container(
                   height: 150.0,
+                  width: 125.0,
                   decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10.0)),
-                  child: Row(
-                    children: <Widget>[
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          Container(
-                              height: 25.0,
-                              width: 25.0,
-                              decoration: BoxDecoration(
-                                color: available
-                                    ? Colors.grey.withOpacity(0.4)
-                                    : Colors.red.withOpacity(0.4),
-                                borderRadius: BorderRadius.circular(12.5),
-                              ),
-                              child: Center(
-                                  child: available
-                                      ? Container(
-                                          height: 12.0,
-                                          width: 12.0,
-                                          decoration: BoxDecoration(
-                                              color: picked[i]
-                                                  ? AppTheme.vinho
-                                                  : Colors.grey
-                                                      .withOpacity(0.4),
-                                              borderRadius:
-                                                  BorderRadius.circular(6.0)),
-                                        )
-                                      : Container()))
-                        ],
-                      ),
-                      SizedBox(width: 10.0),
-                      Container(
-                        height: 150.0,
-                        width: 125.0,
-                        decoration: BoxDecoration(
-                            image: DecorationImage(
-                                image: NetworkImage(imgPath),
-                                fit: BoxFit.contain)),
-                      ),
-                      SizedBox(width: 4.0),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Row(
+                    image: DecorationImage(
+                      image: NetworkImage(imgPath),
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+                SizedBox(width: 4.0),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Row(
+                      children: <Widget>[
+                        Text(
+                          itemName,
+                          style: AppTheme.body1,
+                        ),
+                        SizedBox(width: 7.0),
+                        available ? Text('x${itemCounts[i]}', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.bold, fontSize: 14.0, color: Colors.grey)) : Container(),
+                        IconButton(
+                          icon: Icon(Icons.add, color: AppTheme.vinho),
+                          onPressed: () {
+                            if (available) {
+                              incrementCount(i);
+                            }
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.remove, color: AppTheme.vinho),
+                          onPressed: () {
+                            if (available) {
+                              decrementCount(i);
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 7.0),
+                    available
+                        ? Column(
                             children: <Widget>[
                               Text(
-                                itemName,
-                                style: AppTheme.body1,
-                              ),
-                              SizedBox(width: 7.0),
-                              available
-                                  ? picked[i]
-                                      ? Text(
-                                          'x1',
-                                          style: TextStyle(
-                                              fontFamily: 'Montserrat',
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14.0,
-                                              color: Colors.grey),
-                                        )
-                                      : Container()
-                                  : Container()
-                            ],
-                          ),
-                          SizedBox(height: 7.0),
-                          available
-                              ? Text(
-                                  'Color: ' + color,
-                                  style: TextStyle(
-                                      fontFamily: 'Quicksand',
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14.0,
-                                      color: Colors.grey),
-                                )
-                              : OutlinedButton(
-                                  onPressed: () {},
-                                  style: OutlinedButton.styleFrom(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20.0),
-                                    ),
-                                    side: BorderSide(color: AppTheme.vinho),
-                                  ),
-                                  child: Text('Find Similar',
-                                      style: TextStyle(
-                                          fontFamily: 'Quicksand',
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 12.0,
-                                          color: AppTheme.vinho)),
+                                'Color: ' + color,
+                                style: TextStyle(
+                                  fontFamily: 'Quicksand',
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14.0,
+                                  color: Colors.grey,
                                 ),
-                          SizedBox(height: 7.0),
-                          available
-                              ? Text(
-                                  '\$' + price,
-                                  style: TextStyle(
-                                      fontFamily: 'Montserrat',
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 20.0,
-                                      color: AppTheme.vinho),
-                                )
-                              : Container(),
-                        ],
-                      )
-                    ],
-                  )))),
+                              ),
+                              Text(
+                                'Size: ' + size,
+                                style: TextStyle(
+                                  fontFamily: 'Quicksand',
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14.0,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          )
+                        : OutlinedButton(
+                            onPressed: () {},
+                            style: OutlinedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20.0),
+                              ),
+                              side: BorderSide(color: AppTheme.vinho),
+                            ),
+                            child: Text(
+                              'Find Similar',
+                              style: TextStyle(
+                                fontFamily: 'Quicksand',
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12.0,
+                                color: AppTheme.vinho,
+                              ),
+                            ),
+                          ),
+                    SizedBox(height: 7.0),
+                    available
+                        ? Text(
+                            '\$' + (itemPrices[i] * itemCounts[i]).toString(),
+                            style: TextStyle(
+                              fontFamily: 'Montserrat',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20.0,
+                              color: AppTheme.vinho,
+                            ),
+                          )
+                        : Container(),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
