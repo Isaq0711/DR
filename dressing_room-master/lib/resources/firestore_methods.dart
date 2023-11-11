@@ -8,43 +8,45 @@ import 'package:uuid/uuid.dart';
 class FireStoreMethods {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
- Future<String> uploadPost(
-  String description,
-  List<Uint8List> files, // Alterado para uma lista de Uint8List
-  String uid,
-  String username,
-  String profImage,
-) async {
-  String res = "Some error occurred";
-  try {
-    List<String> photoUrls = [];
+Future<String> uploadPost(
+    String description,
+    List<Uint8List> files, // Alterado para uma lista de Uint8List
+    String uid,
+    String username,
+    String profImage,
+    double grade, // Atualizado para o tipo double
+  ) async {
+    String res = "Some error occurred";
+    try {
+      List<String> photoUrls = [];
 
-    for (Uint8List file in files) {
-      String photoUrl =
-          await StorageMethods().uploadImageToStorage('posts', file, true);
-      photoUrls.add(photoUrl); // Adiciona a URL da foto à lista
+      for (Uint8List file in files) {
+        String photoUrl =
+            await StorageMethods().uploadImageToStorage('posts', file, true);
+        photoUrls.add(photoUrl); // Adiciona a URL da foto à lista
+      }
+
+      String postId = const Uuid().v1();
+      Post post = Post(
+        description: description,
+        uid: uid,
+        username: username,
+        grade: 0.0, // Define o valor do grade passado como parâmetro
+        postId: postId,
+        datePublished: DateTime.now(),
+        photoUrls: photoUrls, // Armazena a lista de URLs de fotos
+        profImage: profImage,
+        votes: {}, // Inicializa o mapa de votos vazio
+      );
+
+       _firestore.collection('posts').doc(postId).set(post.toJson());
+      res = "success";
+    } catch (err) {
+      res = err.toString();
     }
-
-    String postId = const Uuid().v1();
-    Post post = Post(
-      description: description,
-      uid: uid,
-      username: username,
-      likes: [],
-      dislikes: [],
-      postId: postId,
-      datePublished: DateTime.now(),
-      photoUrls: photoUrls, // Armazena a lista de URLs de fotos
-      profImage: profImage,
-    );
-
-    _firestore.collection('posts').doc(postId).set(post.toJson());
-    res = "success";
-  } catch (err) {
-    res = err.toString();
+    return res;
   }
-  return res;
-}
+
 Future<String> uploadAnonymousPost(
   String description,
   List<Uint8List> files, // Alterado para uma lista de Uint8List
@@ -66,15 +68,15 @@ Future<String> uploadAnonymousPost(
       description: description,
       uid: uid,
       username: "Anonymous User",
-      likes: [],
-      dislikes: [],
+      grade: 0.0, // Defina um valor inicial para a nota
       postId: postId,
       datePublished: DateTime.now(),
       photoUrls: photoUrls, // Armazena a lista de URLs de fotos
       profImage: "generic_photo_url",
+      votes: {}, // Inicializa o mapa de votos vazio
     );
 
-    _firestore.collection('anonymous_posts').doc(postId).set(post.toJson());
+    await FirebaseFirestore.instance.collection('anonymous_posts').doc(postId).set(post.toJson());
     res = "success";
   } catch (err) {
     res = err.toString();
@@ -187,14 +189,15 @@ Future<String> votePost(String votationId, String uid, int optionIndex) async {
   }
   return res;
 }
-
-
-
-Future<String> likePost(String postId, String uid, List<dynamic> likes) async {
-  String res = "Some error occurred";
+Future<double> getUserGrade(String postId, String uid, [double? newGrade]) async {
+  double initialRating = 0;
   try {
-    DocumentSnapshot postSnapshot = await _firestore.collection('posts').doc(postId).get();
-    DocumentSnapshot anonymousPostSnapshot = await _firestore.collection('anonymous_posts').doc(postId).get();
+    DocumentSnapshot postSnapshot =
+        await FirebaseFirestore.instance.collection('posts').doc(postId).get();
+    DocumentSnapshot anonymousPostSnapshot = await FirebaseFirestore.instance
+        .collection('anonymous_posts')
+        .doc(postId)
+        .get();
 
     bool isAnonymous = false;
     if (postSnapshot.exists) {
@@ -207,61 +210,61 @@ Future<String> likePost(String postId, String uid, List<dynamic> likes) async {
 
     final collectionPath = isAnonymous ? 'anonymous_posts' : 'posts';
 
-    if (likes.contains(uid)) {
-      // Se a lista de curtidas contém o uid do usuário, precisamos removê-lo
-      await _firestore.collection(collectionPath).doc(postId).update({
-        'likes': FieldValue.arrayRemove([uid])
-      });
-    } else {
-      // Caso contrário, precisamos adicionar o uid às curtidas
-      await _firestore.collection(collectionPath).doc(postId).update({
-        'likes': FieldValue.arrayUnion([uid])
-      });
+    // Verifica se o usuário já votou nesse post
+    if (postSnapshot.exists && (postSnapshot.data() as dynamic)['votes'] != null) {
+      dynamic votes = (postSnapshot.data() as dynamic)['votes'];
+      if (votes[uid] != null) {
+        initialRating = votes[uid];
+        if (newGrade != null && initialRating != newGrade) {
+          votes[uid] = newGrade;
+          await FirebaseFirestore.instance
+              .collection(collectionPath)
+              .doc(postId)
+              .update({'votes': votes});
+        }
+      } else {
+        // Se o usuário nunca votou, cria um novo voto
+        if (newGrade != null) {
+          votes[uid] = newGrade;
+          await FirebaseFirestore.instance
+              .collection(collectionPath)
+              .doc(postId)
+              .update({'votes': votes});
+          initialRating = newGrade;
+        }
+      }
+    } else if (anonymousPostSnapshot.exists &&
+        (anonymousPostSnapshot.data() as dynamic)['votes'] != null) {
+      dynamic votes = (anonymousPostSnapshot.data() as dynamic)['votes'];
+      if (votes[uid] != null) {
+        initialRating = votes[uid];
+        if (newGrade != null && initialRating != newGrade) {
+          votes[uid] = newGrade;
+          await FirebaseFirestore.instance
+              .collection(collectionPath)
+              .doc(postId)
+              .update({'votes': votes});
+        }
+      } else {
+        // Se o usuário nunca votou, cria um novo voto
+        if (newGrade != null) {
+          votes[uid] = newGrade;
+          await FirebaseFirestore.instance
+              .collection(collectionPath)
+              .doc(postId)
+              .update({'votes': votes});
+          initialRating = newGrade;
+        }
+      }
     }
-
-    res = 'success';
   } catch (err) {
-    res = err.toString();
+    print(err.toString());
   }
-  return res;
+  return initialRating;
 }
 
 
-  Future<String> dislikePost(String postId, String uid, List<dynamic> dislikes) async {
-  String res = "Some error occurred";
-  try {
-    DocumentSnapshot postSnapshot = await _firestore.collection('posts').doc(postId).get();
-    DocumentSnapshot anonymousPostSnapshot = await _firestore.collection('anonymous_posts').doc(postId).get();
 
-    bool isAnonymous = false;
-    if (postSnapshot.exists) {
-      String username = (postSnapshot.data() as dynamic)['username'];
-      isAnonymous = username == "Anonymous User";
-    } else if (anonymousPostSnapshot.exists) {
-      String username = (anonymousPostSnapshot.data() as dynamic)['username'];
-      isAnonymous = username == "Anonymous User";
-    }
-
-    final collectionPath = isAnonymous ? 'anonymous_posts' : 'posts';
-
-    if (dislikes.contains(uid)) {
-      // Se a lista de dislikes contém o uid do usuário, precisamos removê-lo
-      await _firestore.collection(collectionPath).doc(postId).update({
-        'dislikes': FieldValue.arrayRemove([uid])
-      });
-    } else {
-      // Caso contrário, precisamos adicionar o uid aos dislikes
-      await _firestore.collection(collectionPath).doc(postId).update({
-        'dislikes': FieldValue.arrayUnion([uid])
-      });
-    }
-
-    res = 'success';
-  } catch (err) {
-    res = err.toString();
-  }
-  return res;
-}
 
   Future<String> postComment(String postId, String text, String uid,
       String name, String profilePic) async {

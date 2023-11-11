@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:dressing_room/resources/auth_methods.dart';
 import 'package:dressing_room/resources/firestore_methods.dart';
@@ -104,7 +105,7 @@ var votationSnap = await FirebaseFirestore.instance
                       if (FirebaseAuth.instance.currentUser!.uid == widget.uid)
                         IconButton(
                           icon: const Icon(
-                            Icons.settings,
+                            CupertinoIcons.list_bullet,
                             color: AppTheme.nearlyWhite,
                           ),
                           onPressed: openDrawer,
@@ -384,11 +385,19 @@ var votationSnap = await FirebaseFirestore.instance
                                     },
                                     child: Padding(
                                       padding: const EdgeInsets.all(8.0),
+                     
+                                          child:ClipRRect(
+                                        borderRadius: BorderRadius.circular(10),
+                                          child: Container(
+                                          width: 150,
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey, 
+                                          ),
                                       child: Container(
                                         width: 150,
                                         decoration: BoxDecoration(
                                           color: Colors.grey,
-                                          borderRadius: BorderRadius.circular(15),
+                                         
                                         ),
                                         child: Image(
                                           image: NetworkImage(snap['photoUrls'][0]),
@@ -396,7 +405,7 @@ var votationSnap = await FirebaseFirestore.instance
                                         ),
                                       ),
                                     ),
-                                  );
+                                      ))  );
                                 },
                               ),
                             );
@@ -446,21 +455,22 @@ var votationSnap = await FirebaseFirestore.instance
                                         ),
                                       );
                                     },
-                                    child: Padding(
+                                       child: Padding(
                                       padding: const EdgeInsets.all(8.0),
-                                      child: Container(
-                                        width: 150,
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey,
-                                          borderRadius: BorderRadius.circular(15),
-                                        ),
+                                          child:ClipRRect(
+                                        borderRadius: BorderRadius.circular(10),
+                                          child: Container(
+                                          width: 150,
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey, 
+                                          ),
                                         child: Image(
                                           image: NetworkImage(snap['photoUrls'][0]),
                                           fit: BoxFit.cover,
                                         ),
                                       ),
                                     ),
-                                  );
+                                    )  );
                                 },
                               ),
                             );
