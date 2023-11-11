@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dressing_room/utils/colors.dart';
+import 'package:gap/gap.dart';
 
 class ShoppingCart extends StatefulWidget {
   @override
@@ -94,7 +95,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
               itemCount: 7,
               itemBuilder: (context, index) {
                 return itemCard('Item $index', 'gray', itemPrices[index].toString(), 'L',
-                    'https://m.media-amazon.com/images/I/51fjba7LiFL._AC_SX569_.jpg', true, index);
+                    'https://img.ltwebstatic.com/gspCenter/goodsImage/2022/8/6/2790396538_1018999/D16B882D6326D7F33C6F0E645346262D_thumbnail_720x.webp', true, index);
               },
             ),
           ],
@@ -102,102 +103,108 @@ class _ShoppingCartState extends State<ShoppingCart> {
       ),
     );
   }
-
-  Widget itemCard(String itemName, String color, String price, String size, String imgPath, bool available, int i) {
-    return InkWell(
-      onTap: () {
-        if (available) {
-          pickToggle(i);
-        }
-      },
-      child: Padding(
-        padding: EdgeInsets.all(10.0),
-        child: Material(
-          borderRadius: BorderRadius.circular(10.0),
-          elevation: 3.0,
-          child: Container(
-            padding: EdgeInsets.only(left: 15.0, right: 10.0),
-            width: MediaQuery.of(context).size.width - 20.0,
-            height: 150.0,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10.0),
-            ),
-            child: Row(
-              children: <Widget>[
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Container(
-                      height: 25.0,
-                      width: 25.0,
-                      decoration: BoxDecoration(
-                        color: available ? Colors.grey.withOpacity(0.4) : Colors.red.withOpacity(0.4),
-                        borderRadius: BorderRadius.circular(12.5),
-                      ),
-                      child: Center(
-                        child: available
-                            ? Container(
-                                height: 12.0,
-                                width: 12.0,
-                                decoration: BoxDecoration(
-                                  color: picked[i] ? AppTheme.vinho : Colors.grey.withOpacity(0.4),
-                                  borderRadius: BorderRadius.circular(6.0),
-                                ),
-                              )
-                            : Container(),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(width: 10.0),
-                Container(
-                  height: 150.0,
-                  width: 125.0,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: NetworkImage(imgPath),
-                      fit: BoxFit.contain,
-                    ),
+Widget itemCard(String itemName, String color, String price, String size, String imgPath, bool available, int i) {
+  return InkWell(
+    onTap: () {
+      if (available) {
+        pickToggle(i);
+      }
+    },
+    child: Padding(
+      padding: EdgeInsets.all(10.0),
+      child: Material(
+        borderRadius: BorderRadius.circular(10.0),
+        elevation: 3.0,
+        child: Container(
+          width: MediaQuery.of(context).size.width - 20.0,
+          height: 150.0,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Container(
+                width: 150.0,
+                height: 150.0,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  image: DecorationImage(
+                    image: NetworkImage(imgPath),
+                    fit: BoxFit.cover,     
                   ),
                 ),
-                SizedBox(width: 4.0),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+              ),
+              SizedBox(width: 10.0),
+              Expanded(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
+                    Text(
+                      itemName,
+                      style: AppTheme.subheadline,
+                    ),
+                    SizedBox(height: 10.0),
                     Row(
                       children: <Widget>[
-                        Text(
-                          itemName,
-                          style: AppTheme.body1,
-                        ),
-                        SizedBox(width: 7.0),
-                        available ? Text('x${itemCounts[i]}', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.bold, fontSize: 14.0, color: Colors.grey)) : Container(),
-                        IconButton(
-                          icon: Icon(Icons.add, color: AppTheme.vinho),
-                          onPressed: () {
-                            if (available) {
-                              incrementCount(i);
-                            }
-                          },
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.remove, color: AppTheme.vinho),
-                          onPressed: () {
-                            if (available) {
-                              decrementCount(i);
-                            }
-                          },
+                        Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(6.5),
+                            border: Border.all(color: AppTheme.vinho, width: 2.0),
+                          ),
+                          child: Row(
+                            children: <Widget>[
+                              GestureDetector(
+                                onTap: () {
+                                  if (available) {
+                                    decrementCount(i);
+                                  }
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.vinho,
+                                    borderRadius: BorderRadius.circular(5.0),
+                                  ),
+                                  child: Icon(
+                                    Icons.remove,
+                                    color: AppTheme.nearlyWhite,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 10.0),
+                              available ? Text('${itemCounts[i]}', style: AppTheme.title) : Container(),
+                              SizedBox(width: 10.0),
+                              GestureDetector(
+                                onTap: () {
+                                  if (available) {
+                                    incrementCount(i);
+                                  }
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.vinho,
+                                    borderRadius: BorderRadius.circular(5.0),
+                                  ),
+                                  child: Icon(
+                                    Icons.add,
+                                    color: AppTheme.nearlyWhite,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
-                    SizedBox(height: 7.0),
+                    SizedBox(height: 10.0),
                     available
                         ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
                               Text(
-                                'Color: ' + color,
+                                'Color: $color',
                                 style: TextStyle(
                                   fontFamily: 'Quicksand',
                                   fontWeight: FontWeight.bold,
@@ -205,8 +212,9 @@ class _ShoppingCartState extends State<ShoppingCart> {
                                   color: Colors.grey,
                                 ),
                               ),
+                              SizedBox(height: 5.0),
                               Text(
-                                'Size: ' + size,
+                                'Size: $size',
                                 style: TextStyle(
                                   fontFamily: 'Quicksand',
                                   fontWeight: FontWeight.bold,
@@ -234,10 +242,10 @@ class _ShoppingCartState extends State<ShoppingCart> {
                               ),
                             ),
                           ),
-                    SizedBox(height: 7.0),
+                    SizedBox(height: 10.0),
                     available
                         ? Text(
-                            '\$' + (itemPrices[i] * itemCounts[i]).toString(),
+                            '\$${(itemPrices[i] )}',
                             style: TextStyle(
                               fontFamily: 'Montserrat',
                               fontWeight: FontWeight.bold,
@@ -248,11 +256,46 @@ class _ShoppingCartState extends State<ShoppingCart> {
                         : Container(),
                   ],
                 ),
-              ],
-            ),
+              ),
+         
+              Column(
+                
+                children: [ 
+                     SizedBox(height: 10.0),   
+                  Container(
+                    height: 25.0,
+                    width: 25.0,
+                    decoration: BoxDecoration(
+                      color: available ? Colors.grey.withOpacity(0.4) : Colors.red.withOpacity(0.4),
+                      borderRadius: BorderRadius.circular(12.5),
+                    ),
+                    child: Center(
+                      child: available
+                          ? Container(
+                              height: 12.0,
+                              width: 12.0,
+                              decoration: BoxDecoration(
+                                color: picked[i] ? AppTheme.vinho : Colors.grey.withOpacity(0.4),
+                                borderRadius: BorderRadius.circular(6.0),
+                              ),
+                            )
+                          : Container(),
+                    ),
+                  ),
+                   Gap(65.0),   
+                  IconButton(
+                    onPressed: () {
+                      // Implement your delete logic here
+                    },
+                    icon: Icon(Icons.delete),
+                    color: Colors.grey, // Customize the color as needed
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
-    );
-  }
-}
+    ),
+  );
+}}

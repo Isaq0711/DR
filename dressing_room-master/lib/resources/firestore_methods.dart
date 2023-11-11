@@ -189,6 +189,39 @@ Future<String> votePost(String votationId, String uid, int optionIndex) async {
   }
   return res;
 }
+
+
+Future<void> updatePostGrade(String postId, bool isAnonymous) async {
+  try {
+    final collectionPath = isAnonymous ? 'anonymous_posts' : 'posts';
+
+    DocumentSnapshot postSnapshot =
+        await FirebaseFirestore.instance.collection(collectionPath).doc(postId).get();
+
+    if (postSnapshot.exists && (postSnapshot.data() as dynamic)['votes'] != null) {
+      dynamic votes = (postSnapshot.data() as dynamic)['votes'];
+
+      if (votes.isNotEmpty) {
+        // Calcula a média dos votos
+        double averageGrade = votes.values.reduce((a, b) => a + b) / votes.length;
+
+        // Arredonda a média para o formato desejado (0 ou .5)
+        double roundedGrade = (averageGrade * 2).round() / 2;
+
+        // Atualiza o campo 'grade' na publicação
+        await FirebaseFirestore.instance
+            .collection(collectionPath)
+            .doc(postId)
+            .update({'grade': roundedGrade});
+      }
+    }
+  } catch (err) {
+    print(err.toString());
+  }
+}
+
+
+
 Future<double> getUserGrade(String postId, String uid, [double? newGrade]) async {
   double initialRating = 0;
   try {
@@ -257,6 +290,7 @@ Future<double> getUserGrade(String postId, String uid, [double? newGrade]) async
         }
       }
     }
+     await updatePostGrade(postId, isAnonymous);
   } catch (err) {
     print(err.toString());
   }

@@ -14,17 +14,18 @@ class BasketScreen extends StatefulWidget {
   _BasketScreenState createState() => _BasketScreenState();
 }
 
-class _BasketScreenState extends State<BasketScreen> {
+class _BasketScreenState extends State<BasketScreen>
+    with SingleTickerProviderStateMixin {
   List<Uint8List>? _files;
   bool isLoading = false;
-  Timer? _timer;
   List<int> selectedIndexes = [];
   int? selectedButtonIndex;
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance!.addPostFrameCallback((_) {});
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   void _selectImage(BuildContext parentContext) async {
@@ -58,8 +59,8 @@ class _BasketScreenState extends State<BasketScreen> {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(10.0),
-            child: Image.network(
-              'https://www.creativefabrica.com/wp-content/uploads/2019/05/Add-icon-by-ahlangraphic-1-580x386.jpg',
+            child: Image.asset(
+             'assets/BUTTON-ADD.png' ,
               fit: BoxFit.cover,
             ),
           ),
@@ -135,79 +136,23 @@ class _BasketScreenState extends State<BasketScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(height: MediaQuery.of(context).size.height * 0.008),
-          Container(
-            padding: EdgeInsets.all(8.0),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10.0),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      selectedButtonIndex = 1;
-                      selectedIndexes.clear();
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    primary: selectedButtonIndex == 1 ? AppTheme.vinhoescuro : AppTheme.vinho,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                  ),
-                  child: Text('TOP', style: AppTheme.subtitlewhite),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      selectedButtonIndex = 2;
-                      selectedIndexes.clear();
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    primary: selectedButtonIndex == 2 ? AppTheme.vinhoescuro : AppTheme.vinho,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                  ),
-                  child: Text('BOTTOM', style: AppTheme.subtitlewhite),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      selectedButtonIndex = 3;
-                      selectedIndexes.clear();
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    primary: selectedButtonIndex == 3 ? AppTheme.vinhoescuro : AppTheme.vinho,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                  ),
-                  child: Text(
-                    'SHOES',
-                    style: AppTheme.subtitlewhite,
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      selectedButtonIndex = 4;
-                      selectedIndexes.clear();
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    primary: selectedButtonIndex == 4 ? AppTheme.vinhoescuro : AppTheme.vinho,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                  ),
-                  child: Text('COATS', style: AppTheme.subtitlewhite),
-                ),
-              ],
-            ),
+          TabBar(
+            controller: _tabController,
+            indicatorColor: AppTheme.vinhoescuro,
+            labelColor: AppTheme.vinhoescuro,
+            unselectedLabelColor: AppTheme.vinho,
+            tabs: [
+              Tab(text: 'TOP'),
+              Tab(text: 'BOTTOM'),
+              Tab(text: 'SHOES'),
+              Tab(text: 'COATS'),
+            ],
+            onTap: (index) {
+              setState(() {
+                selectedButtonIndex = index + 1;
+                selectedIndexes.clear();
+              });
+            },
           ),
           Container(height: MediaQuery.of(context).size.height * 0.008),
           Expanded(

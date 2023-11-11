@@ -1,7 +1,6 @@
-import 'package:dressing_room/models/votations.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dressing_room/widgets/post_card.dart';
 import 'package:dressing_room/utils/colors.dart';
 import 'package:dressing_room/widgets/votation_card.dart';
@@ -16,45 +15,42 @@ class SeePost extends StatefulWidget {
 }
 
 class _SeePostState extends State<SeePost> {
-  late Future<DocumentSnapshot<Map<String, dynamic>>> _postFuture;
-  late Future<DocumentSnapshot<Map<String, dynamic>>> _anonymousPostFuture;
-  late Future<QuerySnapshot<Map<String, dynamic>>> _votationsFuture;
+  late Stream<DocumentSnapshot<Map<String, dynamic>>> _postStream;
+  late Stream<DocumentSnapshot<Map<String, dynamic>>> _anonymousPostStream;
+  late Stream<QuerySnapshot<Map<String, dynamic>>> _votationsStream;
 
   @override
   void initState() {
     super.initState();
     _initializeFirebase();
-    _postFuture = _fetchPost();
-    _anonymousPostFuture = _fetchAnonymousPost();
-    _votationsFuture = _fetchVotations();
+    _postStream = _subscribeToPost();
+    _anonymousPostStream = _subscribeToAnonymousPost();
+    _votationsStream = _subscribeToVotations();
   }
 
   void _initializeFirebase() async {
     await Firebase.initializeApp();
   }
 
-  Future<DocumentSnapshot<Map<String, dynamic>>> _fetchPost() async {
-    final snapshot = await FirebaseFirestore.instance
+  Stream<DocumentSnapshot<Map<String, dynamic>>> _subscribeToPost() {
+    return FirebaseFirestore.instance
         .collection('posts')
         .doc(widget.postId)
-        .get();
-    return snapshot;
+        .snapshots();
   }
 
-  Future<DocumentSnapshot<Map<String, dynamic>>> _fetchAnonymousPost() async {
-    final snapshot = await FirebaseFirestore.instance
+  Stream<DocumentSnapshot<Map<String, dynamic>>> _subscribeToAnonymousPost() {
+    return FirebaseFirestore.instance
         .collection('anonymous_posts')
         .doc(widget.postId)
-        .get();
-    return snapshot;
+        .snapshots();
   }
 
-  Future<QuerySnapshot<Map<String, dynamic>>> _fetchVotations() async {
-    final snapshot = await FirebaseFirestore.instance
+  Stream<QuerySnapshot<Map<String, dynamic>>> _subscribeToVotations() {
+    return FirebaseFirestore.instance
         .collection('votations')
         .where('votationId', isEqualTo: widget.postId)
-        .get();
-    return snapshot;
+        .snapshots();
   }
 
   @override
@@ -62,7 +58,7 @@ class _SeePostState extends State<SeePost> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'One more look',
+          'A closer look',
           style: AppTheme.subheadlinewhite,
         ),
         backgroundColor: AppTheme.vinho,
@@ -70,15 +66,9 @@ class _SeePostState extends State<SeePost> {
       body: Center(
         child: Column(
           children: [
-            FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-              future: _postFuture,
+            StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+              stream: _postStream,
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CircularProgressIndicator();
-                }
-                if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}');
-                }
                 if (!snapshot.hasData || !snapshot.data!.exists) {
                   return Container();
                 }
@@ -86,15 +76,9 @@ class _SeePostState extends State<SeePost> {
                 return PostCard(snap: post);
               },
             ),
-            FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-              future: _anonymousPostFuture,
+            StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+              stream: _anonymousPostStream,
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CircularProgressIndicator();
-                }
-                if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}');
-                }
                 if (!snapshot.hasData || !snapshot.data!.exists) {
                   return Container();
                 }
@@ -102,15 +86,9 @@ class _SeePostState extends State<SeePost> {
                 return PostCard(snap: anonymousPost);
               },
             ),
-            FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
-              future: _votationsFuture,
+            StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: _votationsStream,
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CircularProgressIndicator();
-                }
-                if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}');
-                }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return Container(); // handle the case where data does not exist
                 }

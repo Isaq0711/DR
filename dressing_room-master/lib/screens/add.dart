@@ -3,6 +3,7 @@ import 'package:dressing_room/utils/colors.dart';
 import 'add_post_screen.dart';
 import 'add_votations_screen.dart';
 import 'test_api_screen.dart';
+import 'package:gap/gap.dart';
 
 class AddPage extends StatelessWidget {
   @override
@@ -20,8 +21,9 @@ class AddPage extends StatelessWidget {
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+             Gap(MediaQuery.of(context).size.width * 0.4),
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
@@ -58,7 +60,7 @@ class AddPage extends StatelessWidget {
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                   Navigator.push(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => TestAPIScreen()),
                 );
@@ -70,7 +72,7 @@ class AddPage extends StatelessWidget {
                 ),
                 padding: EdgeInsets.symmetric(horizontal: buttonWidth, vertical: 20),
               ),
-              child: Text(' Dressing Room  ', style: AppTheme.headlinewhite),
+              child: Text('I.A.R.A', style: AppTheme.headlinewhite),
             ),
           ],
         ),

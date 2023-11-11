@@ -73,11 +73,12 @@ class _AddPostScreenState extends State<AddPostScreen> {
       }
     } else {
       String res = await FireStoreMethods().uploadPost(
-        _descriptionController.text,
-        _files!,
+        _descriptionController.text, 
+        _files!, 
         uid,
         username,
-        profImage,
+        profImage, 
+        0
       );
       if (res == "success") {
         showSnackBar(

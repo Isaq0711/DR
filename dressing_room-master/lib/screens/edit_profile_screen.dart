@@ -53,9 +53,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     String newUsername = _usernameController.text;
     Uint8List? newImage = _image;
 
-    if (_usernameController.text != "") {
-      await FirebaseFirestore.instance.collection('users').doc(widget.uid).update({'username': newUsername});
-    }
+ if (_usernameController.text != "") {
+  // Update username in 'users' collection
+  await FirebaseFirestore.instance.collection('users').doc(widget.uid).update({'username': newUsername});
+
+  // Update username in 'posts' collection
+  QuerySnapshot posts = await FirebaseFirestore.instance.collection('posts').where('uid', isEqualTo: widget.uid).get();
+  posts.docs.forEach((doc) {
+    doc.reference.update({'username': newUsername});
+  });
+
+  // Update username in 'votations' collection
+  QuerySnapshot votations = await FirebaseFirestore.instance.collection('votations').where('uid', isEqualTo: widget.uid).get();
+  votations.docs.forEach((doc) {
+    doc.reference.update({'username': newUsername});
+  });
+}
+
 
     if (_image != null) {
       String downloadUrl = await StorageMethods().uploadImageToStorage('profilePics', _image!, false);

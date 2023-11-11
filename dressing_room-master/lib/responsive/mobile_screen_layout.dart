@@ -54,36 +54,36 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
         items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(
-              Icons.home,
-              color: (_page == 0) ? AppTheme.nearlyWhite : Colors.grey,
+              (_page == 0) ?Icons.home : Icons.home_outlined,
+              color:  AppTheme.nearlyWhite 
             ),
             label: '',
           ),
           BottomNavigationBarItem(
             icon: Icon(
-              Icons.shopping_cart,
-              color: (_page == 1) ? AppTheme.nearlyWhite : Colors.grey,
+              (_page == 1) ?Icons.shopping_cart : Icons.shopping_cart_outlined,
+              color:  AppTheme.nearlyWhite 
             ),
             label: '',
           ),
           BottomNavigationBarItem(
             icon: Icon(
-              Icons.add,
-              color: (_page == 2) ? AppTheme.nearlyWhite : Colors.grey,
+              (_page == 2) ?Icons.add_circle : Icons.add_circle_outline,
+              color:  AppTheme.nearlyWhite
             ),
             label: '',
           ),
           BottomNavigationBarItem(
             icon: Icon(
-              Icons.notification_add,
-              color: (_page == 3) ? AppTheme.nearlyWhite : Colors.grey,
+              (_page == 3) ? Icons.notification_add : Icons.notification_add_outlined,
+              color:  AppTheme.nearlyWhite 
             ),
             label: '',
           ),
           BottomNavigationBarItem(
             icon: Icon(
-              Icons.person,
-              color: (_page == 4) ? AppTheme.nearlyWhite : Colors.grey,
+              (_page == 4) ?Icons.person : Icons.person_outline,
+              color:  AppTheme.nearlyWhite
             ),
             label: '',
           ),

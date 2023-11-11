@@ -1,8 +1,6 @@
 name: dressing_room
 description: A new Flutter project.
-
 publish_to: 'none'
-
 version: 1.0.0+1
 
 environment:
@@ -13,11 +11,15 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.5
   path_provider: ^2.0.8
+  animate_do: ^2.0.0
+  line_icons: ^2.0.3
+  gap: ^3.0.1
   image_picker: ^0.8.4+3
   sliding_up_panel: ^2.0.0+1
   image_cropper: ^1.4.1
   firebase_core: ^2.13.0
   firebase_auth: ^4.6.0
+  flutter_rating_bar: ^4.0.1
   firebase_storage: ^11.2.1
   uuid: ^3.0.7
   dots_indicator: ^3.0.0
@@ -38,3 +40,12 @@ flutter:
     - family: Quicksand
       fonts:
         - asset: fonts/Quicksand-Regular.ttf
+    - family: Forum
+      fonts:
+        - asset: fonts/Forum-Regular.ttf
+    - family: Arimo
+      fonts:
+        - asset: fonts/Arimo-Regular.ttf
+
+  assets:
+    - assets/

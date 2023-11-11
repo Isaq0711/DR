@@ -20,6 +20,7 @@ class AppTheme {
   static const Color chipBackground = Color(0xFFEEF1F3);
   static const Color spacer = Color(0xFFF2F2F2);
   static const String fontName = 'Quicksand';
+   static const String fontName2 = 'Arimo';
 
   static const TextTheme textTheme = TextTheme(
     headline4: display1,
@@ -38,6 +39,20 @@ class AppTheme {
     letterSpacing: 0.4,
     height: 0.9,
     color: nearlyBlack,
+  );
+    static const TextStyle barapp = TextStyle( 
+    fontFamily: fontName2,
+    fontWeight: FontWeight.w600,
+    fontSize: 26,
+    letterSpacing: 0.4,
+    color: vinho,
+  );
+  static const TextStyle barappwhite = TextStyle( 
+    fontFamily: fontName2,
+    fontWeight: FontWeight.w600,
+    fontSize: 28,
+    letterSpacing: 0.4,
+    color: nearlyWhite,
   );
 
   static const TextStyle headline = TextStyle( // h5 -> headline
@@ -62,7 +77,14 @@ class AppTheme {
     letterSpacing: 0.18,
     color: nearlyBlack,
   );
-
+  
+  static const TextStyle barappvinho = TextStyle(
+    fontFamily: fontName2,
+    fontWeight: FontWeight.bold,
+    fontSize: 25,
+    letterSpacing: 0.18,
+    color: vinho,
+  );
    static const TextStyle subheadlinewhite = TextStyle( 
     fontFamily: fontName,
     fontWeight: FontWeight.bold,

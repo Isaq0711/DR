@@ -1,26 +1,25 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 class Post {
   final String description;
   final String uid;
   final String username;
-  final likes;
-  final dislikes;
+  final double grade; // Alterado para double para representar a nota em estrelas
   final String postId;
   final DateTime datePublished;
   final List<String> photoUrls; // Lista de URLs de fotos
   final String profImage;
+  final Map<String, double> votes; // Mapa que armazena quem votou e a respectiva nota
 
   const Post({
     required this.description,
     required this.uid,
     required this.username,
-    required this.likes,
-    required this.dislikes,
+    required this.grade,
     required this.postId,
     required this.datePublished,
     required this.photoUrls, // Atualizado para uma lista de URLs
     required this.profImage,
+    required this.votes,
   });
 
   static Post fromSnap(DocumentSnapshot snap) {
@@ -29,25 +28,25 @@ class Post {
     return Post(
       description: snapshot["description"],
       uid: snapshot["uid"],
-      likes: snapshot["likes"],
-      dislikes: snapshot["dislikes"],
+      grade: snapshot["grade"],
       postId: snapshot["postId"],
-      datePublished: snapshot["datePublished"],
+      datePublished: snapshot["datePublished"].toDate(),
       username: snapshot["username"],
-      photoUrls: snapshot['photoUrls'],
-      profImage: snapshot['profImage']
+      photoUrls: List<String>.from(snapshot['photoUrls']),
+      profImage: snapshot['profImage'],
+      votes: Map<String, double>.from(snapshot['votes'] ?? {}),
     );
   }
 
-   Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => {
         "description": description,
         "uid": uid,
-        "likes": likes,
-        "dislikes": dislikes,
-        "username": username,
+        "grade": grade,
+         "username": username,
         "postId": postId,
         "datePublished": datePublished,
         'photoUrls': photoUrls,
-        'profImage': profImage
+        'profImage': profImage,
+        'votes': votes,
       };
 }
