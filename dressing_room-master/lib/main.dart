@@ -10,21 +10,17 @@ import 'package:dressing_room/screens/login_screen.dart';
 import 'package:dressing_room/utils/colors.dart';
 import 'package:provider/provider.dart';
 
-
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
 
   if (kIsWeb) {
     await Firebase.initializeApp(
       options: const FirebaseOptions(
-        apiKey: "AIzaSyC19GhITjqB5vUIJvHRB4cxnfCTHyX02vU",
-        appId: "1:755117795647:web:63a2fdb492a46fb9f0cb8a",
-        messagingSenderId: "755117795647",
-        projectId: "tentativa1-56553",
-        storageBucket: "tentativa1-56553.appspot.com"
-      ),
+          apiKey: "AIzaSyC19GhITjqB5vUIJvHRB4cxnfCTHyX02vU",
+          appId: "1:755117795647:web:63a2fdb492a46fb9f0cb8a",
+          messagingSenderId: "755117795647",
+          projectId: "tentativa1-56553",
+          storageBucket: "tentativa1-56553.appspot.com"),
     );
   } else {
     await Firebase.initializeApp();
@@ -39,7 +35,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => UserProvider(),),
+        ChangeNotifierProvider(
+          create: (_) => UserProvider(),
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

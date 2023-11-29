@@ -1,5 +1,4 @@
 import 'dart:typed_data';
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:dressing_room/providers/user_provider.dart';
 import 'package:dressing_room/models/user.dart';
@@ -16,7 +15,7 @@ class BasketScreen extends StatefulWidget {
 
 class _BasketScreenState extends State<BasketScreen>
     with SingleTickerProviderStateMixin {
-  List<Uint8List>? _files;
+  List<List<Uint8List>?> _filesByTab = List.generate(4, (_) => null);
   bool isLoading = false;
   List<int> selectedIndexes = [];
   int? selectedButtonIndex;
@@ -29,14 +28,16 @@ class _BasketScreenState extends State<BasketScreen>
   }
 
   void _selectImage(BuildContext parentContext) async {
+    final selectedTabIndex = _tabController.index;
+
     showDialog(
       context: parentContext,
       builder: (BuildContext context) {
         return SelectImageDialog(
           onImageSelected: (Uint8List file) {
             setState(() {
-              _files ??= [];
-              _files!.add(file);
+              _filesByTab[selectedTabIndex] ??= [];
+              _filesByTab[selectedTabIndex]!.add(file);
             });
           },
         );
@@ -46,6 +47,8 @@ class _BasketScreenState extends State<BasketScreen>
 
   Widget buildGridViewItem(int index) {
     final isSelected = selectedIndexes.contains(index);
+    final selectedTabIndex = _tabController.index;
+
     if (index == 0) {
       return InkWell(
         onTap: () => _selectImage(context),
@@ -60,7 +63,7 @@ class _BasketScreenState extends State<BasketScreen>
           child: ClipRRect(
             borderRadius: BorderRadius.circular(10.0),
             child: Image.asset(
-             'assets/BUTTON-ADD.png' ,
+              'assets/BUTTON-ADD.png',
               fit: BoxFit.cover,
             ),
           ),
@@ -94,9 +97,11 @@ class _BasketScreenState extends State<BasketScreen>
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10.0),
               ),
-              child: index > 0 && _files != null && _files!.isNotEmpty
+              child: index > 0 &&
+                      _filesByTab[selectedTabIndex] != null &&
+                      _filesByTab[selectedTabIndex]!.isNotEmpty
                   ? Image.memory(
-                      _files![index - 1],
+                      _filesByTab[selectedTabIndex]![index - 1],
                       fit: BoxFit.cover,
                     )
                   : Container(),
@@ -167,7 +172,7 @@ class _BasketScreenState extends State<BasketScreen>
                   crossAxisSpacing: 8.0,
                   mainAxisSpacing: 8.0,
                 ),
-                itemCount: (_files?.length ?? 0) + 1,
+                itemCount: (_filesByTab[_tabController.index]?.length ?? 0) + 1,
                 itemBuilder: (BuildContext context, int index) {
                   return buildGridViewItem(index);
                 },

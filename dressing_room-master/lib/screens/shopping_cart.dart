@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dressing_room/utils/colors.dart';
 import 'package:gap/gap.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 class ShoppingCart extends StatefulWidget {
   @override
@@ -68,7 +69,8 @@ class _ShoppingCartState extends State<ShoppingCart> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: <Widget>[
-                Text('Total: \$' + totalAmount.toString(), style: AppTheme.subtitle),
+                Text('Total: \$' + totalAmount.toString(),
+                    style: AppTheme.subtitle),
                 SizedBox(width: 10.0),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -76,7 +78,8 @@ class _ShoppingCartState extends State<ShoppingCart> {
                     onPressed: () {},
                     style: ElevatedButton.styleFrom(
                       primary: AppTheme.vinho, // background
-                      onPrimary: const Color.fromARGB(255, 255, 226, 226), // foreground
+                      onPrimary: const Color.fromARGB(
+                          255, 255, 226, 226), // foreground
                     ),
                     child: Text('Pay Now'),
                   ),
@@ -94,8 +97,37 @@ class _ShoppingCartState extends State<ShoppingCart> {
               physics: NeverScrollableScrollPhysics(),
               itemCount: 7,
               itemBuilder: (context, index) {
-                return itemCard('Item $index', 'gray', itemPrices[index].toString(), 'L',
-                    'https://img.ltwebstatic.com/gspCenter/goodsImage/2022/8/6/2790396538_1018999/D16B882D6326D7F33C6F0E645346262D_thumbnail_720x.webp', true, index);
+                return Slidable(
+                  key: ValueKey(index),
+                  endActionPane: ActionPane(
+                    motion: const ScrollMotion(),
+                    children: const [
+                      SlidableAction(
+                        onPressed: doNothing,
+                        backgroundColor: AppTheme.cinza,
+                        foregroundColor: Colors.white,
+                        icon: Icons.share,
+                        label: 'Share',
+                      ),
+                      SlidableAction(
+                        onPressed: doNothing,
+                        backgroundColor: AppTheme.vinho,
+                        foregroundColor: Colors.white,
+                        icon: Icons.shopping_bag,
+                        label: 'Basket',
+                      ),
+                    ],
+                  ),
+                  child: itemCard(
+                    'Item $index',
+                    'gray',
+                    itemPrices[index].toString(),
+                    'L',
+                    'https://img.ltwebstatic.com/gspCenter/goodsImage/2022/8/6/2790396538_1018999/D16B882D6326D7F33C6F0E645346262D_thumbnail_720x.webp',
+                    true,
+                    index,
+                  ),
+                );
               },
             ),
           ],
@@ -103,199 +135,205 @@ class _ShoppingCartState extends State<ShoppingCart> {
       ),
     );
   }
-Widget itemCard(String itemName, String color, String price, String size, String imgPath, bool available, int i) {
-  return InkWell(
-    onTap: () {
-      if (available) {
-        pickToggle(i);
-      }
-    },
-    child: Padding(
-      padding: EdgeInsets.all(10.0),
-      child: Material(
-        borderRadius: BorderRadius.circular(10.0),
-        elevation: 3.0,
-        child: Container(
-          width: MediaQuery.of(context).size.width - 20.0,
-          height: 150.0,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10.0),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Container(
-                width: 150.0,
-                height: 150.0,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  image: DecorationImage(
-                    image: NetworkImage(imgPath),
-                    fit: BoxFit.cover,     
+
+  Widget itemCard(String itemName, String color, String price, String size,
+      String imgPath, bool available, int i) {
+    return InkWell(
+      onTap: () {
+        if (available) {
+          pickToggle(i);
+        }
+      },
+      child: Padding(
+        padding: EdgeInsets.all(10.0),
+        child: Material(
+          borderRadius: BorderRadius.circular(10.0),
+          elevation: 3.0,
+          child: Container(
+            width: MediaQuery.of(context).size.width - 20.0,
+            height: 150.0,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Container(
+                  width: 150.0,
+                  height: 150.0,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    image: DecorationImage(
+                      image: NetworkImage(imgPath),
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(width: 10.0),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Text(
-                      itemName,
-                      style: AppTheme.subheadline,
-                    ),
-                    SizedBox(height: 10.0),
-                    Row(
-                      children: <Widget>[
-                        Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(6.5),
-                            border: Border.all(color: AppTheme.vinho, width: 2.0),
-                          ),
-                          child: Row(
-                            children: <Widget>[
-                              GestureDetector(
-                                onTap: () {
-                                  if (available) {
-                                    decrementCount(i);
-                                  }
-                                },
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.vinho,
-                                    borderRadius: BorderRadius.circular(5.0),
-                                  ),
-                                  child: Icon(
-                                    Icons.remove,
-                                    color: AppTheme.nearlyWhite,
+                SizedBox(width: 10.0),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text(
+                        itemName,
+                        style: AppTheme.subheadline,
+                      ),
+                      SizedBox(height: 10.0),
+                      Row(
+                        children: <Widget>[
+                          Container(
+                            child: Row(
+                              children: <Widget>[
+                                GestureDetector(
+                                  onTap: () {
+                                    if (available) {
+                                      decrementCount(i);
+                                    }
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.vinho,
+                                      borderRadius: BorderRadius.circular(15.0),
+                                    ),
+                                    child: Icon(
+                                      Icons.remove,
+                                      color: AppTheme.nearlyWhite,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              SizedBox(width: 10.0),
-                              available ? Text('${itemCounts[i]}', style: AppTheme.title) : Container(),
-                              SizedBox(width: 10.0),
-                              GestureDetector(
-                                onTap: () {
-                                  if (available) {
-                                    incrementCount(i);
-                                  }
-                                },
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.vinho,
-                                    borderRadius: BorderRadius.circular(5.0),
+                                SizedBox(width: 10.0),
+                                available
+                                    ? Text('${itemCounts[i]}',
+                                        style: AppTheme.title)
+                                    : Container(),
+                                SizedBox(width: 10.0),
+                                GestureDetector(
+                                  onTap: () {
+                                    if (available) {
+                                      incrementCount(i);
+                                    }
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.vinho,
+                                      borderRadius: BorderRadius.circular(15.0),
+                                    ),
+                                    child: Icon(
+                                      Icons.add,
+                                      color: AppTheme.nearlyWhite,
+                                    ),
                                   ),
-                                  child: Icon(
-                                    Icons.add,
-                                    color: AppTheme.nearlyWhite,
-                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 10.0),
-                    available
-                        ? Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                'Color: $color',
-                                style: TextStyle(
-                                  fontFamily: 'Quicksand',
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14.0,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                              SizedBox(height: 5.0),
-                              Text(
-                                'Size: $size',
-                                style: TextStyle(
-                                  fontFamily: 'Quicksand',
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14.0,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
-                          )
-                        : OutlinedButton(
-                            onPressed: () {},
-                            style: OutlinedButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20.0),
-                              ),
-                              side: BorderSide(color: AppTheme.vinho),
+                              ],
                             ),
-                            child: Text(
-                              'Find Similar',
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 10.0),
+                      available
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text(
+                                  'Variation: $color',
+                                  style: TextStyle(
+                                    fontFamily: 'Quicksand',
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14.0,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                SizedBox(height: 5.0),
+                                Text(
+                                  'Size: $size',
+                                  style: TextStyle(
+                                    fontFamily: 'Quicksand',
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14.0,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            )
+                          : OutlinedButton(
+                              onPressed: () {},
+                              style: OutlinedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20.0),
+                                ),
+                                side: BorderSide(color: AppTheme.vinho),
+                              ),
+                              child: Text(
+                                'Find Similar',
+                                style: TextStyle(
+                                  fontFamily: 'Quicksand',
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12.0,
+                                  color: AppTheme.vinho,
+                                ),
+                              ),
+                            ),
+                      SizedBox(height: 10.0),
+                      available
+                          ? Text(
+                              '\$${(itemPrices[i])}',
                               style: TextStyle(
-                                fontFamily: 'Quicksand',
+                                fontFamily: 'Montserrat',
                                 fontWeight: FontWeight.bold,
-                                fontSize: 12.0,
+                                fontSize: 20.0,
                                 color: AppTheme.vinho,
-                              ),
-                            ),
-                          ),
-                    SizedBox(height: 10.0),
-                    available
-                        ? Text(
-                            '\$${(itemPrices[i] )}',
-                            style: TextStyle(
-                              fontFamily: 'Montserrat',
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20.0,
-                              color: AppTheme.vinho,
-                            ),
-                          )
-                        : Container(),
-                  ],
-                ),
-              ),
-         
-              Column(
-                
-                children: [ 
-                     SizedBox(height: 10.0),   
-                  Container(
-                    height: 25.0,
-                    width: 25.0,
-                    decoration: BoxDecoration(
-                      color: available ? Colors.grey.withOpacity(0.4) : Colors.red.withOpacity(0.4),
-                      borderRadius: BorderRadius.circular(12.5),
-                    ),
-                    child: Center(
-                      child: available
-                          ? Container(
-                              height: 12.0,
-                              width: 12.0,
-                              decoration: BoxDecoration(
-                                color: picked[i] ? AppTheme.vinho : Colors.grey.withOpacity(0.4),
-                                borderRadius: BorderRadius.circular(6.0),
                               ),
                             )
                           : Container(),
+                    ],
+                  ),
+                ),
+                Column(
+                  children: [
+                    SizedBox(height: 10.0),
+                    Container(
+                      height: 25.0,
+                      width: 25.0,
+                      decoration: BoxDecoration(
+                        color: available
+                            ? Colors.grey.withOpacity(0.4)
+                            : Colors.red.withOpacity(0.4),
+                        borderRadius: BorderRadius.circular(12.5),
+                      ),
+                      child: Center(
+                        child: available
+                            ? Container(
+                                height: 12.0,
+                                width: 12.0,
+                                decoration: BoxDecoration(
+                                  color: picked[i]
+                                      ? AppTheme.vinho
+                                      : Colors.grey.withOpacity(0.4),
+                                  borderRadius: BorderRadius.circular(6.0),
+                                ),
+                              )
+                            : Container(),
+                      ),
                     ),
-                  ),
-                   Gap(65.0),   
-                  IconButton(
-                    onPressed: () {
-                      // Implement your delete logic here
-                    },
-                    icon: Icon(Icons.delete),
-                    color: Colors.grey, // Customize the color as needed
-                  ),
-                ],
-              ),
-            ],
+                    Gap(65.0),
+                    IconButton(
+                      onPressed: () {
+                        // Implement your delete logic here
+                      },
+                      icon: Icon(Icons.delete),
+                      color: Colors.grey, // Customize the color as needed
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
-}}
+    );
+  }
+}
+
+void doNothing(BuildContext context) {}

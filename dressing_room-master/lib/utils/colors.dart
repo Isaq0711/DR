@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-
-
 class AppTheme {
   AppTheme._();
 
@@ -20,7 +18,7 @@ class AppTheme {
   static const Color chipBackground = Color(0xFFEEF1F3);
   static const Color spacer = Color(0xFFF2F2F2);
   static const String fontName = 'Quicksand';
-   static const String fontName2 = 'Arimo';
+  static const String fontName2 = 'Arimo';
 
   static const TextTheme textTheme = TextTheme(
     headline4: display1,
@@ -32,7 +30,8 @@ class AppTheme {
     caption: caption,
   );
 
-  static const TextStyle display1 = TextStyle( // h4 -> display1
+  static const TextStyle display1 = TextStyle(
+    // h4 -> display1
     fontFamily: fontName,
     fontWeight: FontWeight.bold,
     fontSize: 36,
@@ -40,14 +39,14 @@ class AppTheme {
     height: 0.9,
     color: nearlyBlack,
   );
-    static const TextStyle barapp = TextStyle( 
+  static const TextStyle barapp = TextStyle(
     fontFamily: fontName2,
     fontWeight: FontWeight.w600,
     fontSize: 26,
     letterSpacing: 0.4,
     color: vinho,
   );
-  static const TextStyle barappwhite = TextStyle( 
+  static const TextStyle barappwhite = TextStyle(
     fontFamily: fontName2,
     fontWeight: FontWeight.w600,
     fontSize: 28,
@@ -55,14 +54,16 @@ class AppTheme {
     color: nearlyWhite,
   );
 
-  static const TextStyle headline = TextStyle( // h5 -> headline
+  static const TextStyle headline = TextStyle(
+    // h5 -> headline
     fontFamily: fontName,
     fontWeight: FontWeight.bold,
     fontSize: 24,
     letterSpacing: 0.27,
     color: nearlyBlack,
   );
-    static const TextStyle headlinewhite = TextStyle( // h5 -> headline
+  static const TextStyle headlinewhite = TextStyle(
+    // h5 -> headline
     fontFamily: fontName,
     fontWeight: FontWeight.bold,
     fontSize: 24,
@@ -70,14 +71,21 @@ class AppTheme {
     color: nearlyWhite,
   );
 
-   static const TextStyle subheadline = TextStyle(
+  static const TextStyle subheadline = TextStyle(
     fontFamily: fontName,
     fontWeight: FontWeight.bold,
     fontSize: 19,
     letterSpacing: 0.18,
     color: nearlyBlack,
   );
-  
+  static const TextStyle subheadlinevinho = TextStyle(
+    fontFamily: fontName2,
+    fontWeight: FontWeight.bold,
+    fontSize: 19,
+    letterSpacing: 0.18,
+    color: vinho,
+  );
+
   static const TextStyle barappvinho = TextStyle(
     fontFamily: fontName2,
     fontWeight: FontWeight.bold,
@@ -85,21 +93,23 @@ class AppTheme {
     letterSpacing: 0.18,
     color: vinho,
   );
-   static const TextStyle subheadlinewhite = TextStyle( 
+  static const TextStyle subheadlinewhite = TextStyle(
     fontFamily: fontName,
     fontWeight: FontWeight.bold,
     fontSize: 19,
     letterSpacing: 0.18,
     color: nearlyWhite,
   );
-  static const TextStyle title = TextStyle( // h6 -> title
+  static const TextStyle title = TextStyle(
+    // h6 -> title
     fontFamily: fontName,
     fontWeight: FontWeight.bold,
     fontSize: 16,
     letterSpacing: 0.18,
     color: nearlyBlack,
   );
- static const TextStyle titlewhite = TextStyle( // h6 -> title
+  static const TextStyle titlewhite = TextStyle(
+    // h6 -> title
     fontFamily: fontName,
     fontWeight: FontWeight.bold,
     fontSize: 16,
@@ -107,7 +117,8 @@ class AppTheme {
     color: nearlyWhite,
   );
 
-  static const TextStyle subtitle = TextStyle( // subtitle2 -> subtitle
+  static const TextStyle subtitle = TextStyle(
+    // subtitle2 -> subtitle
     fontFamily: fontName,
     fontWeight: FontWeight.bold,
     fontSize: 14,
@@ -115,7 +126,8 @@ class AppTheme {
     color: nearlyBlack,
   );
 
-    static const TextStyle subtitlewhite = TextStyle( // subtitle2 -> subtitle
+  static const TextStyle subtitlewhite = TextStyle(
+    // subtitle2 -> subtitle
     fontFamily: fontName,
     fontWeight: FontWeight.bold,
     fontSize: 14,
@@ -123,7 +135,8 @@ class AppTheme {
     color: nearlyWhite,
   );
 
-  static const TextStyle body2 = TextStyle( // body1 -> body2
+  static const TextStyle body2 = TextStyle(
+    // body1 -> body2
     fontFamily: fontName,
     fontWeight: FontWeight.bold,
     fontSize: 14,
@@ -131,14 +144,16 @@ class AppTheme {
     color: nearlyBlack,
   );
 
-  static const TextStyle body1 = TextStyle( // body2 -> body1
+  static const TextStyle body1 = TextStyle(
+    // body2 -> body1
     fontFamily: fontName,
     fontWeight: FontWeight.bold,
     fontSize: 16,
     letterSpacing: -0.05,
     color: nearlyBlack,
   );
-    static const TextStyle body1white = TextStyle( // body2 -> body1
+  static const TextStyle body1white = TextStyle(
+    // body2 -> body1
     fontFamily: fontName,
     fontWeight: FontWeight.bold,
     fontSize: 16,
@@ -146,11 +161,12 @@ class AppTheme {
     color: nearlyWhite,
   );
 
-  static const TextStyle caption = TextStyle( // Caption -> caption
+  static const TextStyle caption = TextStyle(
+    // Caption -> caption
     fontFamily: fontName,
     fontWeight: FontWeight.bold,
     fontSize: 12,
     letterSpacing: 0.2,
-    color: nearlyBlack, 
+    color: nearlyBlack,
   );
 }

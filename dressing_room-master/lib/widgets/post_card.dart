@@ -66,8 +66,10 @@ class _PostCardState extends State<PostCard> {
       String uid = user.uid;
       String postId = widget.snap['postId'].toString();
       // Obtenha a nota diretamente do Firebase
-      double initialRating =
-          await FireStoreMethods().getUserGrade(postId, uid,);
+      double initialRating = await FireStoreMethods().getUserGrade(
+        postId,
+        uid,
+      );
       setState(() {
         rating = initialRating;
       });
@@ -164,7 +166,8 @@ class _PostCardState extends State<PostCard> {
                         borderRadius: BorderRadius.circular(10.0),
                         child: PageView.builder(
                           itemCount: widget.snap['photoUrls'].length,
-                          controller: PageController(initialPage: currentImageIndex),
+                          controller:
+                              PageController(initialPage: currentImageIndex),
                           onPageChanged: (index) {
                             setState(() {
                               currentImageIndex = index;
@@ -248,7 +251,8 @@ class _PostCardState extends State<PostCard> {
                           children: <Widget>[
                             InkWell(
                               onTap: () {
-                                if (widget.snap['username'] != "Anonymous User") {
+                                if (widget.snap['username'] !=
+                                    "Anonymous User") {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
                                       builder: (context) => ProfileScreen(
@@ -271,38 +275,41 @@ class _PostCardState extends State<PostCard> {
                         ? IconButton(
                             color: AppTheme.nearlyBlack,
                             onPressed: () {
-                              showDialog(
-                                useRootNavigator: false,
+                              showModalBottomSheet(
                                 context: context,
                                 builder: (context) {
-                                  return Dialog(
-                                    child: ListView(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 2.5,
-                                        horizontal: 2.5,
-                                      ),
-                                      shrinkWrap: true,
+                                  return Container(
+                                    color: AppTheme.vinho,
+                                    padding: EdgeInsets.all(16),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
-                                        InkWell(
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 12,
-                                              horizontal: 16,
-                                            ),
-                                            color: AppTheme.nearlyWhite,
-                                            child: Text(
-                                              'Delete',
-                                              style: AppTheme.title,
-                                            ),
-                                          ),
-                                          onTap: () {
+                                        IconButton(
+                                          icon: Icon(Icons.delete),
+                                          color: AppTheme
+                                              .nearlyWhite, // ou a cor desejada
+                                          onPressed: () {
                                             deletePost(widget.snap['postId']
                                                 .toString());
-                                            deleteAnonymousPost(
-                                                widget.snap['postId'].toString());
-                                            // remove the dialog box
+                                            deleteAnonymousPost(widget
+                                                .snap['postId']
+                                                .toString());
+                                            // Fechar o container
                                             Navigator.of(context).pop();
                                           },
+                                        ),
+                                        IconButton(
+                                          icon: Icon(Icons.shopping_basket),
+                                          color: AppTheme
+                                              .nearlyWhite, // ou a cor desejada
+                                          onPressed: () {},
+                                        ),
+                                        IconButton(
+                                          icon: Icon(Icons.star),
+                                          color: AppTheme
+                                              .nearlyWhite, // ou a cor desejada
+                                          onPressed: () {},
                                         ),
                                       ],
                                     ),
@@ -330,23 +337,23 @@ class _PostCardState extends State<PostCard> {
                 ),
               ),
               Gap(10),
-                Row(
-                  children: [
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 4),
-                        child: Container(
-                          child: Text(
-                            "Average Rating of the post: ${widget.snap['grade'] }",
-                            style: AppTheme.subtitle,
-                          ),
+              Row(
+                children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 4),
+                      child: Container(
+                        child: Text(
+                          "Average Rating of the post: ${widget.snap['grade']}",
+                          style: AppTheme.subtitle,
                         ),
                       ),
                     ),
-                    Icon(Icons.star, color: AppTheme.vinho), 
-                  ],
-                ),
+                  ),
+                  Icon(Icons.star, color: AppTheme.vinho),
+                ],
+              ),
               DefaultTextStyle(
                 style: TextStyle(
                     color: AppTheme.nearlyBlack,
@@ -374,7 +381,8 @@ class _PostCardState extends State<PostCard> {
                             print("Rating: $rating");
                             String uid = user.uid;
                             String postId = widget.snap['postId'].toString();
-                            await FireStoreMethods().getUserGrade(postId, uid, rating);
+                            await FireStoreMethods()
+                                .getUserGrade(postId, uid, rating);
                             setState(() {});
                           },
                         ),

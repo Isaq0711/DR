@@ -1,10 +1,10 @@
 name: dressing_room
 description: A new Flutter project.
-publish_to: 'none'
+publish_to: "none"
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -13,6 +13,8 @@ dependencies:
   path_provider: ^2.0.8
   animate_do: ^2.0.0
   line_icons: ^2.0.3
+  flutter_slidable: ^3.0.1
+  flip_card: ^0.7.0
   gap: ^3.0.1
   image_picker: ^0.8.4+3
   sliding_up_panel: ^2.0.0+1

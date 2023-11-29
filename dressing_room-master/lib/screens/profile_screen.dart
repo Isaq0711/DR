@@ -20,7 +20,8 @@ class ProfileScreen extends StatefulWidget {
   _ProfileScreenState createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends State<ProfileScreen>
+    with SingleTickerProviderStateMixin {
   var userData = {};
   int postLen = 0;
   int followers = 0;
@@ -30,10 +31,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final double drawerWidth = 300.0;
   bool isDrawerOpen = false;
   String selectedOption = "public";
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     getData();
   }
 
@@ -42,23 +45,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
       isLoading = true;
     });
     try {
-      var userSnap = await FirebaseFirestore.instance.collection('users').doc(widget.uid).get();
+      var userSnap = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.uid)
+          .get();
 
-    var postSnap = await FirebaseFirestore.instance
-    .collection('posts')
-    .where('uid', isEqualTo: widget.uid)
-    .get();
+      var postSnap = await FirebaseFirestore.instance
+          .collection('posts')
+          .where('uid', isEqualTo: widget.uid)
+          .get();
 
-var votationSnap = await FirebaseFirestore.instance
-    .collection('votations')
-    .where('uid', isEqualTo: widget.uid)
-    .get();
+      var votationSnap = await FirebaseFirestore.instance
+          .collection('votations')
+          .where('uid', isEqualTo: widget.uid)
+          .get();
 
-     postLen = postSnap.docs.length + votationSnap.docs.length;
+      postLen = postSnap.docs.length + votationSnap.docs.length;
       userData = userSnap.data()!;
       followers = userSnap.data()!['followers'].length;
       following = userSnap.data()!['following'].length;
-      isFollowing = userSnap.data()!['followers'].contains(FirebaseAuth.instance.currentUser!.uid);
+      isFollowing = userSnap
+          .data()!['followers']
+          .contains(FirebaseAuth.instance.currentUser!.uid);
       setState(() {});
     } catch (e) {
       showSnackBar(
@@ -142,209 +150,227 @@ var votationSnap = await FirebaseFirestore.instance
                               ],
                             ),
                             const SizedBox(height: 16),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                if (FirebaseAuth.instance.currentUser!.uid == widget.uid)
-                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Row(
-                          children: [
-                            PopupMenuButton<String>(
-                              icon: Icon(
-                                Icons.list,
-                                size: 46,
-                                color: AppTheme.vinho,
-                              ),
-                              onSelected: (String value) {
-                                setState(() {
-                                  selectedOption = value;
-                                });
-                              },
-                              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                                PopupMenuItem<String>(
-                                  value: 'public',
-                                  child: Text('public', style: AppTheme.subheadlinewhite),
-                                ),
-                                PopupMenuItem<String>(
-                                  value: 'private',
-                                  child: Text('private', style: AppTheme.subheadlinewhite),
-                                ),
-                              ],
-                              color: AppTheme.vinho,
-                            ),
-                          ],
-                        ),
-                        )
-                                 else if (isFollowing)
-                                  FollowButton(
-                                    text: 'Unfollow',
-                                    backgroundColor: AppTheme.vinho,
-                                    textColor: AppTheme.nearlyWhite,
-                                    borderColor: Colors.grey,
-                                    function: () async {
-                                      await FireStoreMethods().followUser(
-                                        FirebaseAuth.instance.currentUser!.uid,
-                                        userData['uid'],
-                                      );
-
+                            if (FirebaseAuth.instance.currentUser!.uid ==
+                                widget.uid)
+                              Positioned(
+                                top: MediaQuery.of(context).size.height * 0.45,
+                                left: 0,
+                                right: 0,
+                                child: Container(
+                                  color: Colors.transparent,
+                                  child: TabBar(
+                                    indicatorColor: AppTheme.vinho,
+                                    labelColor: AppTheme.vinho,
+                                    controller: _tabController,
+                                    tabs: [
+                                      Tab(text: 'Public'),
+                                      Tab(text: 'Private'),
+                                    ],
+                                    onTap: (index) {
                                       setState(() {
-                                        isFollowing = false;
-                                        followers--;
-                                      });
-                                    },
-                                  )
-                                else
-                                  FollowButton(
-                                    text: 'Follow',
-                                    backgroundColor: AppTheme.vinho,
-                                    textColor: AppTheme.nearlyWhite,
-                                    borderColor: Colors.grey,
-                                    function: () async {
-                                      await FireStoreMethods().followUser(
-                                        FirebaseAuth.instance.currentUser!.uid,
-                                        userData['uid'],
-                                      );
-
-                                      setState(() {
-                                        isFollowing = true;
-                                        followers++;
+                                        selectedOption =
+                                            index == 0 ? 'public' : 'private';
                                       });
                                     },
                                   ),
-                              ],
-                            ),
+                                ),
+                              )
+                            else if (isFollowing)
+                              FollowButton(
+                                text: 'Unfollow',
+                                backgroundColor: AppTheme.vinho,
+                                textColor: AppTheme.nearlyWhite,
+                                borderColor: Colors.grey,
+                                function: () async {
+                                  await FireStoreMethods().followUser(
+                                    FirebaseAuth.instance.currentUser!.uid,
+                                    userData['uid'],
+                                  );
+
+                                  setState(() {
+                                    isFollowing = false;
+                                    followers--;
+                                  });
+                                },
+                              )
+                            else
+                              FollowButton(
+                                text: 'Follow',
+                                backgroundColor: AppTheme.vinho,
+                                textColor: AppTheme.nearlyWhite,
+                                borderColor: Colors.grey,
+                                function: () async {
+                                  await FireStoreMethods().followUser(
+                                    FirebaseAuth.instance.currentUser!.uid,
+                                    userData['uid'],
+                                  );
+
+                                  setState(() {
+                                    isFollowing = true;
+                                    followers++;
+                                  });
+                                },
+                              ),
                           ],
                         ),
                       ),
                       const Divider(),
-                     
-                    if (selectedOption == "public")
-  Column(
-    children: [
-      const Divider(),
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          children: [
-            Text(
-              FirebaseAuth.instance.currentUser!.uid == widget.uid ? "My Looks" : "Looks",
-              style: AppTheme.subheadline,
-            ),
-          ],
-        ),
-      ),
-      FutureBuilder(
-        future: FirebaseFirestore.instance.collection('posts').where('uid', isEqualTo: widget.uid).get(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
+                      if (selectedOption == "public")
+                        Column(
+                          children: [
+                            const Divider(),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    FirebaseAuth.instance.currentUser!.uid ==
+                                            widget.uid
+                                        ? "My Looks"
+                                        : "Looks",
+                                    style: AppTheme.subheadline,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            FutureBuilder(
+                              future: FirebaseFirestore.instance
+                                  .collection('posts')
+                                  .where('uid', isEqualTo: widget.uid)
+                                  .get(),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const Center(
+                                    child: CircularProgressIndicator(),
+                                  );
+                                }
 
-          return SizedBox(
-            height: 150,
-            child: ListView.builder(
-              itemCount: (snapshot.data! as QuerySnapshot).docs.length,
-              scrollDirection: Axis.horizontal,
-              itemBuilder: (context, index) {
-                DocumentSnapshot snap = (snapshot.data! as QuerySnapshot).docs[index];
+                                return SizedBox(
+                                  height: 150,
+                                  child: ListView.builder(
+                                    itemCount: (snapshot.data! as QuerySnapshot)
+                                        .docs
+                                        .length,
+                                    scrollDirection: Axis.horizontal,
+                                    itemBuilder: (context, index) {
+                                      DocumentSnapshot snap =
+                                          (snapshot.data! as QuerySnapshot)
+                                              .docs[index];
 
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => SeePost(postId: snap['postId']),
-                      ),
-                    );
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                     child: Container(
-                      width: 150,
-                      decoration: BoxDecoration(
-                        color: Colors.grey,
-                      ),
-                      child: Image(
-                        image: NetworkImage(snap['photoUrls'][0]),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),)
-                );
-              },
-            ),
-          );
-        },
-      ),
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          children: [
-            Text(
-              FirebaseAuth.instance.currentUser!.uid == widget.uid ? "My Votations" : "Votations",
-              style: AppTheme.subheadline,
-            ),
-          ],
-        ),
-      ),
-      FutureBuilder(
-        future: FirebaseFirestore.instance.collection('votations').where('uid', isEqualTo: widget.uid).get(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
+                                      return GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => SeePost(
+                                                  postId: snap['postId']),
+                                            ),
+                                          );
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            child: Container(
+                                              width: 150,
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey,
+                                              ),
+                                              child: Image(
+                                                image: NetworkImage(
+                                                    snap['photoUrls'][0]),
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    FirebaseAuth.instance.currentUser!.uid ==
+                                            widget.uid
+                                        ? "My Votations"
+                                        : "Votations",
+                                    style: AppTheme.subheadline,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            FutureBuilder(
+                              future: FirebaseFirestore.instance
+                                  .collection('votations')
+                                  .where('uid', isEqualTo: widget.uid)
+                                  .get(),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const Center(
+                                    child: CircularProgressIndicator(),
+                                  );
+                                }
 
-          return SizedBox(
-            height: 150,
-            child: ListView.builder(
-              itemCount: (snapshot.data! as QuerySnapshot).docs.length,
-              scrollDirection: Axis.horizontal,
-              itemBuilder: (context, index) {
-                DocumentSnapshot snap = (snapshot.data! as QuerySnapshot).docs[index];
+                                return SizedBox(
+                                  height: 150,
+                                  child: ListView.builder(
+                                    itemCount: (snapshot.data! as QuerySnapshot)
+                                        .docs
+                                        .length,
+                                    scrollDirection: Axis.horizontal,
+                                    itemBuilder: (context, index) {
+                                      DocumentSnapshot snap =
+                                          (snapshot.data! as QuerySnapshot)
+                                              .docs[index];
 
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => SeePost(postId: snap['votationId']),
-                      ),
-                    );
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child:ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                      child: Container(
-                      width: 150,
-                      decoration: BoxDecoration(
-                        color: Colors.grey, 
-                      ),
-                      child: Image(
-                        image: NetworkImage(snap['options'][0]['photoUrl']),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),),
-                );
-              },
-            ),
-          );
-        },
-      ),
-    ],
-  ),
-
-                    
-
-                      if (selectedOption == "private" ) ...[
+                                      return GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => SeePost(
+                                                  postId: snap['votationId']),
+                                            ),
+                                          );
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            child: Container(
+                                              width: 150,
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey,
+                                              ),
+                                              child: Image(
+                                                image: NetworkImage(
+                                                    snap['options'][0]
+                                                        ['photoUrl']),
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      if (selectedOption == "private") ...[
                         const Divider(),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -358,9 +384,13 @@ var votationSnap = await FirebaseFirestore.instance
                           ),
                         ),
                         FutureBuilder(
-                          future: FirebaseFirestore.instance.collection('anonymous_posts').where('uid', isEqualTo: widget.uid).get(),
+                          future: FirebaseFirestore.instance
+                              .collection('anonymous_posts')
+                              .where('uid', isEqualTo: widget.uid)
+                              .get(),
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
                               return const Center(
                                 child: CircularProgressIndicator(),
                               );
@@ -369,43 +399,49 @@ var votationSnap = await FirebaseFirestore.instance
                             return SizedBox(
                               height: 150,
                               child: ListView.builder(
-                                itemCount: (snapshot.data! as QuerySnapshot).docs.length,
+                                itemCount: (snapshot.data! as QuerySnapshot)
+                                    .docs
+                                    .length,
                                 scrollDirection: Axis.horizontal,
                                 itemBuilder: (context, index) {
-                                  DocumentSnapshot snap = (snapshot.data! as QuerySnapshot).docs[index];
+                                  DocumentSnapshot snap =
+                                      (snapshot.data! as QuerySnapshot)
+                                          .docs[index];
 
                                   return GestureDetector(
                                     onTap: () {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => SeePost(postId: snap['postId']),
+                                          builder: (context) =>
+                                              SeePost(postId: snap['postId']),
                                         ),
                                       );
                                     },
                                     child: Padding(
                                       padding: const EdgeInsets.all(8.0),
-                     
-                                          child:ClipRRect(
+                                      child: ClipRRect(
                                         borderRadius: BorderRadius.circular(10),
-                                          child: Container(
+                                        child: Container(
                                           width: 150,
                                           decoration: BoxDecoration(
-                                            color: Colors.grey, 
+                                            color: Colors.grey,
                                           ),
-                                      child: Container(
-                                        width: 150,
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey,
-                                         
-                                        ),
-                                        child: Image(
-                                          image: NetworkImage(snap['photoUrls'][0]),
-                                          fit: BoxFit.cover,
+                                          child: Container(
+                                            width: 150,
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey,
+                                            ),
+                                            child: Image(
+                                              image: NetworkImage(
+                                                  snap['photoUrls'][0]),
+                                              fit: BoxFit.cover,
+                                            ),
+                                          ),
                                         ),
                                       ),
                                     ),
-                                      ))  );
+                                  );
                                 },
                               ),
                             );
@@ -426,17 +462,20 @@ var votationSnap = await FirebaseFirestore.instance
                         FutureBuilder(
                           future: FirebaseFirestore.instance
                               .collection('favorites')
-                              .doc(widget.uid) // Use the user's ID as the document ID
+                              .doc(widget
+                                  .uid) // Use the user's ID as the document ID
                               .collection('userFavorites')
                               .get(),
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
                               return const Center(
                                 child: CircularProgressIndicator(),
                               );
                             }
 
-                            List<QueryDocumentSnapshot> favorites = (snapshot.data! as QuerySnapshot).docs;
+                            List<QueryDocumentSnapshot> favorites =
+                                (snapshot.data! as QuerySnapshot).docs;
 
                             return SizedBox(
                               height: 150,
@@ -451,26 +490,29 @@ var votationSnap = await FirebaseFirestore.instance
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => SeePost(postId: snap['postId']),
+                                          builder: (context) =>
+                                              SeePost(postId: snap['postId']),
                                         ),
                                       );
                                     },
-                                       child: Padding(
+                                    child: Padding(
                                       padding: const EdgeInsets.all(8.0),
-                                          child:ClipRRect(
+                                      child: ClipRRect(
                                         borderRadius: BorderRadius.circular(10),
-                                          child: Container(
+                                        child: Container(
                                           width: 150,
                                           decoration: BoxDecoration(
-                                            color: Colors.grey, 
+                                            color: Colors.grey,
                                           ),
-                                        child: Image(
-                                          image: NetworkImage(snap['photoUrls'][0]),
-                                          fit: BoxFit.cover,
+                                          child: Image(
+                                            image: NetworkImage(
+                                                snap['photoUrls'][0]),
+                                            fit: BoxFit.cover,
+                                          ),
                                         ),
                                       ),
                                     ),
-                                    )  );
+                                  );
                                 },
                               ),
                             );
@@ -514,11 +556,13 @@ var votationSnap = await FirebaseFirestore.instance
                             style: AppTheme.subheadlinewhite,
                           ),
                           onTap: () {
-                                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => EditProfileScreen(uid: FirebaseAuth.instance.currentUser!.uid)),
-                    );
-                               ;
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => EditProfileScreen(
+                                      uid: FirebaseAuth
+                                          .instance.currentUser!.uid)),
+                            );
                           },
                         ),
                         ListTile(
@@ -534,7 +578,8 @@ var votationSnap = await FirebaseFirestore.instance
                             AuthMethods().signOut().then((value) {
                               Navigator.pushAndRemoveUntil(
                                   context,
-                                  MaterialPageRoute(builder: (context) => LoginScreen()),
+                                  MaterialPageRoute(
+                                      builder: (context) => LoginScreen()),
                                   (Route<dynamic> route) => false);
                             });
                           },

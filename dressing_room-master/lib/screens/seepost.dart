@@ -57,10 +57,7 @@ class _SeePostState extends State<SeePost> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'A closer look',
-          style: AppTheme.subheadlinewhite,
-        ),
+        elevation: 0,
         backgroundColor: AppTheme.vinho,
       ),
       body: Center(

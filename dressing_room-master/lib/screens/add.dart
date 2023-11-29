@@ -4,6 +4,7 @@ import 'add_post_screen.dart';
 import 'add_votations_screen.dart';
 import 'test_api_screen.dart';
 import 'package:gap/gap.dart';
+import 'add_product_screen.dart';
 
 class AddPage extends StatelessWidget {
   @override
@@ -23,7 +24,7 @@ class AddPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-             Gap(MediaQuery.of(context).size.width * 0.4),
+            Gap(MediaQuery.of(context).size.width * 0.4),
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
@@ -36,7 +37,8 @@ class AddPage extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10.0),
                 ),
-                padding: EdgeInsets.symmetric(horizontal: buttonWidth, vertical: 20),
+                padding:
+                    EdgeInsets.symmetric(horizontal: buttonWidth, vertical: 20),
               ),
               child: Text('Add a publication', style: AppTheme.headlinewhite),
             ),
@@ -53,9 +55,28 @@ class AddPage extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10.0),
                 ),
-                padding: EdgeInsets.symmetric(horizontal: buttonWidth, vertical: 20),
+                padding:
+                    EdgeInsets.symmetric(horizontal: buttonWidth, vertical: 20),
               ),
               child: Text(' Add a votation   ', style: AppTheme.headlinewhite),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AddProductScreen()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.vinho,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                padding:
+                    EdgeInsets.symmetric(horizontal: buttonWidth, vertical: 20),
+              ),
+              child: Text(' Add a product   ', style: AppTheme.headlinewhite),
             ),
             SizedBox(height: 20),
             ElevatedButton(
@@ -70,7 +91,8 @@ class AddPage extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10.0),
                 ),
-                padding: EdgeInsets.symmetric(horizontal: buttonWidth, vertical: 20),
+                padding:
+                    EdgeInsets.symmetric(horizontal: buttonWidth, vertical: 20),
               ),
               child: Text('I.A.R.A', style: AppTheme.headlinewhite),
             ),

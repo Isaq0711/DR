@@ -25,6 +25,7 @@ dependencies:
   rxdart: ^0.27.7
   cloud_firestore: ^4.7.0
   flutter_background_service: ^2.4.6
+  flip_card: ^0.7.0
 
 dev_dependencies:
   flutter_test:

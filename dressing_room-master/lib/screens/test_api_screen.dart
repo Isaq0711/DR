@@ -122,14 +122,15 @@ class _TestAPIScreenState extends State<TestAPIScreen> {
                 SingleChildScrollView(
                   child: Column(
                     children: <Widget>[
-                      isLoading ? LinearProgressIndicator() : const SizedBox(height: 0.0),
+                      isLoading ? LinearProgressIndicator() : const SizedBox(),
                       const Divider(),
                       Stack(
                         alignment: Alignment.center,
                         children: [
                           _bigfiles != null
                               ? SizedBox(
-                                  height: MediaQuery.of(context).size.height * 0.55,
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.53,
                                   child: PageView.builder(
                                     controller: _pageController,
                                     itemCount: _bigfiles!.length,
@@ -140,7 +141,8 @@ class _TestAPIScreenState extends State<TestAPIScreen> {
                                     },
                                     itemBuilder: (context, pageIndex) {
                                       return ClipRRect(
-                                        borderRadius: BorderRadius.circular(10.0),
+                                        borderRadius:
+                                            BorderRadius.circular(10.0),
                                         child: GestureDetector(
                                           onLongPress: () {
                                             _showNetworkImageOnLongPress();
@@ -150,16 +152,26 @@ class _TestAPIScreenState extends State<TestAPIScreen> {
                                           },
                                           child: _showNetworkImage
                                               ? Container(
-                                                  height: MediaQuery.of(context).size.height * 0.55,
-                                                  width: MediaQuery.of(context).size.width,
+                                                  height: MediaQuery.of(context)
+                                                          .size
+                                                          .height *
+                                                      0.53,
+                                                  width: MediaQuery.of(context)
+                                                      .size
+                                                      .width,
                                                   child: Image.network(
                                                     'https://i0.wp.com/inspi.com.br/wp-content/uploads/2019/11/bliss-Charles-ORear.jpg?fit=1000%2C804&ssl=1',
                                                     fit: BoxFit.cover,
                                                   ),
                                                 )
                                               : Container(
-                                                  height: MediaQuery.of(context).size.height * 0.55,
-                                                  width: MediaQuery.of(context).size.width,
+                                                  height: MediaQuery.of(context)
+                                                          .size
+                                                          .height *
+                                                      0.55,
+                                                  width: MediaQuery.of(context)
+                                                      .size
+                                                      .width,
                                                   child: Image.memory(
                                                     _bigfiles![pageIndex],
                                                     fit: BoxFit.cover,
@@ -172,7 +184,7 @@ class _TestAPIScreenState extends State<TestAPIScreen> {
                                 )
                               : Container(),
                           Positioned(
-                            top: MediaQuery.of(context).size.height * 0.47,
+                            top: MediaQuery.of(context).size.height * 0.44,
                             left: 0,
                             right: 0,
                             bottom: 0,
@@ -181,7 +193,8 @@ class _TestAPIScreenState extends State<TestAPIScreen> {
                                 scrollDirection: Axis.horizontal,
                                 slivers: [
                                   SliverGrid(
-                                    gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                                    gridDelegate:
+                                        SliverGridDelegateWithMaxCrossAxisExtent(
                                       maxCrossAxisExtent: 180,
                                       crossAxisSpacing: 20,
                                       mainAxisSpacing: 10,
@@ -194,7 +207,8 @@ class _TestAPIScreenState extends State<TestAPIScreen> {
                                               _currentPageIndex = index;
                                               _pageController.animateToPage(
                                                 index,
-                                                duration: const Duration(milliseconds: 300),
+                                                duration: const Duration(
+                                                    milliseconds: 300),
                                                 curve: Curves.ease,
                                               );
                                             });
@@ -202,13 +216,18 @@ class _TestAPIScreenState extends State<TestAPIScreen> {
                                           child: Container(
                                             decoration: BoxDecoration(
                                               border: Border.all(
-                                                color: _currentPageIndex == index ? AppTheme.vinho : Colors.transparent,
+                                                color:
+                                                    _currentPageIndex == index
+                                                        ? AppTheme.vinho
+                                                        : Colors.transparent,
                                                 width: 3.0,
                                               ),
-                                              borderRadius: BorderRadius.circular(10.0),
+                                              borderRadius:
+                                                  BorderRadius.circular(10.0),
                                             ),
                                             child: ClipRRect(
-                                              borderRadius: BorderRadius.circular(10.0),
+                                              borderRadius:
+                                                  BorderRadius.circular(10.0),
                                               child: Image.memory(
                                                 _bigfiles![index],
                                                 fit: BoxFit.cover,
@@ -247,12 +266,13 @@ class _TestAPIScreenState extends State<TestAPIScreen> {
                           ],
                         ),
                       ),
-                       Center(
+                      Center(
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: ElevatedButton(
                             style: ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all<Color>(AppTheme.vinho),
+                              backgroundColor: MaterialStateProperty.all<Color>(
+                                  AppTheme.vinho),
                             ),
                             onPressed: () {
                               // TODO: Implement logic for check out
@@ -264,14 +284,16 @@ class _TestAPIScreenState extends State<TestAPIScreen> {
                           ),
                         ),
                       ),
-                      SizedBox(height: MediaQuery.of(context).size.height * 0.008),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.008),
                       Container(
                         height: MediaQuery.of(context).size.height * 0.13,
                         child: CustomScrollView(
                           scrollDirection: Axis.horizontal,
                           slivers: [
                             SliverGrid(
-                              gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                              gridDelegate:
+                                  SliverGridDelegateWithMaxCrossAxisExtent(
                                 maxCrossAxisExtent: 200,
                                 childAspectRatio: 3 / 2,
                                 crossAxisSpacing: 20,
@@ -285,7 +307,8 @@ class _TestAPIScreenState extends State<TestAPIScreen> {
                                         _currentPageIndex = index;
                                         _pageController.animateToPage(
                                           index,
-                                          duration: const Duration(milliseconds: 300),
+                                          duration:
+                                              const Duration(milliseconds: 300),
                                           curve: Curves.ease,
                                         );
                                       });
@@ -293,13 +316,17 @@ class _TestAPIScreenState extends State<TestAPIScreen> {
                                     child: Container(
                                       decoration: BoxDecoration(
                                         border: Border.all(
-                                          color: _currentPageIndex == index ? AppTheme.vinho : Colors.transparent,
+                                          color: _currentPageIndex == index
+                                              ? AppTheme.vinho
+                                              : Colors.transparent,
                                           width: 3.0,
                                         ),
-                                        borderRadius: BorderRadius.circular(10.0),
+                                        borderRadius:
+                                            BorderRadius.circular(10.0),
                                       ),
                                       child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(10.0),
+                                        borderRadius:
+                                            BorderRadius.circular(10.0),
                                         child: Image.memory(
                                           _bigfiles![index],
                                           fit: BoxFit.cover,
@@ -314,12 +341,10 @@ class _TestAPIScreenState extends State<TestAPIScreen> {
                           ],
                         ),
                       ),
-                     
                     ],
                   ),
                 ),
                 SlidingUpPanel(
-      
                   color: AppTheme.vinho,
                   maxHeight: _panelHeightOpen,
                   minHeight: _panelHeightClosed,
@@ -341,7 +366,8 @@ class _TestAPIScreenState extends State<TestAPIScreen> {
                         ),
                       ),
                       child: Center(
-                        child: Text("Add itens", style: AppTheme.subheadlinewhite),
+                        child:
+                            Text("Add itens", style: AppTheme.subheadlinewhite),
                       ),
                     ),
                   ),
