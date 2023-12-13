@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:dressing_room/screens/profile_screen.dart';
 import 'package:dressing_room/utils/colors.dart';
 
-
 class SearchScreen extends StatefulWidget {
   const SearchScreen({Key? key}) : super(key: key);
 
@@ -23,7 +22,8 @@ class _SearchScreenState extends State<SearchScreen> {
         title: Form(
           child: TextFormField(
             controller: searchController,
-            decoration: const InputDecoration(labelText: 'Search for a user, look, store, .... '),
+            decoration: const InputDecoration(
+                labelText: 'Search for a user, look, store, .... '),
             onFieldSubmitted: (String _) {
               setState(() {
                 isShowUsers = true;
@@ -77,7 +77,7 @@ class _SearchScreenState extends State<SearchScreen> {
             )
           : FutureBuilder(
               future: FirebaseFirestore.instance
-                  .collection('posts')
+                  .collection('products')
                   .orderBy('datePublished')
                   .get(),
               builder: (context, snapshot) {
@@ -98,7 +98,8 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                   itemCount: documents.length,
                   itemBuilder: (context, index) => Image.network(
-                    documents[index]['photoUrls'][0],
+                    documents[index]['variations'][0]['photoUrls'][1]
+                        .toString(),
                     fit: BoxFit.cover,
                   ),
                 );

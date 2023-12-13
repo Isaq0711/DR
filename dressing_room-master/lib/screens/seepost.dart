@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:dressing_room/widgets/post_card.dart';
 import 'package:dressing_room/utils/colors.dart';
 import 'package:dressing_room/widgets/votation_card.dart';
+import 'package:dressing_room/widgets/product_card.dart';
 
 class SeePost extends StatefulWidget {
   final String postId;
@@ -18,6 +19,7 @@ class _SeePostState extends State<SeePost> {
   late Stream<DocumentSnapshot<Map<String, dynamic>>> _postStream;
   late Stream<DocumentSnapshot<Map<String, dynamic>>> _anonymousPostStream;
   late Stream<QuerySnapshot<Map<String, dynamic>>> _votationsStream;
+  late Stream<QuerySnapshot<Map<String, dynamic>>> _productStream;
 
   @override
   void initState() {
@@ -26,6 +28,7 @@ class _SeePostState extends State<SeePost> {
     _postStream = _subscribeToPost();
     _anonymousPostStream = _subscribeToAnonymousPost();
     _votationsStream = _subscribeToVotations();
+    _productStream = _subscribeToProducts();
   }
 
   void _initializeFirebase() async {
@@ -53,6 +56,13 @@ class _SeePostState extends State<SeePost> {
         .snapshots();
   }
 
+  Stream<QuerySnapshot<Map<String, dynamic>>> _subscribeToProducts() {
+    return FirebaseFirestore.instance
+        .collection('products')
+        .where('productId', isEqualTo: widget.postId)
+        .snapshots();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -71,6 +81,22 @@ class _SeePostState extends State<SeePost> {
                 }
                 final post = snapshot.data!.data();
                 return PostCard(snap: post);
+              },
+            ),
+            StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: _productStream,
+              builder: (context, snapshot) {
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return Container(); // handle the case where data does not exist
+                }
+                final products = snapshot.data!.docs;
+                return ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: products.length,
+                  itemBuilder: (context, index) {
+                    return ProductCard(snap: products[index].data());
+                  },
+                );
               },
             ),
             StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(

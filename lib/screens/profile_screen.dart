@@ -251,7 +251,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             FutureBuilder(
                               future: FirebaseFirestore.instance
-                                  .collection('posts')
+                                  .collection('products')
                                   .where('uid', isEqualTo: widget.uid)
                                   .get(),
                               builder: (context, snapshot) {

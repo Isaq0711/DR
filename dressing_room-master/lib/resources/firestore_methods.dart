@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dressing_room/models/post.dart';
+import 'package:dressing_room/models/products.dart';
 import 'package:dressing_room/models/votations.dart';
 import 'package:dressing_room/resources/storage_methods.dart';
 import 'package:uuid/uuid.dart';
@@ -124,6 +125,63 @@ class FireStoreMethods {
       );
 
       _firestore.collection('votations').doc(votationId).set(votation.toJson());
+      res = "success";
+    } catch (err) {
+      res = err.toString();
+    }
+    return res;
+  }
+
+  Future<String> uploadProduct(
+    String description,
+    List<Uint8List> files,
+    String uid,
+    String username,
+    String profImage,
+    List<Map<String, dynamic>> variations,
+    String category,
+    bool vitrine,
+    bool promotions,
+    bool x,
+  ) async {
+    String res = "Some error occurred";
+    try {
+      List<VariationInfo> variationsList = [];
+
+      for (int i = 0; i < variations.length; i++) {
+        Map<String, dynamic> variationMap = variations[i];
+        VariationInfo variationInfo = VariationInfo.fromMap(variationMap);
+
+        List<String> variationPhotoUrls = [];
+        if (variationMap['photoUrls'] != null) {
+          variationPhotoUrls = List<String>.from(variationMap['photoUrls']);
+        }
+        variationInfo.photoUrls = variationPhotoUrls;
+
+        variationsList.add(variationInfo);
+      }
+
+      String productId = const Uuid().v1();
+      Product product = Product(
+        description: description,
+        uid: uid,
+        username: username,
+        vendas: 0,
+        productId: productId,
+        datePublished: DateTime.now(),
+        category: category,
+        variations: variationsList,
+        profImage: profImage,
+        vitrine: vitrine,
+        promotions: promotions,
+        x: x,
+      );
+
+      await FirebaseFirestore.instance
+          .collection('products')
+          .doc(productId)
+          .set(product.toJson());
+
       res = "success";
     } catch (err) {
       res = err.toString();
