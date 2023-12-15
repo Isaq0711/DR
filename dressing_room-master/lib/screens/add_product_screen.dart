@@ -311,7 +311,11 @@ class _AddPostScreenState extends State<AddProductScreen> {
                 fill: Fill.fillBack,
                 direction: FlipDirection.HORIZONTAL,
                 side: CardSide.FRONT,
-                front: ListView(children: [
+                front: ListView(children: <Widget>[
+                  isLoading
+                      ? const LinearProgressIndicator()
+                      : const SizedBox(height: 0.0),
+                  const Divider(),
                   Card(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15),

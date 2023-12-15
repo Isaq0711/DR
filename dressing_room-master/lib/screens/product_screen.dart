@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gap/gap.dart';
 import 'package:flutter/material.dart';
 import 'package:dressing_room/models/user.dart' as model;
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dressing_room/providers/user_provider.dart';
 import 'package:dressing_room/resources/firestore_methods.dart';
 import 'package:dressing_room/screens/comments_screen.dart';
@@ -448,7 +449,12 @@ class _ProductScreenState extends State<ProductScreen> {
                                                             MaterialPageRoute(
                                                                 builder:
                                                                     (context) =>
-                                                                        ShoppingCart()),
+                                                                        ShoppingCart(
+                                                                          uid: FirebaseAuth
+                                                                              .instance
+                                                                              .currentUser!
+                                                                              .uid,
+                                                                        )),
                                                           );
                                                         },
                                                         child: Text(

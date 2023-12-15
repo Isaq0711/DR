@@ -1,19 +1,31 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:dressing_room/resources/firestore_methods.dart';
 import 'package:dressing_room/utils/colors.dart';
 import 'package:gap/gap.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
 class ShoppingCart extends StatefulWidget {
+  final String uid;
+
+  const ShoppingCart({Key? key, required this.uid}) : super(key: key);
+
   @override
   _ShoppingCartState createState() => _ShoppingCartState();
 }
 
 class _ShoppingCartState extends State<ShoppingCart> {
   List<bool> picked = [false, false, false, false, false, false, false];
-  List<int> itemPrices = [50, 60, 70, 80, 90, 100, 110];
-  List<int> itemCounts = [1, 1, 1, 1, 1, 1, 1];
 
-  int totalAmount = 0;
+  bool isLoading = false;
+  List<dynamic> itens = [];
+  num totalAmount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    getData();
+  }
 
   pickToggle(int index) {
     setState(() {
@@ -23,10 +35,10 @@ class _ShoppingCartState extends State<ShoppingCart> {
   }
 
   getTotalAmount() {
-    var count = 0;
-    for (int i = 0; i < picked.length; i++) {
+    num count = 0; // Alteração para declarar 'count' como 'num'
+    for (int i = 0; i < itens.length; i++) {
       if (picked[i]) {
-        count += itemPrices[i] * itemCounts[i];
+        count += (itens[i]['price'] * itens[i]['qntspedidos']);
       }
     }
     setState(() {
@@ -36,104 +48,196 @@ class _ShoppingCartState extends State<ShoppingCart> {
 
   void incrementCount(int index) {
     setState(() {
-      itemCounts[index]++;
+      itens[index]['qntspedidos']++;
       getTotalAmount();
     });
   }
 
   void decrementCount(int index) {
     setState(() {
-      if (itemCounts[index] > 1) {
-        itemCounts[index]--;
+      if (itens[index]['qntspedidos'] == 1) {
+        showDeleteItemDialog(context);
+      } else if (itens[index]['qntspedidos'] > 1) {
+        itens[index]['qntspedidos']--;
         getTotalAmount();
       }
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: AppTheme.vinho,
-        title: const Text(
-          'Shopping Cart',
-          style: AppTheme.subheadlinewhite,
-        ),
-        centerTitle: true,
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(50.0),
-          child: Container(
-            width: double.infinity,
-            color: Colors.white,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: <Widget>[
-                Text('Total: \$' + totalAmount.toString(),
-                    style: AppTheme.subtitle),
-                SizedBox(width: 10.0),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      primary: AppTheme.vinho, // background
-                      onPrimary: const Color.fromARGB(
-                          255, 255, 226, 226), // foreground
-                    ),
-                    child: Text('Pay Now'),
-                  ),
-                )
-              ],
+  void showDeleteItemDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppTheme.nearlyWhite,
+          title: Align(
+            alignment: Alignment.center,
+            child: Text(
+              'Do you want to delete this item?',
+              style: AppTheme.subheadline,
             ),
           ),
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            ListView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              itemCount: 7,
-              itemBuilder: (context, index) {
-                return Slidable(
-                  key: ValueKey(index),
-                  endActionPane: ActionPane(
-                    motion: const ScrollMotion(),
-                    children: const [
-                      SlidableAction(
-                        onPressed: doNothing,
-                        backgroundColor: AppTheme.cinza,
-                        foregroundColor: Colors.white,
-                        icon: Icons.share,
-                        label: 'Share',
-                      ),
-                      SlidableAction(
-                        onPressed: doNothing,
-                        backgroundColor: AppTheme.vinho,
-                        foregroundColor: Colors.white,
-                        icon: Icons.shopping_bag,
-                        label: 'Basket',
-                      ),
+          content: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              ElevatedButton(
+                child: Text(
+                  'No',
+                  style: TextStyle(
+                    fontFamily: 'Quicksand',
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(primary: AppTheme.vinho),
+                onPressed: () {
+                  // Perform action for Camera option
+                  Navigator.pop(context); // Close the dialog
+                },
+              ),
+              SizedBox(width: 10),
+              ElevatedButton(
+                child: Text(
+                  'Yes',
+                  style: TextStyle(
+                    fontFamily: 'Quicksand',
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(primary: AppTheme.vinho),
+                onPressed: () {
+                  // Perform action for Gallery option
+                  Navigator.pop(context); // Close the dialog
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  getData() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      var snap = await FirebaseFirestore.instance
+          .collection('cart')
+          .doc(widget.uid)
+          .get();
+
+      if (snap.exists && snap.data() != null) {
+        Map<String, dynamic> data = snap.data()!;
+
+        itens.clear();
+
+        data.entries.forEach((entry) {
+          itens.add(entry.value);
+        });
+
+        if (itens.length >= 1) {
+          print(itens[0]);
+        }
+      }
+    } catch (e) {
+      // Tratar exceções, se necessário
+      print('Error fetching data: $e');
+    }
+
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return isLoading
+        ? const Center(
+            child: CircularProgressIndicator(),
+          )
+        : Scaffold(
+            appBar: AppBar(
+              automaticallyImplyLeading: false,
+              backgroundColor: AppTheme.vinho,
+              title: const Text(
+                'Shopping Cart',
+                style: AppTheme.subheadlinewhite,
+              ),
+              centerTitle: true,
+              bottom: PreferredSize(
+                preferredSize: Size.fromHeight(50.0),
+                child: Container(
+                  width: double.infinity,
+                  color: Colors.white,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[
+                      Text('Total: \$' + totalAmount.toString(),
+                          style: AppTheme.subtitle),
+                      SizedBox(width: 10.0),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: ElevatedButton(
+                          onPressed: () {},
+                          style: ElevatedButton.styleFrom(
+                            primary: AppTheme.vinho, // background
+                            onPrimary: const Color.fromARGB(
+                                255, 255, 226, 226), // foreground
+                          ),
+                          child: Text('Pay Now'),
+                        ),
+                      )
                     ],
                   ),
-                  child: itemCard(
-                    'Item $index',
-                    'gray',
-                    itemPrices[index].toString(),
-                    'L',
-                    'https://img.ltwebstatic.com/gspCenter/goodsImage/2022/8/6/2790396538_1018999/D16B882D6326D7F33C6F0E645346262D_thumbnail_720x.webp',
-                    true,
-                    index,
-                  ),
-                );
-              },
+                ),
+              ),
             ),
-          ],
-        ),
-      ),
-    );
+            body: SingleChildScrollView(
+              child: Column(
+                children: [
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: itens.length,
+                    itemBuilder: (context, index) {
+                      return Slidable(
+                        key: ValueKey(index),
+                        endActionPane: ActionPane(
+                          motion: const ScrollMotion(),
+                          children: const [
+                            SlidableAction(
+                              onPressed: doNothing,
+                              backgroundColor: AppTheme.cinza,
+                              foregroundColor: Colors.white,
+                              icon: Icons.share,
+                              label: 'Share',
+                            ),
+                            SlidableAction(
+                              onPressed: doNothing,
+                              backgroundColor: AppTheme.vinho,
+                              foregroundColor: Colors.white,
+                              icon: Icons.shopping_bag,
+                              label: 'Basket',
+                            ),
+                          ],
+                        ),
+                        child: itemCard(
+                          itens[index]['description'],
+                          itens[index]['variationdescription'],
+                          itens[index]['price'].toString(),
+                          itens[index]['size'],
+                          itens[index]['photoUrl'],
+                          true,
+                          index,
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          );
   }
 
   Widget itemCard(String itemName, String color, String price, String size,
@@ -205,7 +309,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
                                 ),
                                 SizedBox(width: 10.0),
                                 available
-                                    ? Text('${itemCounts[i]}',
+                                    ? Text('${itens[i]['qntspedidos']}',
                                         style: AppTheme.title)
                                     : Container(),
                                 SizedBox(width: 10.0),
@@ -278,7 +382,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
                       SizedBox(height: 10.0),
                       available
                           ? Text(
-                              '\$${(itemPrices[i])}',
+                              '\$${itens[i]['price'].toString()}',
                               style: TextStyle(
                                 fontFamily: 'Montserrat',
                                 fontWeight: FontWeight.bold,
@@ -320,7 +424,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
                     Gap(65.0),
                     IconButton(
                       onPressed: () {
-                        // Implement your delete logic here
+                        showDeleteItemDialog(context);
                       },
                       icon: Icon(Icons.delete),
                       color: Colors.grey, // Customize the color as needed

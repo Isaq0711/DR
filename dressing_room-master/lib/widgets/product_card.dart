@@ -11,6 +11,7 @@ import 'package:dressing_room/utils/global_variable.dart';
 import 'package:dressing_room/utils/utils.dart';
 import 'package:dressing_room/widgets/like_animation.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:dressing_room/screens/shopping_cart.dart';
 import 'package:dots_indicator/dots_indicator.dart';
@@ -29,7 +30,7 @@ class ProductCard extends StatefulWidget {
 
 class _ProductCardState extends State<ProductCard> {
   int selectedSize = 0;
-
+  bool isLoading = false;
   Map<String, List<String>> categorySizes = {
     'TOP': ['XS', 'S', 'M', 'L', 'XL'],
     'BOTTOM': ['34', '36', '38', '40', '42', '44'],
@@ -67,6 +68,44 @@ class _ProductCardState extends State<ProductCard> {
             widget.snap['variations'][_currentPageIndex]['photoUrls'].length -
                 1;
       }
+    });
+  }
+
+  void addtocart(String uid) async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      String res = await FireStoreMethods().uploadtoCart(
+        widget.snap['description'],
+        uid,
+        widget.snap['username'],
+        widget.snap['productId'],
+        widget.snap['category'],
+        widget.snap['variations'][_currentPageIndex]['variationdescription'],
+        availableSizes[selectedSize],
+        widget.snap['variations'][_currentPageIndex]['photoUrls'][0],
+        widget.snap['variations'][_currentPageIndex]['price'],
+      );
+
+      if (res == "success") {
+        showSnackBar(
+          context,
+          'Added!',
+        );
+      } else {
+        showSnackBar(context, res);
+      }
+    } catch (err) {
+      showSnackBar(
+        context,
+        err.toString(),
+      );
+    }
+
+    setState(() {
+      isLoading = false;
     });
   }
 
@@ -230,6 +269,7 @@ class _ProductCardState extends State<ProductCard> {
                                   setState(() {
                                     _currentPageIndex = index;
                                     generateAvailableSizes();
+                                    _currentPhotoIndex = 0;
                                   });
                                 },
                                 child: Padding(
@@ -331,6 +371,8 @@ class _ProductCardState extends State<ProductCard> {
                           child: Center(
                             child: ElevatedButton(
                               onPressed: () {
+                                addtocart(
+                                    FirebaseAuth.instance.currentUser!.uid);
                                 showModalBottomSheet(
                                   context: context,
                                   builder: (context) {
@@ -392,7 +434,11 @@ class _ProductCardState extends State<ProductCard> {
                                                       context,
                                                       MaterialPageRoute(
                                                           builder: (context) =>
-                                                              ShoppingCart()),
+                                                              ShoppingCart(
+                                                                  uid: FirebaseAuth
+                                                                      .instance
+                                                                      .currentUser!
+                                                                      .uid)),
                                                     );
                                                   },
                                                   child: Text('Go to Cart',

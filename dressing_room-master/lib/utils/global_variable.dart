@@ -11,7 +11,9 @@ const webScreenSize = 600;
 
 List<Widget> homeScreenItems = [
   const FeedScreen(),
-  ShoppingCart(),
+  ShoppingCart(
+    uid: FirebaseAuth.instance.currentUser!.uid,
+  ),
   AddPage(),
   BasketScreen(), // NotificationPage(uid: FirebaseAuth.instance.currentUser!.uid,),
   ProfileScreen(

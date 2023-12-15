@@ -5,17 +5,17 @@ import 'package:dressing_room/models/products.dart';
 import 'package:dressing_room/models/votations.dart';
 import 'package:dressing_room/resources/storage_methods.dart';
 import 'package:uuid/uuid.dart';
+import 'package:dressing_room/models/cart.dart';
 
 class FireStoreMethods {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
   Future<String> uploadPost(
     String description,
-    List<Uint8List> files, // Alterado para uma lista de Uint8List
+    List<Uint8List> files,
     String uid,
     String username,
     String profImage,
-    double grade, // Atualizado para o tipo double
+    double grade,
   ) async {
     String res = "Some error occurred";
     try {
@@ -24,7 +24,7 @@ class FireStoreMethods {
       for (Uint8List file in files) {
         String photoUrl =
             await StorageMethods().uploadImageToStorage('posts', file, true);
-        photoUrls.add(photoUrl); // Adiciona a URL da foto à lista
+        photoUrls.add(photoUrl);
       }
 
       String postId = const Uuid().v1();
@@ -32,10 +32,10 @@ class FireStoreMethods {
         description: description,
         uid: uid,
         username: username,
-        grade: 0.0, // Define o valor do grade passado como parâmetro
+        grade: 0.0,
         postId: postId,
         datePublished: DateTime.now(),
-        photoUrls: photoUrls, // Armazena a lista de URLs de fotos
+        photoUrls: photoUrls,
         profImage: profImage,
         votes: {}, // Inicializa o mapa de votos vazio
       );
@@ -50,12 +50,12 @@ class FireStoreMethods {
 
   Future<String> uploadAnonymousPost(
     String description,
-    List<Uint8List> files, // Alterado para uma lista de Uint8List
+    List<Uint8List> files,
     String uid,
   ) async {
     String res = "Some error occurred";
     try {
-      List<String> photoUrls = []; // Lista de URLs de fotos
+      List<String> photoUrls = [];
 
       for (Uint8List file in files) {
         String photoUrl = await StorageMethods()
@@ -69,12 +69,12 @@ class FireStoreMethods {
         description: description,
         uid: uid,
         username: "Anonymous User",
-        grade: 0.0, // Defina um valor inicial para a nota
+        grade: 0.0,
         postId: postId,
         datePublished: DateTime.now(),
-        photoUrls: photoUrls, // Armazena a lista de URLs de fotos
+        photoUrls: photoUrls,
         profImage: "generic_photo_url",
-        votes: {}, // Inicializa o mapa de votos vazio
+        votes: {},
       );
 
       await FirebaseFirestore.instance
@@ -128,6 +128,69 @@ class FireStoreMethods {
       res = "success";
     } catch (err) {
       res = err.toString();
+    }
+    return res;
+  }
+
+  Future<String> uploadtoCart(
+    String description,
+    String uid,
+    String username,
+    String productId,
+    String category,
+    String variationdescription,
+    String size,
+    String photoUrl,
+    double price,
+  ) async {
+    String res = "Some error occurred";
+    try {
+      Cart product = Cart(
+        description: description,
+        uid: uid,
+        username: username,
+        vendas: 0,
+        productId: productId,
+        dateAdded: DateTime.now(),
+        category: category,
+        variationdescription: variationdescription,
+        size: size,
+        photoUrl: photoUrl,
+        price: price,
+        promotions: false,
+        qntspedidos: 1, // Set default quantity to 1 when adding a new product
+      );
+
+      DocumentSnapshot productsnapshot =
+          await _firestore.collection('cart').doc(uid).get();
+
+      if (productsnapshot.exists && productsnapshot.data() != null) {
+        Map<String, dynamic> data =
+            productsnapshot.data() as Map<String, dynamic>;
+
+        if (data.containsKey(productId)) {
+          int quantity = data[productId]['qntspedidos'] + 1;
+          await _firestore.collection('cart').doc(uid).update({
+            '$productId.qntspedidos': quantity,
+          });
+        } else {
+          // Initialize quantity if the product doesn't exist in the cart
+          int quantity = 1;
+          await _firestore.collection('cart').doc(uid).update({
+            '$productId': product.toJson(),
+          });
+        }
+      } else {
+        // Cart doesn't exist for the user, create a new cart
+        await _firestore.collection('cart').doc(uid).set({
+          '$productId': product.toJson(),
+        });
+      }
+      res = "success";
+    } catch (err) {
+      res = "Error: $err"; // Update error message for better understanding
+      // Log the error for debugging purposes
+      print("Error occurred: $err");
     }
     return res;
   }
