@@ -35,7 +35,6 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
     });
   }
 
-
   _selectImage(BuildContext parentContext) async {
     return showDialog(
       context: parentContext,
@@ -72,7 +71,9 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
                   });
                 },
               ),
-              SizedBox(width: 10,),
+              SizedBox(
+                width: 10,
+              ),
               ElevatedButton.icon(
                 icon: Icon(Icons.photo_library),
                 label: const Text(
@@ -131,7 +132,6 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
           'Votations uploaded!',
         );
         clearImages();
-         
       } else {
         showSnackBar(context, res);
       }
@@ -147,17 +147,17 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
     });
   }
 
- void clearImages() {
+  void clearImages() {
     Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (context) => const ResponsiveLayout(
-            mobileScreenLayout: MobileScreenLayout(),
-            webScreenLayout: WebScreenLayout(),
-          ),
+      MaterialPageRoute(
+        builder: (context) => const ResponsiveLayout(
+          mobileScreenLayout: MobileScreenLayout(),
+          webScreenLayout: WebScreenLayout(),
         ),
-        (route) => false,
-      );
-}
+      ),
+      (route) => false,
+    );
+  }
 
   @override
   void dispose() {
@@ -166,7 +166,7 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
     _descriptionControllers.forEach((controller) => controller.dispose());
   }
 
-   @override
+  @override
   Widget build(BuildContext context) {
     return Consumer<UserProvider>(
       builder: (context, userProvider, _) {
@@ -181,7 +181,7 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
   }
 
   Scaffold _buildContent(User user) {
-      return _files == null
+    return _files == null
         ? Scaffold(
             body: Container(),
           )
@@ -194,27 +194,29 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
                 onPressed: clearImages,
               ),
               actions: <Widget>[
-                  if (_files!.length > 1)
-                TextButton(
-                  onPressed: () => uploadVotations(
-                   user.uid!,
-                    user.username,
-                    user.photoUrl,
-                  ),
-                  child: const Text(
-                    "Upload",
-                    style: TextStyle(
-                      color: Colors.blueAccent,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16.0,
+                if (_files!.length > 1)
+                  TextButton(
+                    onPressed: () => uploadVotations(
+                      user.uid!,
+                      user.username,
+                      user.photoUrl,
+                    ),
+                    child: const Text(
+                      "Upload",
+                      style: TextStyle(
+                        color: Colors.blueAccent,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16.0,
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
             body: Column(
               children: <Widget>[
-                isLoading ? const LinearProgressIndicator() : const SizedBox(height: 0.0),
+                isLoading
+                    ? const LinearProgressIndicator()
+                    : const SizedBox(height: 0.0),
                 const Divider(),
                 Flexible(
                   child: Stack(
@@ -242,7 +244,6 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
                           );
                         },
                       ),
-                     
                     ],
                   ),
                 ),
@@ -269,75 +270,78 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
                   ),
                 ),
                 // ...
-           
-                      Container(
-                        height: MediaQuery.of(context).size.height * 0.15,
-                        child: CustomScrollView(
-                      scrollDirection: Axis.horizontal,
-                      slivers: [
-                        SliverGrid(
-                          gridDelegate:
-                              SliverGridDelegateWithMaxCrossAxisExtent(
-                             maxCrossAxisExtent: 200,
+
+                Container(
+                  height: MediaQuery.of(context).size.height * 0.15,
+                  child: CustomScrollView(
+                    scrollDirection: Axis.horizontal,
+                    slivers: [
+                      SliverGrid(
+                        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                          maxCrossAxisExtent: 200,
                           childAspectRatio: 3 / 2,
                           crossAxisSpacing: 20,
                           mainAxisSpacing: 10,
-                          ),
-                          delegate: SliverChildBuilderDelegate(
-                            (BuildContext context, int index) {
-                              return GestureDetector(
+                        ),
+                        delegate: SliverChildBuilderDelegate(
+                          (BuildContext context, int index) {
+                            return GestureDetector(
                                 onTap: () {
                                   setState(() {
                                     _currentPageIndex = index;
                                     _pageController.animateToPage(
                                       index,
-                                      duration: const Duration(milliseconds: 300),
+                                      duration:
+                                          const Duration(milliseconds: 300),
                                       curve: Curves.ease,
                                     );
                                   });
                                 },
-                                 child: Container(
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: _currentPageIndex == index ? AppTheme.vinho : Colors.transparent,
-                                    width: 3.0,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: _currentPageIndex == index
+                                          ? AppTheme.vinho
+                                          : Colors.transparent,
+                                      width: 3.0,
+                                    ),
+                                    borderRadius: BorderRadius.circular(10.0),
                                   ),
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                  child: Image.memory(
-                                    _files![index],
-                                    fit: BoxFit.cover,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    child: Image.memory(
+                                      _files![index],
+                                      fit: BoxFit.cover,
+                                    ),
                                   ),
-                                ),
-                               ) );
-                            },
-                            childCount: _files!.length,
-                          ),
+                                ));
+                          },
+                          childCount: _files!.length,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
+                ),
                 SizedBox(
                   height: 100.0,
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: ListView.builder(
-  itemCount: _descriptionControllers.length,
-  itemBuilder: (context, index) {
-    final bool isCurrentPage = index == _currentPageIndex;
-    return Visibility(
-      visible: isCurrentPage,
-      child: TextField(
-        controller: _descriptionControllers[index],
-        style: AppTheme.title,
-        decoration: const InputDecoration(
-          hintText: "Write a description for the option...",
-          hintStyle: AppTheme.title,
-          border: InputBorder.none,
-        ),)
-                        );
+                      itemCount: _descriptionControllers.length,
+                      itemBuilder: (context, index) {
+                        final bool isCurrentPage = index == _currentPageIndex;
+                        return Visibility(
+                            visible: isCurrentPage,
+                            child: TextField(
+                              controller: _descriptionControllers[index],
+                              style: AppTheme.title,
+                              decoration: const InputDecoration(
+                                hintText:
+                                    "Write a description for the option...",
+                                hintStyle: AppTheme.title,
+                                border: InputBorder.none,
+                              ),
+                            ));
                       },
                     ),
                   ),

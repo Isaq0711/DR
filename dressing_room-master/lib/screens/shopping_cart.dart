@@ -94,7 +94,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
                   Navigator.pop(context); // Close the dialog
                 },
               ),
-              SizedBox(width: 10),
+              Gap(10),
               ElevatedButton(
                 child: Text(
                   'Yes',
@@ -135,10 +135,6 @@ class _ShoppingCartState extends State<ShoppingCart> {
         data.entries.forEach((entry) {
           itens.add(entry.value);
         });
-
-        if (itens.length >= 1) {
-          print(itens[0]);
-        }
       }
     } catch (e) {
       // Tratar exceções, se necessário
@@ -175,9 +171,9 @@ class _ShoppingCartState extends State<ShoppingCart> {
                     children: <Widget>[
                       Text('Total: \$' + totalAmount.toString(),
                           style: AppTheme.subtitle),
-                      SizedBox(width: 10.0),
+                      Gap(10.0),
                       Padding(
-                        padding: const EdgeInsets.all(8.0),
+                        padding: const EdgeInsets.all(4.0),
                         child: ElevatedButton(
                           onPressed: () {},
                           style: ElevatedButton.styleFrom(
@@ -249,13 +245,13 @@ class _ShoppingCartState extends State<ShoppingCart> {
         }
       },
       child: Padding(
-        padding: EdgeInsets.all(10.0),
+        padding: EdgeInsets.all(8.0),
         child: Material(
           borderRadius: BorderRadius.circular(10.0),
           elevation: 3.0,
           child: Container(
             width: MediaQuery.of(context).size.width - 20.0,
-            height: 150.0,
+            height: MediaQuery.of(context).size.height * 0.23,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10.0),
@@ -265,7 +261,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
               children: <Widget>[
                 Container(
                   width: 150.0,
-                  height: 150.0,
+                  height: MediaQuery.of(context).size.height * 0.23,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
                     image: DecorationImage(
@@ -274,7 +270,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
                     ),
                   ),
                 ),
-                SizedBox(width: 10.0),
+                Gap(10.0),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -284,7 +280,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
                         itemName,
                         style: AppTheme.subheadline,
                       ),
-                      SizedBox(height: 10.0),
+                      Gap(10.0),
                       Row(
                         children: <Widget>[
                           Container(
@@ -307,12 +303,12 @@ class _ShoppingCartState extends State<ShoppingCart> {
                                     ),
                                   ),
                                 ),
-                                SizedBox(width: 10.0),
+                                Gap(10.0),
                                 available
                                     ? Text('${itens[i]['qntspedidos']}',
                                         style: AppTheme.title)
                                     : Container(),
-                                SizedBox(width: 10.0),
+                                Gap(10.0),
                                 GestureDetector(
                                   onTap: () {
                                     if (available) {
@@ -335,7 +331,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
                           ),
                         ],
                       ),
-                      SizedBox(height: 10.0),
+                      Gap(10.0),
                       available
                           ? Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -349,7 +345,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
                                     color: Colors.grey,
                                   ),
                                 ),
-                                SizedBox(height: 5.0),
+                                Gap(5.0),
                                 Text(
                                   'Size: $size',
                                   style: TextStyle(
@@ -379,7 +375,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
                                 ),
                               ),
                             ),
-                      SizedBox(height: 10.0),
+                      Gap(5.0),
                       available
                           ? Text(
                               '\$${itens[i]['price'].toString()}',
@@ -396,7 +392,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
                 ),
                 Column(
                   children: [
-                    SizedBox(height: 10.0),
+                    Gap(10.0),
                     Container(
                       height: 25.0,
                       width: 25.0,

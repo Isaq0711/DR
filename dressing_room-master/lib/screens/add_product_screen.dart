@@ -29,7 +29,7 @@ class _AddPostScreenState extends State<AddProductScreen> {
   int lastSelectedSize = -1;
   String selectedCategory = 'TOP';
   List<Uint8List>? _files;
-  List<Uint8List>? _variationoptionsfiles;
+
   bool isLoading = false;
   Set<SwitchOption> selectedOptions = Set<SwitchOption>();
   final TextEditingController _descriptionController = TextEditingController();
@@ -315,7 +315,6 @@ class _AddPostScreenState extends State<AddProductScreen> {
                   isLoading
                       ? const LinearProgressIndicator()
                       : const SizedBox(height: 0.0),
-                  const Divider(),
                   Card(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15),
@@ -436,8 +435,8 @@ class _AddPostScreenState extends State<AddProductScreen> {
                                       ),
                                     ],
                                   ),
-                                  SizedBox(
-                                    height: size.height * 0.006,
+                                  Gap(
+                                    size.height * 0.006,
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.only(
@@ -457,7 +456,7 @@ class _AddPostScreenState extends State<AddProductScreen> {
                                                 Icons.add,
                                                 color: Colors.black,
                                               ),
-                                              const SizedBox(width: 4),
+                                              Gap(4),
                                               const Text(
                                                 'Add More variations',
                                                 style: TextStyle(
@@ -766,10 +765,10 @@ class _AddPostScreenState extends State<AddProductScreen> {
                                   border: InputBorder.none,
                                 ),
                               ),
-                              SizedBox(height: 20),
+                              Gap(20),
                               Text("Category of the product: ",
                                   style: AppTheme.title),
-                              SizedBox(height: 10),
+                              Gap(10),
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceEvenly,

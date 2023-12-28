@@ -13,6 +13,7 @@ dependencies:
   path_provider: ^2.0.8
   animate_do: ^2.0.0
   line_icons: ^2.0.3
+  two_dimensional_scrollables: ^0.0.5
   flutter_slidable: ^3.0.1
   flip_card: ^0.7.0
   gap: ^3.0.1

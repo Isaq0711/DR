@@ -17,7 +17,7 @@ class SelectImageDialog extends StatelessWidget {
         alignment: Alignment.center,
         child: const Text(
           'UPLOAD',
-         style: AppTheme.subheadline,
+          style: AppTheme.subheadline,
         ),
       ),
       content: Row(
@@ -41,7 +41,9 @@ class SelectImageDialog extends StatelessWidget {
               }
             },
           ),
-          SizedBox(width: 10,),
+          SizedBox(
+            width: 10,
+          ),
           ElevatedButton.icon(
             icon: Icon(Icons.photo_library),
             label: const Text(

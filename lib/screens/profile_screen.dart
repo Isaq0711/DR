@@ -569,6 +569,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ;
                           },
                         ),
+                        Divider(),
+                        ListTile(
+                          leading: const Icon(
+                            Icons.favorite,
+                            color: AppTheme.nearlyWhite,
+                          ),
+                          title: Text(
+                            "Favorites",
+                            style: AppTheme.subheadlinewhite,
+                          ),
+                          onTap: () {},
+                        ),
+                        ListTile(
+                          leading: const Icon(
+                            Icons.shopping_basket_rounded,
+                            color: AppTheme.nearlyWhite,
+                          ),
+                          title: Text(
+                            "Basket",
+                            style: AppTheme.subheadlinewhite,
+                          ),
+                          onTap: () {},
+                        ),
+                        Divider(),
                         ListTile(
                           leading: const Icon(
                             Icons.logout,
@@ -587,6 +611,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   (Route<dynamic> route) => false);
                             });
                           },
+                        ),
+                        Align(
+                          child: Text("Version: development"),
+                          alignment: Alignment.bottomCenter,
                         ),
                       ],
                     ),

@@ -7,6 +7,7 @@ import 'package:dressing_room/resources/firestore_methods.dart';
 import 'package:dressing_room/screens/login_screen.dart';
 import 'package:dressing_room/utils/colors.dart';
 import 'package:dressing_room/utils/utils.dart';
+import 'package:gap/gap.dart';
 import 'edit_profile_screen.dart';
 import 'seepost.dart';
 import 'package:dressing_room/widgets/follow_button.dart';
@@ -159,8 +160,10 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 child: Container(
                                   color: Colors.transparent,
                                   child: TabBar(
+                                    dividerColor: AppTheme.nearlyWhite,
                                     indicatorColor: AppTheme.vinho,
                                     labelColor: AppTheme.vinho,
+                                    unselectedLabelColor: AppTheme.cinza,
                                     controller: _tabController,
                                     tabs: [
                                       Tab(text: 'Public'),
@@ -214,11 +217,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                           ],
                         ),
                       ),
-                      const Divider(),
                       if (selectedOption == "public")
                         Column(
                           children: [
-                            const Divider(),
                             Padding(
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 16),
@@ -371,7 +372,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                           ],
                         ),
                       if (selectedOption == "private") ...[
-                        const Divider(),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Row(
@@ -447,7 +447,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                             );
                           },
                         ),
-                        const Divider(),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Row(
@@ -565,6 +564,55 @@ class _ProfileScreenState extends State<ProfileScreen>
                             );
                           },
                         ),
+                        Divider(),
+                        Text(
+                          "Collections",
+                          style: AppTheme.subtitlewhite,
+                        ),
+                        ListTile(
+                          leading: const Icon(
+                            Icons.favorite,
+                            color: AppTheme.nearlyWhite,
+                          ),
+                          title: Text(
+                            "Favorites",
+                            style: AppTheme.subheadlinewhite,
+                          ),
+                          onTap: () {},
+                        ),
+                        ListTile(
+                          leading: const Icon(
+                            Icons.shopping_basket_rounded,
+                            color: AppTheme.nearlyWhite,
+                          ),
+                          title: Text(
+                            "Basket",
+                            style: AppTheme.subheadlinewhite,
+                          ),
+                          onTap: () {},
+                        ),
+                        Divider(),
+                        Text(
+                          "My stores",
+                          style: AppTheme.subtitlewhite,
+                        ),
+                        ListTile(
+                          leading: const Icon(
+                            Icons.add,
+                            color: AppTheme.nearlyWhite,
+                          ),
+                          title: Text(
+                            "Create a store",
+                            style: AppTheme.subheadlinewhite,
+                          ),
+                          onTap: () {},
+                        ),
+                        Divider(),
+                        Text(
+                          "Minhas compras",
+                          style: AppTheme.subtitlewhite,
+                        ),
+                        Divider(),
                         ListTile(
                           leading: const Icon(
                             Icons.logout,
@@ -583,6 +631,13 @@ class _ProfileScreenState extends State<ProfileScreen>
                                   (Route<dynamic> route) => false);
                             });
                           },
+                        ),
+                        Align(
+                          child: Text(
+                            "Version: beta of beta",
+                            style: AppTheme.subtitlewhite,
+                          ),
+                          alignment: Alignment.bottomCenter,
                         ),
                       ],
                     ),

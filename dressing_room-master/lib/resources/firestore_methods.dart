@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dressing_room/models/post.dart';
 import 'package:dressing_room/models/products.dart';
 import 'package:dressing_room/models/votations.dart';
+import 'package:dressing_room/widgets/friends_list.dart';
+import 'package:dressing_room/widgets/tag_card.dart';
 import 'package:dressing_room/resources/storage_methods.dart';
 import 'package:uuid/uuid.dart';
 import 'package:dressing_room/models/cart.dart';
@@ -158,7 +160,7 @@ class FireStoreMethods {
         photoUrl: photoUrl,
         price: price,
         promotions: false,
-        qntspedidos: 1, // Set default quantity to 1 when adding a new product
+        qntspedidos: 1,
       );
 
       DocumentSnapshot productsnapshot =
@@ -181,7 +183,6 @@ class FireStoreMethods {
           });
         }
       } else {
-        // Cart doesn't exist for the user, create a new cart
         await _firestore.collection('cart').doc(uid).set({
           '$productId': product.toJson(),
         });
@@ -192,6 +193,74 @@ class FireStoreMethods {
       // Log the error for debugging purposes
       print("Error occurred: $err");
     }
+    return res;
+  }
+
+  Future<String> uploadList(
+    String uid,
+    String listname,
+    List<String>? users,
+  ) async {
+    String res = "Some error occurred";
+    try {
+      Lista listaa = Lista(
+        uid: uid,
+        dateAdded: DateTime.now(),
+        listname: listname,
+        users: users,
+      );
+
+      DocumentSnapshot listsnap =
+          await _firestore.collection('lists').doc(uid).get();
+
+      if (listsnap.exists) {
+        Map<String, dynamic> data = listsnap.data() as Map<String, dynamic>;
+
+        data[listname] = listaa.toJson();
+
+        await _firestore.collection('lists').doc(uid).update(data);
+      } else {
+        await _firestore.collection('lists').doc(uid).set({
+          listname: listaa.toJson(),
+        });
+      }
+
+      res = "success";
+    } catch (err) {
+      res = "Error: $err";
+      print("Error occurred: $err");
+    }
+    return res;
+  }
+
+  Future<String> createHashtag(String itemname, String category) async {
+    String res = "Some error occurred";
+
+    try {
+      Hashtag tag = Hashtag(
+        itemname: itemname,
+        category: category,
+      );
+
+      DocumentSnapshot tagSnap =
+          await _firestore.collection('hashtags').doc(category).get();
+
+      if (tagSnap.exists) {
+        Map<String, dynamic> data = tagSnap.data() as Map<String, dynamic>;
+        data[itemname] = tag.toJson();
+
+        await _firestore.collection('hashtags').doc(category).update(data);
+      } else {
+        await _firestore.collection('hashtags').doc(category).set({
+          itemname: tag.toJson(),
+        });
+      }
+
+      res = "success";
+    } catch (err) {
+      res = "Error: $err";
+    }
+
     return res;
   }
 

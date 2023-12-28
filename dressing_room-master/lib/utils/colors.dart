@@ -169,4 +169,13 @@ class AppTheme {
     letterSpacing: 0.2,
     color: nearlyBlack,
   );
+
+  static const TextStyle dividerfont = TextStyle(
+    // subtitle2 -> subtitle
+    fontFamily: fontName2,
+    fontWeight: FontWeight.w600,
+    fontSize: 13,
+    letterSpacing: -0.04,
+    color: lightText,
+  );
 }

@@ -90,10 +90,6 @@ class _ProductCardState extends State<ProductCard> {
       );
 
       if (res == "success") {
-        showSnackBar(
-          context,
-          'Added!',
-        );
       } else {
         showSnackBar(context, res);
       }
@@ -159,23 +155,41 @@ class _ProductCardState extends State<ProductCard> {
                       goToNextImage();
                     }
                   },
-                  child: SizedBox(
-                    width: size.width,
-                    height: size.height * 0.45,
-                    child: Stack(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8.0),
-                          child: Image.network(
-                            widget.snap['variations'][_currentPageIndex]
-                                    ['photoUrls'][_currentPhotoIndex]
-                                .toString(),
-                            width: size.width,
-                            fit: BoxFit.cover,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.55,
+                        width: double.infinity,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10.0),
+                          child: PageView.builder(
+                            itemCount: widget
+                                .snap['variations'][_currentPageIndex]
+                                    ['photoUrls']
+                                .length,
+                            controller:
+                                PageController(initialPage: _currentPhotoIndex),
+                            onPageChanged: (index) {
+                              setState(() {
+                                _currentPhotoIndex = index;
+                              });
+                            },
+                            itemBuilder: (context, index) {
+                              return ClipRRect(
+                                borderRadius: BorderRadius.circular(10.0),
+                                child: Image.network(
+                                  widget.snap['variations'][_currentPageIndex]
+                                          ['photoUrls'][_currentPhotoIndex]
+                                      .toString(),
+                                  fit: BoxFit.cover,
+                                ),
+                              );
+                            },
                           ),
-                        )
-                      ],
-                    ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 Center(
@@ -239,10 +253,12 @@ class _ProductCardState extends State<ProductCard> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                "Select Variation",
-                                style: AppTheme.title,
-                              ),
+                              widget.snap['variations'].length > 1
+                                  ? Text(
+                                      "Select Variation",
+                                      style: AppTheme.title,
+                                    )
+                                  : Container(),
                               Text(
                                 '${widget.snap['variations'][_currentPageIndex]['itemCount'].toString()}' +
                                     " Items available",
@@ -251,65 +267,79 @@ class _ProductCardState extends State<ProductCard> {
                             ],
                           ),
                         ),
-                        SizedBox(
-                          height: size.height * 0.1,
-                          child: GridView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: widget.snap['variations'] != null
-                                ? widget.snap['variations'].length
-                                : 0,
-                            gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 1,
-                              crossAxisSpacing: 8.0,
-                            ),
-                            itemBuilder: (context, index) {
-                              return GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _currentPageIndex = index;
-                                    generateAvailableSizes();
-                                    _currentPhotoIndex = 0;
-                                  });
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: AnimatedContainer(
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                        color: _currentPageIndex == index
-                                            ? AppTheme.vinho
-                                            : Colors.transparent,
-                                        width: 2,
-                                      ),
-                                      borderRadius: BorderRadius.circular(8),
+                        Column(children: [
+                          if (widget.snap['variations'].length > 1)
+                            Column(
+                              children: [
+                                SizedBox(
+                                  height: size.height * 0.1,
+                                  child: GridView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: widget.snap['variations'] != null
+                                        ? widget.snap['variations'].length
+                                        : 0,
+                                    gridDelegate:
+                                        SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 1,
+                                      crossAxisSpacing: 8.0,
                                     ),
-                                    duration: const Duration(milliseconds: 200),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Image.network(
-                                        widget.snap['variations'][index]
-                                                ['photoUrls'][0]
-                                            .toString(),
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
+                                    itemBuilder: (context, index) {
+                                      return GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            _currentPageIndex = index;
+                                            generateAvailableSizes();
+                                            _currentPhotoIndex = 0;
+                                          });
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: AnimatedContainer(
+                                            decoration: BoxDecoration(
+                                              border: Border.all(
+                                                color:
+                                                    _currentPageIndex == index
+                                                        ? AppTheme.vinho
+                                                        : Colors.transparent,
+                                                width: 2,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            duration: const Duration(
+                                                milliseconds: 200),
+                                            child: ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              child: Image.network(
+                                                widget.snap['variations'][index]
+                                                        ['photoUrls'][0]
+                                                    .toString(),
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ),
-                              );
-                            },
-                          ),
-                        ),
-                        Gap(
-                          size.height * 0.003,
-                        ),
-                        Text(
-                            "Variation selected: " +
-                                '${widget.snap['variations'][_currentPageIndex]['variationdescription']}',
-                            style: AppTheme.caption),
-                        Gap(
-                          size.height * 0.006,
-                        ),
+                                Gap(
+                                  size.height * 0.003,
+                                ),
+                                Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      "Variation selected: " +
+                                          '${widget.snap['variations'][_currentPageIndex]['variationdescription']}',
+                                      style: AppTheme.caption,
+                                    )),
+                                Gap(
+                                  size.height * 0.006,
+                                ),
+                              ],
+                            )
+                        ]),
                         Padding(
                           padding: const EdgeInsets.only(
                               left: 10.0, top: 10.0, bottom: 9.0),
@@ -463,7 +493,7 @@ class _ProductCardState extends State<ProductCard> {
                                       'Add to Cart',
                                       style: TextStyle(fontSize: 16),
                                     ),
-                                    SizedBox(width: 8),
+                                    Gap(8),
                                     Icon(
                                       Icons.shopping_cart,
                                       size: 20,

@@ -31,6 +31,7 @@ class PostCard extends StatefulWidget {
 class _PostCardState extends State<PostCard> {
   int commentLen = 0;
   bool isLikeAnimating = false;
+  bool showreactions = false;
   int currentImageIndex = 0;
   bool isFavorite = false;
   double rating = 0;
@@ -160,7 +161,7 @@ class _PostCardState extends State<PostCard> {
                   alignment: Alignment.center,
                   children: [
                     SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.5,
+                      height: MediaQuery.of(context).size.height * 0.63,
                       width: double.infinity,
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(10.0),
@@ -319,7 +320,66 @@ class _PostCardState extends State<PostCard> {
                             },
                             icon: const Icon(Icons.more_vert),
                           )
-                        : Container(),
+                        : IconButton(
+                            color: showreactions == true
+                                ? AppTheme.nearlyWhite
+                                : AppTheme.nearlyBlack,
+                            onPressed: () {
+                              setState(() {
+                                showreactions = true;
+                              });
+                            },
+                            icon: const Icon(Icons.more_horiz_rounded),
+                          ),
+                    if (showreactions == true)
+                      Padding(
+                          padding: EdgeInsets.all(8),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(15),
+                              color:
+                                  AppTheme.cinza, // Defina a cor desejada aqui
+                            ),
+                            child: Row(
+                              children: [
+                                IconButton(
+                                  icon: Icon(Icons.shopping_bag_outlined),
+                                  color: AppTheme.nearlyBlack,
+                                  onPressed: () {},
+                                ),
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.favorite_border,
+                                  ),
+                                  color: AppTheme.nearlyBlack,
+                                  onPressed: () {},
+                                ),
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.arrow_circle_up,
+                                  ),
+                                  color: AppTheme.nearlyBlack,
+                                  onPressed: () {},
+                                ),
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.share,
+                                  ),
+                                  color: AppTheme.nearlyBlack,
+                                  onPressed: () {},
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.more_horiz_rounded),
+                                  color: AppTheme.nearlyBlack,
+                                  onPressed: () {
+                                    setState(() {
+                                      showreactions = false;
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          ))
                   ],
                 ),
               ),

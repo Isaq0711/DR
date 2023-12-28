@@ -2,8 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:dressing_room/resources/auth_methods.dart';
+import 'package:dressing_room/screens/sizes_screen.dart';
 import 'package:dressing_room/resources/firestore_methods.dart';
+import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
 import 'search_screen.dart';
 import 'package:dressing_room/widgets/votation_card.dart';
 import 'package:dressing_room/utils/colors.dart';
@@ -108,7 +109,10 @@ class _FeedScreenState extends State<FeedScreen> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => SearchScreen()),
+                      MaterialPageRoute(
+                          builder: (context) => SizeScreen(
+                                title: 'teste',
+                              )),
                     );
                   },
                 ),
@@ -182,7 +186,6 @@ class _FeedScreenState extends State<FeedScreen> {
                           final documentData = allDocuments[index].data();
 
                           if (documentData!.containsKey('options')) {
-                            // It's a VotationCard
                             return Container(
                               margin: EdgeInsets.symmetric(
                                 horizontal:
