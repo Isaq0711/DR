@@ -1,6 +1,9 @@
+import 'package:dressing_room/providers/bottton_nav_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:sliding_up_panel/sliding_up_panel.dart';
+
 import 'package:dressing_room/utils/colors.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 import 'package:dressing_room/utils/global_variable.dart';
 
 class MobileScreenLayout extends StatefulWidget {
@@ -13,15 +16,12 @@ class MobileScreenLayout extends StatefulWidget {
 class _MobileScreenLayoutState extends State<MobileScreenLayout> {
   int _page = 0;
   late PageController pageController;
-  late double _panelHeightOpen;
-  late double _panelHeightClosed;
-  late bool _isPanelVisible;
 
   @override
   void initState() {
     super.initState();
     pageController = PageController();
-    _isPanelVisible = false;
+    ;
   }
 
   @override
@@ -44,103 +44,88 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
     pageController.jumpToPage(page);
   }
 
-  Widget _buildPanel(ScrollController sc) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.vinho,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
-      ),
-      child: BottomNavigationBar(
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(
-              (_page == 0) ?Icons.home : Icons.home_outlined,
-              color:  AppTheme.nearlyWhite 
-            ),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              (_page == 1) ?Icons.shopping_cart : Icons.shopping_cart_outlined,
-              color:  AppTheme.nearlyWhite 
-            ),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              (_page == 2) ?Icons.add_circle : Icons.add_circle_outline,
-              color:  AppTheme.nearlyWhite
-            ),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              (_page == 3) ? Icons.notification_add : Icons.notification_add_outlined,
-              color:  AppTheme.nearlyWhite 
-            ),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              (_page == 4) ?Icons.person : Icons.person_outline,
-              color:  AppTheme.nearlyWhite
-            ),
-            label: '',
-          ),
-        ],
-        onTap: navigationTapped,
-        currentIndex: _page,
-        backgroundColor: Colors.transparent,
-        selectedItemColor: AppTheme.nearlyWhite,
-        unselectedItemColor: Colors.grey,
-        type: BottomNavigationBarType.fixed,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    _panelHeightOpen = MediaQuery.of(context).size.height * 0.1;
-    _panelHeightClosed = MediaQuery.of(context).size.height * 0.03;
-
+    bool isBottomVisible = context.watch<BottonNavController>().isBottonVisible;
     return Scaffold(
-      body: Stack(
-        children: [
-          PageView(
-          children: homeScreenItems, // Replace this with your list of pages
-            controller: pageController,
-            onPageChanged: onPageChanged,
-          ),
-          SlidingUpPanel(
-            color: AppTheme.vinho,
-            maxHeight: _panelHeightOpen,
-            minHeight: _panelHeightClosed,
-            parallaxEnabled: true,
-            parallaxOffset: 0.5,
-            body: Container(),
-            panelBuilder: (scrollController) => _buildPanel(scrollController),
-            collapsed: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _isPanelVisible = !_isPanelVisible;
-                });
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppTheme.vinho,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(24.0),
-                    topRight: Radius.circular(24.0),
+        body: PageView(
+          children: homeScreenItems,
+          controller: pageController,
+          onPageChanged: onPageChanged,
+        ),
+        bottomNavigationBar: Visibility(
+            visible: isBottomVisible,
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppTheme.cinza,
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(18),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey,
+                    spreadRadius: 2,
+                    blurRadius: 5,
                   ),
-                ),
-                child: Center(
-                  child: Icon(Icons.remove),
-                ),
+                ],
               ),
-            ),
-          ),
-        ],
-      ),
-    );
+              child: BottomNavigationBar(
+                showSelectedLabels: false,
+                showUnselectedLabels: false,
+                elevation: 0,
+                items: <BottomNavigationBarItem>[
+                  BottomNavigationBarItem(
+                    icon: Icon(
+                      (_page == 0) ? Icons.home : Icons.home_outlined,
+                      color: AppTheme.vinho,
+                      size: 24.h,
+                    ),
+                    label: '',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(
+                      (_page == 1)
+                          ? Icons.shopping_cart
+                          : Icons.shopping_cart_outlined,
+                      color: AppTheme.vinho,
+                      size: 24.h,
+                    ),
+                    label: '',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(
+                      (_page == 2)
+                          ? Icons.add_circle
+                          : Icons.add_circle_outline,
+                      color: AppTheme.vinho,
+                      size: 24.h,
+                    ),
+                    label: '',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(
+                      (_page == 3)
+                          ? Icons.notification_add
+                          : Icons.notification_add_outlined,
+                      color: AppTheme.vinho,
+                      size: 24.h,
+                    ),
+                    label: '',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(
+                      (_page == 4) ? Icons.person : Icons.person_outline,
+                      color: AppTheme.vinho,
+                      size: 24.h,
+                    ),
+                    label: '',
+                  ),
+                ],
+                onTap: navigationTapped,
+                currentIndex: _page,
+                backgroundColor: Colors.transparent,
+                type: BottomNavigationBarType.fixed,
+              ),
+            )));
   }
 }

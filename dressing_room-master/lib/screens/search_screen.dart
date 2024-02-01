@@ -98,7 +98,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                   itemCount: documents.length,
                   itemBuilder: (context, index) => Image.network(
-                    documents[index]['variations'][0]['photoUrls'][1]
+                    documents[index]['variations'][0]['photoUrls'][0]
                         .toString(),
                     fit: BoxFit.cover,
                   ),

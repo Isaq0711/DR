@@ -215,7 +215,7 @@ class _FriendsListState extends State<FriendsList> {
                 onPressed: () {
                   Navigator.pop(context);
                 },
-                icon: const Icon(
+                icon: Icon(
                   Icons.arrow_back_rounded,
                   color: AppTheme.nearlyBlack,
                 ),
@@ -231,7 +231,7 @@ class _FriendsListState extends State<FriendsList> {
                     ? Navigator.pop(context)
                     : Navigator.pop(context, selectedUsername);
               },
-              icon: const Icon(
+              icon: Icon(
                 Icons.check,
                 color: AppTheme.nearlyBlack,
               ),

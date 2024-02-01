@@ -35,7 +35,7 @@ class _TagCardState extends State<TagCard> {
 
   void addToList(String itemName) {
     setState(() {
-      bool userExists = (results.contains(itemName) ?? false);
+      bool userExists = (results.contains(itemName));
 
       if (userExists) {
         results.remove(itemName);
@@ -125,7 +125,7 @@ class _TagCardState extends State<TagCard> {
                                     'category': widget.category
                                   });
                           },
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.check,
                             color: AppTheme.nearlyBlack,
                           ),
@@ -207,47 +207,38 @@ class _TagCardState extends State<TagCard> {
                         },
                       ),
                     ),
-                    const SizedBox(height: 18),
-                    Container(
-                      child: searchResults.isEmpty
-                          ? Container()
-                          : Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 26),
-                              child: Container(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.4,
-                                child: ListView.builder(
-                                  itemCount: searchResults.length,
-                                  itemBuilder:
-                                      (BuildContext context, int index) {
-                                    final bool isAdded = results
-                                            .contains(searchResults[index]) ??
-                                        false;
-                                    return InkWell(
-                                      onTap: () {
-                                        addToList(searchResults[index]);
-                                      },
-                                      child: ListTile(
-                                        leading: isAdded
-                                            ? Icon(Icons.check_box_outlined,
-                                                color: AppTheme.nearlyBlack)
-                                            : Icon(
-                                                Icons.check_box_outline_blank,
-                                                color: AppTheme.nearlyBlack),
-                                        title: Text(
-                                          searchResults[index],
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  },
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 26),
+                      child: SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.25,
+                        child: ListView.builder(
+                          itemCount: searchResults.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            final bool isAdded =
+                                results.contains(searchResults[index]);
+                            return InkWell(
+                              onTap: () {
+                                addToList(searchResults[index]);
+                                print(searchResults);
+                              },
+                              child: ListTile(
+                                leading: isAdded
+                                    ? Icon(Icons.check_box_outlined,
+                                        color: AppTheme.nearlyBlack)
+                                    : Icon(Icons.check_box_outline_blank,
+                                        color: AppTheme.nearlyBlack),
+                                title: Text(
+                                  searchResults[index],
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.black,
+                                  ),
                                 ),
                               ),
-                            ),
+                            );
+                          },
+                        ),
+                      ),
                     ),
                   ],
                 ),

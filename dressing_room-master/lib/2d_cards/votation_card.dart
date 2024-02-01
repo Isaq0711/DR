@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:dressing_room/models/user.dart' as model;
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:dressing_room/providers/user_provider.dart';
 import 'package:dressing_room/resources/firestore_methods.dart';
 import 'package:dressing_room/screens/comments_screen.dart';
@@ -15,7 +16,7 @@ import 'package:dots_indicator/dots_indicator.dart';
 
 class VotationCard extends StatefulWidget {
   final snap;
-  const VotationCard({
+  VotationCard({
     Key? key,
     required this.snap,
   }) : super(key: key);
@@ -64,9 +65,7 @@ class _VotationCardState extends State<VotationCard> {
   deleteVotation(String votationId) async {
     try {
       await FireStoreMethods().deleteVotation(votationId);
-    } catch (err) {
-      
-    }
+    } catch (err) {}
   }
 
   void goToNextImage() {
@@ -124,7 +123,6 @@ class _VotationCardState extends State<VotationCard> {
                     setState(() {
                       isLikeAnimating = res == 'success';
                     });
-                    
                   });
                 },
                 onHorizontalDragEnd: (details) {
@@ -138,7 +136,7 @@ class _VotationCardState extends State<VotationCard> {
                   alignment: Alignment.center,
                   children: [
                     SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.5,
+                      height: 600.h,
                       width: double.infinity,
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(10.0),
@@ -164,16 +162,16 @@ class _VotationCardState extends State<VotationCard> {
                       ),
                     ),
                     AnimatedOpacity(
-                      duration: const Duration(milliseconds: 200),
+                      duration: Duration(milliseconds: 200),
                       opacity: isLikeAnimating ? 1 : 0,
                       child: LikeAnimation(
                         isAnimating: isLikeAnimating,
-                        child: const Icon(
+                        child: Icon(
                           Icons.check_box,
                           color: Colors.green,
                           size: 100,
                         ),
-                        duration: const Duration(
+                        duration: Duration(
                           milliseconds: 400,
                         ),
                         onEnd: () {
@@ -187,7 +185,7 @@ class _VotationCardState extends State<VotationCard> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4.5),
+                padding: EdgeInsets.symmetric(vertical: 4.5),
                 child: widget.snap['options'].length > 1
                     ? DotsIndicator(
                         dotsCount: widget.snap['options'].length,
@@ -195,9 +193,9 @@ class _VotationCardState extends State<VotationCard> {
                         decorator: DotsDecorator(
                           color: AppTheme.cinza,
                           activeColor: AppTheme.vinho,
-                          spacing: const EdgeInsets.symmetric(horizontal: 4.0),
-                          size: const Size.square(8.0),
-                          activeSize: const Size(16.0, 8.0),
+                          spacing: EdgeInsets.symmetric(horizontal: 4.0),
+                          size: Size.square(8.0),
+                          activeSize: Size(16.0, 8.0),
                           activeShape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(4.0),
                           ),
@@ -206,7 +204,7 @@ class _VotationCardState extends State<VotationCard> {
                     : SizedBox.shrink(),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(
+                padding: EdgeInsets.symmetric(
                   vertical: 2,
                   horizontal: 6,
                 ).copyWith(right: 0),
@@ -220,7 +218,7 @@ class _VotationCardState extends State<VotationCard> {
                     ),
                     Expanded(
                       child: Padding(
-                        padding: const EdgeInsets.only(
+                        padding: EdgeInsets.only(
                           left: 8,
                         ),
                         child: Column(
@@ -259,7 +257,7 @@ class _VotationCardState extends State<VotationCard> {
                                 builder: (context) {
                                   return Dialog(
                                     child: ListView(
-                                      padding: const EdgeInsets.symmetric(
+                                      padding: EdgeInsets.symmetric(
                                         vertical: 2.5,
                                         horizontal: 2.5,
                                       ),
@@ -267,7 +265,7 @@ class _VotationCardState extends State<VotationCard> {
                                       children: [
                                         InkWell(
                                           child: Container(
-                                            padding: const EdgeInsets.symmetric(
+                                            padding: EdgeInsets.symmetric(
                                               vertical: 12,
                                               horizontal: 16,
                                             ),
@@ -278,9 +276,9 @@ class _VotationCardState extends State<VotationCard> {
                                             ),
                                           ),
                                           onTap: () {
-                                            deleteVotation(
-                                                widget.snap['votationId']
-                                                    .toString());
+                                            deleteVotation(widget
+                                                .snap['votationId']
+                                                .toString());
                                             Navigator.of(context).pop();
                                           },
                                         ),
@@ -290,7 +288,7 @@ class _VotationCardState extends State<VotationCard> {
                                 },
                               );
                             },
-                            icon: const Icon(Icons.more_vert),
+                            icon: Icon(Icons.more_vert),
                           )
                         : Container(),
                   ],
@@ -299,22 +297,21 @@ class _VotationCardState extends State<VotationCard> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Padding(
-                  padding: const EdgeInsets.only(left: 4),
+                  padding: EdgeInsets.only(left: 4),
                   child: Container(
                     child: ListView.builder(
                       shrinkWrap: true,
                       itemCount: descriptions.length,
                       itemBuilder: (context, index) {
                         bool isVoted = widget.snap['votes']?.any((vote) {
-                          return vote['uid'] == user.uid &&
-                              vote['optionDescription'] ==
-                                  descriptions[index];
-                        }) ??
+                              return vote['uid'] == user.uid &&
+                                  vote['optionDescription'] ==
+                                      descriptions[index];
+                            }) ??
                             false;
 
                         bool hasVoted(List<dynamic>? votes, String uid) {
-                          return votes?.any(
-                                  (vote) => vote['uid'] == uid) ??
+                          return votes?.any((vote) => vote['uid'] == uid) ??
                               false;
                         }
 
@@ -342,7 +339,6 @@ class _VotationCardState extends State<VotationCard> {
                               setState(() {
                                 isLikeAnimating = res == 'success';
                               });
-                          
                             });
                           },
                           child: Container(
@@ -350,10 +346,10 @@ class _VotationCardState extends State<VotationCard> {
                             height: 35,
                             child: Card(
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15),
+                                borderRadius: BorderRadius.circular(10),
                               ),
                               elevation: 5,
-                              margin: const EdgeInsets.fromLTRB(15, 10, 15, 0),
+                              margin: EdgeInsets.fromLTRB(15, 10, 15, 0),
                               color: isVoted
                                   ? AppTheme.nearlyBlack
                                   : AppTheme.vinho,
@@ -366,8 +362,7 @@ class _VotationCardState extends State<VotationCard> {
                                         ? '${percentage.toStringAsFixed(0)}% voted for ${descriptions[index]}'
                                         : descriptions[index],
                                     style: TextStyle(
-                                      color:
-                                          AppTheme.subtitlewhite.color,
+                                      color: AppTheme.subtitlewhite.color,
                                     ),
                                   ),
                                 ],
@@ -390,7 +385,7 @@ class _VotationCardState extends State<VotationCard> {
                     Column(
                       children: [
                         IconButton(
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.comment_outlined,
                             color: AppTheme.nearlyBlack,
                           ),
@@ -419,16 +414,17 @@ class _VotationCardState extends State<VotationCard> {
                                 ? SizedBox()
                                 : IconButton(
                                     icon: (widget.snap['userFavorites']
-                                                ?.contains(widget.snap['postId']) ??
+                                                ?.contains(
+                                                    widget.snap['postId']) ??
                                             false)
-                                        ? const Icon(Icons.star,
+                                        ? Icon(Icons.star,
                                             color: AppTheme.nearlyBlack)
-                                        : const Icon(Icons.star_border,
+                                        : Icon(Icons.star_border,
                                             color: AppTheme.nearlyBlack),
                                     onPressed: () {
-                                      final userFavorites =
-                                          widget.snap['userFavorites'] ??
-                                              []; // Create an empty list if null
+                                      final userFavorites = widget
+                                              .snap['userFavorites'] ??
+                                          []; // Create an empty list if null
 
                                       // Add to favorites
                                       FireStoreMethods().toggleFavorite(
@@ -450,7 +446,7 @@ class _VotationCardState extends State<VotationCard> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:dressing_room/resources/firestore_methods.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:dressing_room/utils/colors.dart';
 import 'package:gap/gap.dart';
+import 'package:dressing_room/screens/seepost.dart';
+import 'package:dressing_room/resources/firestore_methods.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
 class ShoppingCart extends StatefulWidget {
@@ -56,7 +58,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
   void decrementCount(int index) {
     setState(() {
       if (itens[index]['qntspedidos'] == 1) {
-        showDeleteItemDialog(context);
+        showDeleteItemDialog(context, index); // Pass the 'index' parameter
       } else if (itens[index]['qntspedidos'] > 1) {
         itens[index]['qntspedidos']--;
         getTotalAmount();
@@ -64,7 +66,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
     });
   }
 
-  void showDeleteItemDialog(BuildContext context) {
+  void showDeleteItemDialog(BuildContext context, int index) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -91,10 +93,10 @@ class _ShoppingCartState extends State<ShoppingCart> {
                 style: ElevatedButton.styleFrom(primary: AppTheme.vinho),
                 onPressed: () {
                   // Perform action for Camera option
-                  Navigator.pop(context); // Close the dialog
+                  Navigator.pop(context);
                 },
               ),
-              Gap(10),
+              Gap(10.w),
               ElevatedButton(
                 child: Text(
                   'Yes',
@@ -104,9 +106,15 @@ class _ShoppingCartState extends State<ShoppingCart> {
                   ),
                 ),
                 style: ElevatedButton.styleFrom(primary: AppTheme.vinho),
-                onPressed: () {
-                  // Perform action for Gallery option
-                  Navigator.pop(context); // Close the dialog
+                onPressed: () async {
+                  await FireStoreMethods()
+                      .removeFromCart(widget.uid, itens[index]['productId']);
+
+                  // Refresh the page by fetching the updated data
+                  getData();
+
+                  // Close the dialog
+                  Navigator.pop(context);
                 },
               ),
             ],
@@ -133,7 +141,9 @@ class _ShoppingCartState extends State<ShoppingCart> {
         itens.clear();
 
         data.entries.forEach((entry) {
-          itens.add(entry.value);
+          var itemData = entry.value;
+          itemData['postId'] = entry.key; // Adiciona o campo 'postId'
+          itens.add(itemData);
         });
       }
     } catch (e) {
@@ -155,23 +165,28 @@ class _ShoppingCartState extends State<ShoppingCart> {
         : Scaffold(
             appBar: AppBar(
               automaticallyImplyLeading: false,
-              backgroundColor: AppTheme.vinho,
-              title: const Text(
-                'Shopping Cart',
-                style: AppTheme.subheadlinewhite,
-              ),
+              backgroundColor: Colors.transparent,
+              title: Text('Shopping Cart',
+                  style: AppTheme.barapp.copyWith(
+                    shadows: [
+                      Shadow(
+                        blurRadius: 2.0,
+                        color: Colors.black,
+                      ),
+                    ],
+                  )),
               centerTitle: true,
               bottom: PreferredSize(
                 preferredSize: Size.fromHeight(50.0),
                 child: Container(
                   width: double.infinity,
-                  color: Colors.white,
+                  color: Colors.transparent,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: <Widget>[
                       Text('Total: \$' + totalAmount.toString(),
                           style: AppTheme.subtitle),
-                      Gap(10.0),
+                      Gap(8.w),
                       Padding(
                         padding: const EdgeInsets.all(4.0),
                         child: ElevatedButton(
@@ -201,10 +216,10 @@ class _ShoppingCartState extends State<ShoppingCart> {
                         key: ValueKey(index),
                         endActionPane: ActionPane(
                           motion: const ScrollMotion(),
-                          children: const [
+                          children: [
                             SlidableAction(
                               onPressed: doNothing,
-                              backgroundColor: AppTheme.cinza,
+                              backgroundColor: Colors.grey,
                               foregroundColor: Colors.white,
                               icon: Icons.share,
                               label: 'Share',
@@ -245,188 +260,200 @@ class _ShoppingCartState extends State<ShoppingCart> {
         }
       },
       child: Padding(
-        padding: EdgeInsets.all(8.0),
+        padding: EdgeInsets.all(6.h),
         child: Material(
           borderRadius: BorderRadius.circular(10.0),
           elevation: 3.0,
           child: Container(
-            width: MediaQuery.of(context).size.width - 20.0,
-            height: MediaQuery.of(context).size.height * 0.23,
+            width: 350.w,
+            height: 169.h,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Colors.grey[100],
               borderRadius: BorderRadius.circular(10.0),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Container(
-                  width: 150.0,
-                  height: MediaQuery.of(context).size.height * 0.23,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    image: DecorationImage(
-                      image: NetworkImage(imgPath),
-                      fit: BoxFit.cover,
+                GestureDetector(
+                  child: Container(
+                    width: 130.w,
+                    height: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      image: DecorationImage(
+                        image: NetworkImage(imgPath),
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            SeePost(postId: itens[i]['postId']),
+                      ),
+                    );
+                  },
                 ),
-                Gap(10.0),
+                Gap(10.w),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Text(
-                        itemName,
-                        style: AppTheme.subheadline,
-                      ),
-                      Gap(10.0),
-                      Row(
-                        children: <Widget>[
-                          Container(
-                            child: Row(
-                              children: <Widget>[
-                                GestureDetector(
-                                  onTap: () {
-                                    if (available) {
-                                      decrementCount(i);
-                                    }
-                                  },
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.vinho,
-                                      borderRadius: BorderRadius.circular(15.0),
-                                    ),
-                                    child: Icon(
-                                      Icons.remove,
-                                      color: AppTheme.nearlyWhite,
-                                    ),
-                                  ),
+                    child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      itemName,
+                      style: AppTheme.subheadline,
+                      softWrap: false,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Gap(5.h),
+                    Row(
+                      children: <Widget>[
+                        Row(
+                          children: <Widget>[
+                            GestureDetector(
+                              onTap: () {
+                                if (available) {
+                                  decrementCount(i);
+                                }
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: AppTheme.vinho,
+                                  borderRadius: BorderRadius.circular(15.0),
                                 ),
-                                Gap(10.0),
-                                available
-                                    ? Text('${itens[i]['qntspedidos']}',
-                                        style: AppTheme.title)
-                                    : Container(),
-                                Gap(10.0),
-                                GestureDetector(
-                                  onTap: () {
-                                    if (available) {
-                                      incrementCount(i);
-                                    }
-                                  },
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.vinho,
-                                      borderRadius: BorderRadius.circular(15.0),
-                                    ),
-                                    child: Icon(
-                                      Icons.add,
-                                      color: AppTheme.nearlyWhite,
-                                    ),
-                                  ),
+                                child: Icon(
+                                  Icons.remove,
+                                  color: AppTheme.nearlyWhite,
                                 ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      Gap(10.0),
-                      available
-                          ? Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Text(
-                                  'Variation: $color',
-                                  style: TextStyle(
-                                    fontFamily: 'Quicksand',
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14.0,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                                Gap(5.0),
-                                Text(
-                                  'Size: $size',
-                                  style: TextStyle(
-                                    fontFamily: 'Quicksand',
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14.0,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ],
-                            )
-                          : OutlinedButton(
-                              onPressed: () {},
-                              style: OutlinedButton.styleFrom(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20.0),
-                                ),
-                                side: BorderSide(color: AppTheme.vinho),
                               ),
-                              child: Text(
-                                'Find Similar',
+                            ),
+                            Gap(5.w),
+                            available
+                                ? Text('${itens[i]['qntspedidos']}',
+                                    style: AppTheme.title)
+                                : Container(),
+                            Gap(5.w),
+                            GestureDetector(
+                              onTap: () {
+                                if (available) {
+                                  incrementCount(i);
+                                }
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: AppTheme.vinho,
+                                  borderRadius: BorderRadius.circular(15.0),
+                                ),
+                                child: Icon(
+                                  Icons.add,
+                                  color: AppTheme.nearlyWhite,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    Gap(5.h),
+                    available
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(
+                                'Variation: $color',
                                 style: TextStyle(
                                   fontFamily: 'Quicksand',
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 12.0,
-                                  color: AppTheme.vinho,
+                                  fontSize: 14.sp,
+                                  color: Colors.grey,
                                 ),
                               ),
+                              Gap(5.h),
+                              Text(
+                                'Size: $size',
+                                style: TextStyle(
+                                  fontFamily: 'Quicksand',
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14.sp,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          )
+                        : OutlinedButton(
+                            onPressed: () {},
+                            style: OutlinedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20.0),
+                              ),
+                              side: BorderSide(color: AppTheme.vinho),
                             ),
-                      Gap(5.0),
-                      available
-                          ? Text(
-                              '\$${itens[i]['price'].toString()}',
+                            child: Text(
+                              'Find Similar',
                               style: TextStyle(
-                                fontFamily: 'Montserrat',
+                                fontFamily: 'Quicksand',
                                 fontWeight: FontWeight.bold,
-                                fontSize: 20.0,
+                                fontSize: 12.sp,
                                 color: AppTheme.vinho,
                               ),
-                            )
-                          : Container(),
+                            ),
+                          ),
+                    Gap(5.h),
+                    available
+                        ? Text(
+                            '\$${itens[i]['price'].toString()}',
+                            style: TextStyle(
+                              fontFamily: 'Montserrat',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20.h,
+                              color: AppTheme.vinho,
+                            ),
+                          )
+                        : Container(),
+                  ],
+                )),
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10.h),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        height: 25.h,
+                        width: 25.h,
+                        decoration: BoxDecoration(
+                          color: available
+                              ? Colors.grey.withOpacity(0.4)
+                              : Colors.red.withOpacity(0.4),
+                          borderRadius: BorderRadius.circular(12.5),
+                        ),
+                        child: Center(
+                          child: available
+                              ? Container(
+                                  height: 15.h,
+                                  width: 15.h,
+                                  decoration: BoxDecoration(
+                                    color: picked[i]
+                                        ? AppTheme.vinho
+                                        : Colors.grey.withOpacity(0.4),
+                                    borderRadius: BorderRadius.circular(6.0),
+                                  ),
+                                )
+                              : Container(),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          showDeleteItemDialog(context, i);
+                        },
+                        icon: Icon(Icons.delete),
+                        color: Colors.grey, // Customize the color as needed
+                      ),
                     ],
                   ),
-                ),
-                Column(
-                  children: [
-                    Gap(10.0),
-                    Container(
-                      height: 25.0,
-                      width: 25.0,
-                      decoration: BoxDecoration(
-                        color: available
-                            ? Colors.grey.withOpacity(0.4)
-                            : Colors.red.withOpacity(0.4),
-                        borderRadius: BorderRadius.circular(12.5),
-                      ),
-                      child: Center(
-                        child: available
-                            ? Container(
-                                height: 12.0,
-                                width: 12.0,
-                                decoration: BoxDecoration(
-                                  color: picked[i]
-                                      ? AppTheme.vinho
-                                      : Colors.grey.withOpacity(0.4),
-                                  borderRadius: BorderRadius.circular(6.0),
-                                ),
-                              )
-                            : Container(),
-                      ),
-                    ),
-                    Gap(65.0),
-                    IconButton(
-                      onPressed: () {
-                        showDeleteItemDialog(context);
-                      },
-                      icon: Icon(Icons.delete),
-                      color: Colors.grey, // Customize the color as needed
-                    ),
-                  ],
-                ),
+                )
               ],
             ),
           ),

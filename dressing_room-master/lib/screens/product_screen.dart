@@ -19,7 +19,7 @@ import 'package:dots_indicator/dots_indicator.dart';
 class ProductScreen extends StatefulWidget {
   final dynamic snap;
 
-  const ProductScreen({
+  ProductScreen({
     Key? key,
     required this.snap,
   }) : super(key: key);
@@ -95,7 +95,7 @@ class _ProductScreenState extends State<ProductScreen> {
               onPressed: () {
                 Navigator.pop(context);
               },
-              icon: const Icon(
+              icon: Icon(
                 Icons.arrow_back_rounded,
                 color: AppTheme.nearlyBlack,
               ),
@@ -103,21 +103,21 @@ class _ProductScreenState extends State<ProductScreen> {
             actions: [
               IconButton(
                 onPressed: () {},
-                icon: const Icon(
+                icon: Icon(
                   Icons.favorite_border,
                   color: AppTheme.nearlyBlack,
                 ),
               ),
               IconButton(
                 onPressed: () {},
-                icon: const Icon(
+                icon: Icon(
                   Icons.shopping_bag_outlined,
                   color: AppTheme.nearlyBlack,
                 ),
               ),
               IconButton(
                 onPressed: () {},
-                icon: const Icon(
+                icon: Icon(
                   Icons.share_outlined,
                   color: AppTheme.nearlyBlack,
                 ),
@@ -187,7 +187,7 @@ class _ProductScreenState extends State<ProductScreen> {
                       ),
                       Center(
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4.5),
+                          padding: EdgeInsets.symmetric(vertical: 4.5),
                           child: widget
                                       .snap['variations']
                                           [_currentPageIndex]!['photoUrls']
@@ -203,10 +203,10 @@ class _ProductScreenState extends State<ProductScreen> {
                                   decorator: DotsDecorator(
                                     color: AppTheme.cinza,
                                     activeColor: AppTheme.vinho,
-                                    spacing: const EdgeInsets.symmetric(
-                                        horizontal: 4.0),
-                                    size: const Size.square(8.0),
-                                    activeSize: const Size(16.0, 8.0),
+                                    spacing:
+                                        EdgeInsets.symmetric(horizontal: 4.0),
+                                    size: Size.square(8.0),
+                                    activeSize: Size(16.0, 8.0),
                                     activeShape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(4.0),
                                     ),
@@ -218,7 +218,7 @@ class _ProductScreenState extends State<ProductScreen> {
                       SizedBox(
                         width: size.width,
                         child: Padding(
-                          padding: const EdgeInsets.all(10.0),
+                          padding: EdgeInsets.all(10.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -243,7 +243,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                 size.height * 0.006,
                               ),
                               Padding(
-                                padding: const EdgeInsets.only(
+                                padding: EdgeInsets.only(
                                     left: 10.0, top: 18.0, bottom: 10.0),
                                 child: Row(
                                   mainAxisAlignment:
@@ -279,7 +279,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                         });
                                       },
                                       child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
+                                        padding: EdgeInsets.all(8.0),
                                         child: AnimatedContainer(
                                           width: size.width * 0.15,
                                           decoration: BoxDecoration(
@@ -292,8 +292,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                             borderRadius:
                                                 BorderRadius.circular(8),
                                           ),
-                                          duration:
-                                              const Duration(milliseconds: 200),
+                                          duration: Duration(milliseconds: 200),
                                           child: ClipRRect(
                                             borderRadius:
                                                 BorderRadius.circular(8),
@@ -321,7 +320,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                 size.height * 0.006,
                               ),
                               Padding(
-                                padding: const EdgeInsets.only(
+                                padding: EdgeInsets.only(
                                     left: 10.0, top: 10.0, bottom: 9.0),
                                 child: Text(
                                   "Select Size",
@@ -332,8 +331,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                   width: size.width * 0.9,
                                   height: size.height * 0.08,
                                   child: ListView.builder(
-                                    physics:
-                                        const NeverScrollableScrollPhysics(),
+                                    physics: NeverScrollableScrollPhysics(),
                                     scrollDirection: Axis.horizontal,
                                     itemCount: availableSizes.length,
                                     itemBuilder: (ctx, index) {
@@ -345,7 +343,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                           });
                                         },
                                         child: Padding(
-                                          padding: const EdgeInsets.all(10.0),
+                                          padding: EdgeInsets.all(10.0),
                                           child: AnimatedContainer(
                                             width: size.width * 0.12,
                                             decoration: BoxDecoration(
@@ -359,8 +357,8 @@ class _ProductScreenState extends State<ProductScreen> {
                                               borderRadius:
                                                   BorderRadius.circular(15),
                                             ),
-                                            duration: const Duration(
-                                                milliseconds: 200),
+                                            duration:
+                                                Duration(milliseconds: 200),
                                             child: Center(
                                               child: Text(
                                                 currentSize,
@@ -379,7 +377,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                     },
                                   )),
                               Padding(
-                                padding: const EdgeInsets.all(10.0),
+                                padding: EdgeInsets.all(10.0),
                                 child: Center(
                                   child: ElevatedButton(
                                     onPressed: () {
@@ -472,7 +470,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                       );
                                     },
                                     child: Padding(
-                                      padding: const EdgeInsets.all(12.0),
+                                      padding: EdgeInsets.all(12.0),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [

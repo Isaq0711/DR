@@ -195,7 +195,6 @@ class _AddPostScreenState extends State<AddProductScreen> {
       MaterialPageRoute(
         builder: (context) => const ResponsiveLayout(
           mobileScreenLayout: MobileScreenLayout(),
-          webScreenLayout: WebScreenLayout(),
         ),
       ),
       (route) => false,
@@ -758,7 +757,7 @@ class _AddPostScreenState extends State<AddProductScreen> {
                               TextField(
                                 controller: _descriptionController,
                                 style: AppTheme.title,
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   hintText:
                                       "Type a description for the product..",
                                   hintStyle: AppTheme.title,

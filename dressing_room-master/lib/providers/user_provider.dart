@@ -8,7 +8,18 @@ class UserProvider with ChangeNotifier {
   final AuthMethods _authMethods = AuthMethods();
   bool _isInitialized = false;
 
-  User? get getUser => _user; // alterado para nullable
+  User? get getUser => _user;
+
+  // Adicionando um método para fazer logout
+  Future<void> logout(BuildContext context) async {
+    await _authMethods.signOut();
+    _user = null;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => LoginScreen()),
+    );
+    notifyListeners();
+  }
 
   Future<void> refreshUser(BuildContext context) async {
     if (!_isInitialized) {

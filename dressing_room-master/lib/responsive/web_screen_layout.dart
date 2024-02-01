@@ -46,7 +46,7 @@ class _WebScreenLayoutState extends State<WebScreenLayout> {
       appBar: AppBar(
         backgroundColor: AppTheme.nearlyWhite,
         centerTitle: false,
-        title: Text("DressRoom", style: AppTheme.body1),
+        title: Text("DressRoom", style: AppTheme.caption),
         actions: [
           IconButton(
             icon: Icon(
@@ -58,7 +58,7 @@ class _WebScreenLayoutState extends State<WebScreenLayout> {
           IconButton(
             icon: Icon(
               Icons.search,
-              color: _page == 1 ?AppTheme.nearlyWhite : Colors.grey ,
+              color: _page == 1 ? AppTheme.nearlyWhite : Colors.grey,
             ),
             onPressed: () => navigationTapped(1),
           ),
@@ -69,7 +69,6 @@ class _WebScreenLayoutState extends State<WebScreenLayout> {
             ),
             onPressed: () => navigationTapped(2),
           ),
-          
           IconButton(
             icon: Icon(
               Icons.person,

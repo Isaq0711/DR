@@ -37,8 +37,8 @@ class AuthMethods {
           password: password,
         );
 
-        String photoUrl =
-            await StorageMethods().uploadImageToStorage('profilePics', file, false);
+        String photoUrl = await StorageMethods()
+            .uploadImageToStorage('profilePics', file, false);
 
         model.User _user = model.User(
           username: username,
@@ -47,6 +47,7 @@ class AuthMethods {
           email: email,
           followers: [],
           following: [],
+          tabviews: [],
         );
 
         await _firestore
@@ -72,7 +73,6 @@ class AuthMethods {
     String res = "Some error Occurred";
     try {
       if (email.isNotEmpty || password.isNotEmpty) {
-        
         await _auth.signInWithEmailAndPassword(
           email: email,
           password: password,

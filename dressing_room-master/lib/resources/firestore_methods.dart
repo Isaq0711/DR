@@ -177,7 +177,7 @@ class FireStoreMethods {
           });
         } else {
           // Initialize quantity if the product doesn't exist in the cart
-          int quantity = 1;
+
           await _firestore.collection('cart').doc(uid).update({
             '$productId': product.toJson(),
           });
@@ -191,6 +191,27 @@ class FireStoreMethods {
     } catch (err) {
       res = "Error: $err"; // Update error message for better understanding
       // Log the error for debugging purposes
+      print("Error occurred: $err");
+    }
+    return res;
+  }
+
+  Future<String> removeFromCart(String uid, String productId) async {
+    String res = "Some error occurred";
+    try {
+      DocumentSnapshot productsnapshot =
+          await _firestore.collection('cart').doc(uid).get();
+
+      if (productsnapshot.exists && productsnapshot.data() != null) {
+        await _firestore.collection('cart').doc(uid).update({
+          '$productId': FieldValue.delete(),
+        });
+        res = "success";
+      } else {
+        res = "Cart is empty";
+      }
+    } catch (err) {
+      res = "Error: $err";
       print("Error occurred: $err");
     }
     return res;

@@ -54,25 +54,25 @@ class _VotationCardState extends State<VotationCard> {
     }
     setState(() {});
   }
-  
-  double calculatePercentage(int optionVotes, int totalVotes) {
-  if (totalVotes == 0) {
-    return 0.0;
-  }
-  return (optionVotes / totalVotes) * 100;
-}
 
+  double calculatePercentage(int optionVotes, int totalVotes) {
+    if (totalVotes == 0) {
+      return 0.0;
+    }
+    return (optionVotes / totalVotes) * 100;
+  }
 
   deleteVotation(String votationId) async {
-  try {
-    await FireStoreMethods().deleteVotation(votationId);
-  } catch (err) {
-    showSnackBar(
-      context,
-      err.toString(),
-    );
+    try {
+      await FireStoreMethods().deleteVotation(votationId);
+    } catch (err) {
+      showSnackBar(
+        context,
+        err.toString(),
+      );
+    }
   }
-}
+
   void goToNextImage() {
     setState(() {
       currentImageIndex++;
@@ -93,7 +93,8 @@ class _VotationCardState extends State<VotationCard> {
 
   void extractDescriptions() {
     List<dynamic> options = widget.snap['options'];
-    descriptions = options.map((option) => option['description'].toString()).toList();
+    descriptions =
+        options.map((option) => option['description'].toString()).toList();
   }
 
   @override
@@ -112,16 +113,7 @@ class _VotationCardState extends State<VotationCard> {
       child: Column(
         children: [
           GestureDetector(
-            onDoubleTap: () {
-             
-            },
-            onHorizontalDragEnd: (details) {
-              if (details.primaryVelocity! > 0) {
-                goToPreviousImage();
-              } else if (details.primaryVelocity! < 0) {
-                goToNextImage();
-              }
-            },
+            onDoubleTap: () {},
             child: Stack(
               alignment: Alignment.center,
               children: [
@@ -132,7 +124,8 @@ class _VotationCardState extends State<VotationCard> {
                     borderRadius: BorderRadius.circular(10.0),
                     child: PageView.builder(
                       itemCount: widget.snap['options'].length,
-                      controller: PageController(initialPage: currentImageIndex),
+                      controller:
+                          PageController(initialPage: currentImageIndex),
                       onPageChanged: (index) {
                         setState(() {
                           currentImageIndex = index;
@@ -177,19 +170,19 @@ class _VotationCardState extends State<VotationCard> {
             padding: const EdgeInsets.symmetric(vertical: 4.5),
             child: widget.snap['options'].length > 1
                 ? DotsIndicator(
-              dotsCount: widget.snap['options'].length,
-              position: currentImageIndex.toInt(),
-              decorator: DotsDecorator(
-                color: AppTheme.cinza,
-                activeColor: AppTheme.vinho,
-                spacing: const EdgeInsets.symmetric(horizontal: 4.0),
-                size: const Size.square(8.0),
-                activeSize: const Size(16.0, 8.0),
-                activeShape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4.0),
-                ),
-              ),
-            )
+                    dotsCount: widget.snap['options'].length,
+                    position: currentImageIndex.toInt(),
+                    decorator: DotsDecorator(
+                      color: AppTheme.cinza,
+                      activeColor: AppTheme.vinho,
+                      spacing: const EdgeInsets.symmetric(horizontal: 4.0),
+                      size: const Size.square(8.0),
+                      activeSize: const Size(16.0, 8.0),
+                      activeShape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4.0),
+                      ),
+                    ),
+                  )
                 : SizedBox.shrink(),
           ),
           Container(
@@ -237,121 +230,124 @@ class _VotationCardState extends State<VotationCard> {
                 ),
                 widget.snap['uid'].toString() == user.uid
                     ? IconButton(
-                  color: AppTheme.nearlyBlack,
-                  onPressed: () {
-                    showDialog(
-                      useRootNavigator: false,
-                      context: context,
-                      builder: (context) {
-                        return Dialog(
-                          child: ListView(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 2.5,
-                              horizontal: 2.5,
-                            ),
-                            shrinkWrap: true,
-                            children: [
-                              InkWell(
-                                child: Container(
+                        color: AppTheme.nearlyBlack,
+                        onPressed: () {
+                          showDialog(
+                            useRootNavigator: false,
+                            context: context,
+                            builder: (context) {
+                              return Dialog(
+                                child: ListView(
                                   padding: const EdgeInsets.symmetric(
-                                    vertical: 12,
-                                    horizontal: 16,
+                                    vertical: 2.5,
+                                    horizontal: 2.5,
                                   ),
-                                  color: AppTheme.nearlyWhite,
-                                  child: Text(
-                                    'Delete',
-                                    style: AppTheme.title,
-                                  ),
+                                  shrinkWrap: true,
+                                  children: [
+                                    InkWell(
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 12,
+                                          horizontal: 16,
+                                        ),
+                                        color: AppTheme.nearlyWhite,
+                                        child: Text(
+                                          'Delete',
+                                          style: AppTheme.title,
+                                        ),
+                                      ),
+                                      onTap: () {
+                                        deleteVotation(widget.snap['votationId']
+                                            .toString());
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                  ],
                                 ),
-                                onTap: () {
-                                  deleteVotation(widget.snap['votationId']
-                                      .toString());
-                                      Navigator.of(context).pop();
-                                },
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    );
-                  },
-                  icon: const Icon(Icons.more_vert),
-                )
+                              );
+                            },
+                          );
+                        },
+                        icon: const Icon(Icons.more_vert),
+                      )
                     : Container(),
               ],
             ),
           ),
-        Align(
-  alignment: Alignment.centerLeft,
-  child: Padding(
-    padding: const EdgeInsets.only(left: 4),
-    child: Container(
-      child:ListView.builder(
-  shrinkWrap: true,
-  itemCount: descriptions.length,
-  itemBuilder: (context, index) {
-    bool isVoted = widget.snap['votes']?.any((vote) {
-      return vote['uid'] == user.uid &&
-          vote['optionDescription'] == descriptions[index];
-    }) ?? false;
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 4),
+              child: Container(
+                  child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: descriptions.length,
+                itemBuilder: (context, index) {
+                  bool isVoted = widget.snap['votes']?.any((vote) {
+                        return vote['uid'] == user.uid &&
+                            vote['optionDescription'] == descriptions[index];
+                      }) ??
+                      false;
 
- bool hasVoted(List<dynamic>? votes, String uid) {
-  return votes?.any((vote) => vote['uid'] == uid) ?? false;
-}
-    int optionVotes = widget.snap['votes']?.where((vote) {
-      return vote['optionDescription'] == descriptions[index];
-    })?.length ?? 0;
+                  bool hasVoted(List<dynamic>? votes, String uid) {
+                    return votes?.any((vote) => vote['uid'] == uid) ?? false;
+                  }
 
-    int totalVotes = widget.snap['votes']?.length ?? 0;
+                  int optionVotes = widget.snap['votes']?.where((vote) {
+                        return vote['optionDescription'] == descriptions[index];
+                      })?.length ??
+                      0;
 
-    double percentage = calculatePercentage(optionVotes, totalVotes);
+                  int totalVotes = widget.snap['votes']?.length ?? 0;
 
-    return InkWell(
-          onTap: () {
-        String votationId = widget.snap['votationId'].toString();
-        String uid = user.uid;
-        int optionIndex = index;
-        FireStoreMethods().votePost(votationId, uid, optionIndex).then((res) {
-          setState(() {
-            isLikeAnimating = res == 'success';
-          });
-          showSnackBar(context, res ?? 'An error occurred');
-        }); 
-      },
-      child: Container(
-        width: 50,
-        height: 35,
-        child: Card(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
+                  double percentage =
+                      calculatePercentage(optionVotes, totalVotes);
+
+                  return InkWell(
+                    onTap: () {
+                      String votationId = widget.snap['votationId'].toString();
+                      String uid = user.uid;
+                      int optionIndex = index;
+                      FireStoreMethods()
+                          .votePost(votationId, uid, optionIndex)
+                          .then((res) {
+                        setState(() {
+                          isLikeAnimating = res == 'success';
+                        });
+                        showSnackBar(context, res ?? 'An error occurred');
+                      });
+                    },
+                    child: Container(
+                      width: 50,
+                      height: 35,
+                      child: Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        elevation: 5,
+                        margin: const EdgeInsets.fromLTRB(15, 10, 15, 0),
+                        color: isVoted ? AppTheme.nearlyBlack : AppTheme.vinho,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(width: 10),
+                            Text(
+                              hasVoted(widget.snap['votes'], user.uid)
+                                  ? '${percentage.toStringAsFixed(0)}% voted for ${descriptions[index]}'
+                                  : descriptions[index],
+                              style: TextStyle(
+                                color: AppTheme.subtitlewhite.color,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              )),
+            ),
           ),
-          elevation: 5,
-          margin: const EdgeInsets.fromLTRB(15, 10, 15, 0),
-          color: isVoted ? AppTheme.nearlyBlack : AppTheme.vinho,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(width: 10),
-              Text(
-                    hasVoted(widget.snap['votes'], user.uid)
-                          ? '${percentage.toStringAsFixed(0)}% voted for ${descriptions[index]}'
-                          : descriptions[index],
-                style: TextStyle(
-                  color: AppTheme.subtitlewhite.color,
-                ),
-              ),
-         
-            ],
-          ),
-        ),
-      ),
-    );
-  },
-)
-
-    ),
-  ),
-),
           DefaultTextStyle(
             style: TextStyle(
                 color: AppTheme.nearlyBlack,
@@ -380,7 +376,6 @@ class _VotationCardState extends State<VotationCard> {
                     ),
                   ],
                 ),
-                
                 Expanded(
                   child: Align(
                     alignment: Alignment.bottomRight,
@@ -391,33 +386,30 @@ class _VotationCardState extends State<VotationCard> {
                         widget.snap['uid'].toString() == user.uid
                             ? SizedBox()
                             : IconButton(
-                          icon: (widget.snap['userFavorites']
-                              ?.contains(widget.snap['postId']) ??
-                              false)
-                              ? const Icon(Icons.star,
-                              color: AppTheme.nearlyBlack)
-                              : const Icon(Icons.star_border,
-                              color: AppTheme.nearlyBlack),
-                          onPressed: () {
-                            final userFavorites =
-                            widget.snap['userFavorites'] ??
-                                []; // Create an empty list if null
-                          
-                              // Add to favorites
-                              FireStoreMethods().toggleFavorite(
-                                widget.snap['postId'],
-                                user.uid,
-                              );
-                             
-                            
+                                icon: (widget.snap['userFavorites']
+                                            ?.contains(widget.snap['postId']) ??
+                                        false)
+                                    ? const Icon(Icons.star,
+                                        color: AppTheme.nearlyBlack)
+                                    : const Icon(Icons.star_border,
+                                        color: AppTheme.nearlyBlack),
+                                onPressed: () {
+                                  final userFavorites =
+                                      widget.snap['userFavorites'] ??
+                                          []; // Create an empty list if null
 
-                            setState(() {
-                              widget.snap['userFavorites'] =
-                                  userFavorites;
-                            });
-                          },
-                        ),
+                                  // Add to favorites
+                                  FireStoreMethods().toggleFavorite(
+                                    widget.snap['postId'],
+                                    user.uid,
+                                  );
 
+                                  setState(() {
+                                    widget.snap['userFavorites'] =
+                                        userFavorites;
+                                  });
+                                },
+                              ),
                       ],
                     ),
                   ),

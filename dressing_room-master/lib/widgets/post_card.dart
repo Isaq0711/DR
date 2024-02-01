@@ -337,8 +337,7 @@ class _PostCardState extends State<PostCard> {
                           child: Container(
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(15),
-                              color:
-                                  AppTheme.cinza, // Defina a cor desejada aqui
+                              color: AppTheme.cinza,
                             ),
                             child: Row(
                               children: [
@@ -449,7 +448,7 @@ class _PostCardState extends State<PostCard> {
                       ],
                     ),
                     IconButton(
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.comment_rounded,
                         color: AppTheme.nearlyBlack,
                       ),

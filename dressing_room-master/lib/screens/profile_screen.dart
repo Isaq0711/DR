@@ -8,14 +8,16 @@ import 'package:dressing_room/screens/login_screen.dart';
 import 'package:dressing_room/utils/colors.dart';
 import 'package:dressing_room/utils/utils.dart';
 import 'package:gap/gap.dart';
+import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
 import 'edit_profile_screen.dart';
 import 'seepost.dart';
 import 'package:dressing_room/widgets/follow_button.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String uid;
 
-  const ProfileScreen({Key? key, required this.uid}) : super(key: key);
+  ProfileScreen({Key? key, required this.uid}) : super(key: key);
 
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
@@ -27,17 +29,17 @@ class _ProfileScreenState extends State<ProfileScreen>
   int postLen = 0;
   int followers = 0;
   int following = 0;
+  int tabviews = 0;
   bool isFollowing = false;
   bool isLoading = false;
   final double drawerWidth = 300.0;
   bool isDrawerOpen = false;
   String selectedOption = "public";
-  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+
     getData();
   }
 
@@ -65,6 +67,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       userData = userSnap.data()!;
       followers = userSnap.data()!['followers'].length;
       following = userSnap.data()!['following'].length;
+      tabviews = userSnap.data()!['tabviews'].length;
       isFollowing = userSnap
           .data()!['followers']
           .contains(FirebaseAuth.instance.currentUser!.uid);
@@ -95,7 +98,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   @override
   Widget build(BuildContext context) {
     return isLoading
-        ? const Center(
+        ? Center(
             child: CircularProgressIndicator(),
           )
         : GestureDetector(
@@ -104,18 +107,29 @@ class _ProfileScreenState extends State<ProfileScreen>
               children: [
                 Scaffold(
                   appBar: AppBar(
-                    title: const Text(
+                    title: Text(
                       "Profile",
-                      style: AppTheme.subheadlinewhite,
+                      style: AppTheme.barapp.copyWith(
+                        shadows: [
+                          Shadow(
+                            blurRadius: 2.0,
+                            color: Colors.black, // Cor da sombra
+                          ),
+                        ],
+                      ),
                     ),
                     centerTitle: true,
-                    backgroundColor: AppTheme.vinho,
+                    backgroundColor: Colors.transparent,
                     actions: [
                       if (FirebaseAuth.instance.currentUser!.uid == widget.uid)
                         IconButton(
-                          icon: const Icon(
+                          icon: Icon(
+                            shadows: <Shadow>[
+                              Shadow(
+                                  color: AppTheme.nearlyBlack, blurRadius: 3.0)
+                            ],
                             CupertinoIcons.list_bullet,
-                            color: AppTheme.nearlyWhite,
+                            color: AppTheme.nearlyBlack,
                           ),
                           onPressed: openDrawer,
                         ),
@@ -124,7 +138,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   body: ListView(
                     children: [
                       Padding(
-                        padding: const EdgeInsets.all(16),
+                        padding: EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
@@ -135,12 +149,12 @@ class _ProfileScreenState extends State<ProfileScreen>
                               ),
                               radius: 45,
                             ),
-                            const SizedBox(height: 16),
+                            Gap(16.h),
                             Text(
                               userData['username'],
                               style: AppTheme.title,
                             ),
-                            const SizedBox(height: 16),
+                            Gap(16.h),
                             Row(
                               mainAxisSize: MainAxisSize.max,
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -150,34 +164,10 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 buildStatColumn(following, "following"),
                               ],
                             ),
-                            const SizedBox(height: 16),
+                            Gap(16.h),
                             if (FirebaseAuth.instance.currentUser!.uid ==
                                 widget.uid)
-                              Positioned(
-                                top: MediaQuery.of(context).size.height * 0.45,
-                                left: 0,
-                                right: 0,
-                                child: Container(
-                                  color: Colors.transparent,
-                                  child: TabBar(
-                                    dividerColor: AppTheme.nearlyWhite,
-                                    indicatorColor: AppTheme.vinho,
-                                    labelColor: AppTheme.vinho,
-                                    unselectedLabelColor: AppTheme.cinza,
-                                    controller: _tabController,
-                                    tabs: [
-                                      Tab(text: 'Public'),
-                                      Tab(text: 'Private'),
-                                    ],
-                                    onTap: (index) {
-                                      setState(() {
-                                        selectedOption =
-                                            index == 0 ? 'public' : 'private';
-                                      });
-                                    },
-                                  ),
-                                ),
-                              )
+                              Container()
                             else if (isFollowing)
                               FollowButton(
                                 text: 'Unfollow',
@@ -214,6 +204,40 @@ class _ProfileScreenState extends State<ProfileScreen>
                                   });
                                 },
                               ),
+                            DefaultTabController(
+                                length: userData['tabviews'].length + 2,
+                                initialIndex: 0,
+                                child: Column(children: [
+                                  Container(
+                                    color: Colors.transparent,
+                                    child: TabBar(
+                                      dividerColor: AppTheme.nearlyWhite,
+                                      isScrollable: true,
+                                      indicatorColor: AppTheme.vinho,
+                                      labelColor: AppTheme.vinho,
+                                      labelStyle: AppTheme.caption.copyWith(
+                                        shadows: [
+                                          Shadow(
+                                            blurRadius: .5,
+                                            color: Colors.black,
+                                          ),
+                                        ],
+                                      ),
+                                      unselectedLabelColor:
+                                          AppTheme.nearlyWhite,
+                                      tabs: [
+                                        Tab(text: 'Public'),
+                                        if (FirebaseAuth
+                                                .instance.currentUser!.uid ==
+                                            widget.uid)
+                                          Tab(text: 'Private'),
+                                        for (String tabText
+                                            in userData['tabviews'])
+                                          Tab(text: tabText),
+                                      ],
+                                    ),
+                                  ),
+                                ]))
                           ],
                         ),
                       ),
@@ -221,8 +245,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                         Column(
                           children: [
                             Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 16),
+                              padding: EdgeInsets.symmetric(horizontal: 16),
                               child: Row(
                                 children: [
                                   Text(
@@ -243,7 +266,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState ==
                                     ConnectionState.waiting) {
-                                  return const Center(
+                                  return Center(
                                     child: CircularProgressIndicator(),
                                   );
                                 }
@@ -271,7 +294,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                           );
                                         },
                                         child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
+                                          padding: EdgeInsets.all(8.0),
                                           child: ClipRRect(
                                             borderRadius:
                                                 BorderRadius.circular(10),
@@ -295,8 +318,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                               },
                             ),
                             Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 16),
+                              padding: EdgeInsets.symmetric(horizontal: 16),
                               child: Row(
                                 children: [
                                   Text(
@@ -317,7 +339,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState ==
                                     ConnectionState.waiting) {
-                                  return const Center(
+                                  return Center(
                                     child: CircularProgressIndicator(),
                                   );
                                 }
@@ -345,7 +367,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                           );
                                         },
                                         child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
+                                          padding: EdgeInsets.all(8.0),
                                           child: ClipRRect(
                                             borderRadius:
                                                 BorderRadius.circular(10),
@@ -373,7 +395,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                         ),
                       if (selectedOption == "private") ...[
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          padding: EdgeInsets.symmetric(horizontal: 16),
                           child: Row(
                             children: [
                               Text(
@@ -391,7 +413,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                           builder: (context, snapshot) {
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {
-                              return const Center(
+                              return Center(
                                 child: CircularProgressIndicator(),
                               );
                             }
@@ -419,7 +441,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                       );
                                     },
                                     child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
+                                      padding: EdgeInsets.all(8.0),
                                       child: ClipRRect(
                                         borderRadius: BorderRadius.circular(10),
                                         child: Container(
@@ -448,7 +470,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                           },
                         ),
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          padding: EdgeInsets.symmetric(horizontal: 16),
                           child: Row(
                             children: [
                               Text(
@@ -468,7 +490,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                           builder: (context, snapshot) {
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {
-                              return const Center(
+                              return Center(
                                 child: CircularProgressIndicator(),
                               );
                             }
@@ -495,7 +517,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                       );
                                     },
                                     child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
+                                      padding: EdgeInsets.all(8.0),
                                       child: ClipRRect(
                                         borderRadius: BorderRadius.circular(10),
                                         child: Container(
@@ -520,23 +542,23 @@ class _ProfileScreenState extends State<ProfileScreen>
                       ],
                     ],
                   ),
-                  backgroundColor: AppTheme.nearlyWhite,
+                  backgroundColor: AppTheme.cinza,
                 ),
                 AnimatedPositioned(
-                  duration: const Duration(milliseconds: 300),
+                  duration: Duration(milliseconds: 300),
                   top: 0,
                   right: isDrawerOpen ? 0 : -drawerWidth,
                   bottom: 0,
                   width: drawerWidth,
                   child: Container(
-                    color: const Color.fromARGB(255, 80, 55, 67),
+                    color: Color.fromARGB(255, 80, 55, 67),
                     child: Column(
                       children: [
                         AppBar(
                           automaticallyImplyLeading: false,
                           backgroundColor: AppTheme.vinho,
                         ),
-                        SizedBox(height: 16),
+                        Gap(16),
                         CircleAvatar(
                           backgroundColor: Colors.grey,
                           backgroundImage: NetworkImage(
@@ -546,7 +568,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                         ),
                         SizedBox(height: 16),
                         ListTile(
-                          leading: const Icon(
+                          leading: Icon(
                             Icons.edit,
                             color: AppTheme.nearlyWhite,
                           ),
@@ -570,7 +592,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                           style: AppTheme.subtitlewhite,
                         ),
                         ListTile(
-                          leading: const Icon(
+                          leading: Icon(
                             Icons.favorite,
                             color: AppTheme.nearlyWhite,
                           ),
@@ -581,7 +603,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                           onTap: () {},
                         ),
                         ListTile(
-                          leading: const Icon(
+                          leading: Icon(
                             Icons.shopping_basket_rounded,
                             color: AppTheme.nearlyWhite,
                           ),
@@ -597,7 +619,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                           style: AppTheme.subtitlewhite,
                         ),
                         ListTile(
-                          leading: const Icon(
+                          leading: Icon(
                             Icons.add,
                             color: AppTheme.nearlyWhite,
                           ),
@@ -614,7 +636,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                         ),
                         Divider(),
                         ListTile(
-                          leading: const Icon(
+                          leading: Icon(
                             Icons.logout,
                             color: AppTheme.nearlyWhite,
                           ),
@@ -632,13 +654,12 @@ class _ProfileScreenState extends State<ProfileScreen>
                             });
                           },
                         ),
-                        Align(
-                          child: Text(
-                            "Version: beta of beta",
-                            style: AppTheme.subtitlewhite,
-                          ),
-                          alignment: Alignment.bottomCenter,
+                        Spacer(),
+                        Text(
+                          "Version: beta of beta",
+                          style: AppTheme.subtitlewhite,
                         ),
+                        Gap(30)
                       ],
                     ),
                   ),

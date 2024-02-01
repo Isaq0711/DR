@@ -123,7 +123,6 @@ class _TestAPIScreenState extends State<TestAPIScreen> {
                   child: Column(
                     children: <Widget>[
                       isLoading ? LinearProgressIndicator() : const SizedBox(),
-                      const Divider(),
                       Stack(
                         alignment: Alignment.center,
                         children: [

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:dressing_room/resources/auth_methods.dart';
 import 'package:dressing_room/resources/firestore_methods.dart';
@@ -110,7 +111,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       if (FirebaseAuth.instance.currentUser!.uid == widget.uid)
                         IconButton(
                           icon: const Icon(
-                            Icons.settings,
+                            CupertinoIcons.list_dash,
                             color: AppTheme.nearlyWhite,
                           ),
                           onPressed: openDrawer,
@@ -524,7 +525,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                     ],
                   ),
-                  backgroundColor: AppTheme.nearlyWhite,
+                  backgroundColor: AppTheme.cinza,
                 ),
                 AnimatedPositioned(
                   duration: const Duration(milliseconds: 300),

@@ -1,178 +1,158 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   AppTheme._();
 
-  static const Color notWhite = Color(0xFFEDF0F2);
-  static const Color nearlyWhite = Color(0xFFDBDBDA);
-  static const Color white = Color(0xFFFFFFFF);
-  static const Color nearlyBlack = Color(0xFF213333);
-  static const Color cinza = Color(0xFFB1B2B3);
-  static const Color vinho = Color(0xFF6D123F);
-  static const Color vinhoescuro = Color(0xFF53191F);
-  static const Color darkText = Color(0xFF253840);
-  static const Color darkerText = Color(0xFF17262A);
-  static const Color lightText = Color(0xFF4A6572);
-  static const Color deactivatedText = Color(0xFF767676);
-  static const Color dismissibleBackground = Color(0xFF364A54);
-  static const Color chipBackground = Color(0xFFEEF1F3);
-  static const Color spacer = Color(0xFFF2F2F2);
-  static const String fontName = 'Quicksand';
-  static const String fontName2 = 'Arimo';
+  static Color nearlyWhite = Color(0xFFDBDBDA);
+  static Color white = Color(0xFFFFFFFF);
+  static Color nearlyBlack = Color(0xFF213333);
+  static Color cinza = Color(0xFFF1F1F1);
+  static Color vinho = Color(0xFF6D123F);
 
-  static const TextTheme textTheme = TextTheme(
-    headline4: display1,
-    headline5: headline,
-    headline6: title,
-    subtitle2: subtitle,
-    bodyText2: body2,
-    bodyText1: body1,
-    caption: caption,
-  );
+  static Color vinhoescuro = Color(0xFF53191F);
+  static Color darkText = Color(0xFF253840);
+  static Color darkerText = Color(0xFF17262A);
+  static Color lightText = Color(0xFF4A6572);
+  static Color deactivatedText = Color(0xFF767676);
+  static Color dismissibleBackground = Color(0xFF364A54);
+  static Color chipBackground = Color(0xFFEEF1F3);
+  static Color spacer = Color(0xFFF2F2F2);
+  static String fontName = 'Quicksand';
+  static String fontName2 = 'Arimo';
+  static String fontName3 = 'Bebas Neue';
 
-  static const TextStyle display1 = TextStyle(
-    // h4 -> display1
-    fontFamily: fontName,
+  static TextStyle barapp = GoogleFonts.getFont(
+    fontName3,
     fontWeight: FontWeight.bold,
-    fontSize: 36,
+    fontSize: 20.sp,
     letterSpacing: 0.4,
-    height: 0.9,
     color: nearlyBlack,
   );
-  static const TextStyle barapp = TextStyle(
-    fontFamily: fontName2,
-    fontWeight: FontWeight.w600,
-    fontSize: 26,
-    letterSpacing: 0.4,
-    color: vinho,
-  );
-  static const TextStyle barappwhite = TextStyle(
-    fontFamily: fontName2,
+
+  static TextStyle barappwhite = GoogleFonts.getFont(
+    fontName2,
     fontWeight: FontWeight.w600,
     fontSize: 28,
     letterSpacing: 0.4,
     color: nearlyWhite,
   );
 
-  static const TextStyle headline = TextStyle(
-    // h5 -> headline
-    fontFamily: fontName,
+  static TextStyle headline = GoogleFonts.getFont(
+    fontName,
     fontWeight: FontWeight.bold,
     fontSize: 24,
     letterSpacing: 0.27,
     color: nearlyBlack,
   );
-  static const TextStyle headlinewhite = TextStyle(
-    // h5 -> headline
-    fontFamily: fontName,
+
+  static TextStyle headlinevinho = GoogleFonts.getFont(
+    fontName2,
+    fontWeight: FontWeight.bold,
+    fontSize: 23.sp,
+    letterSpacing: 0.27,
+    color: vinho,
+  );
+
+  static TextStyle headlinewhite = GoogleFonts.getFont(
+    fontName,
     fontWeight: FontWeight.bold,
     fontSize: 24,
     letterSpacing: 0.27,
     color: nearlyWhite,
   );
 
-  static const TextStyle subheadline = TextStyle(
-    fontFamily: fontName,
+  static TextStyle subheadline = GoogleFonts.getFont(
+    fontName,
     fontWeight: FontWeight.bold,
-    fontSize: 19,
+    fontSize: 15.sp,
     letterSpacing: 0.18,
     color: nearlyBlack,
   );
-  static const TextStyle subheadlinevinho = TextStyle(
-    fontFamily: fontName2,
+
+  static TextStyle subheadlinevinho = GoogleFonts.getFont(
+    fontName,
     fontWeight: FontWeight.bold,
     fontSize: 19,
     letterSpacing: 0.18,
     color: vinho,
   );
 
-  static const TextStyle barappvinho = TextStyle(
-    fontFamily: fontName2,
+  static TextStyle barappvinho = GoogleFonts.getFont(
+    fontName2,
     fontWeight: FontWeight.bold,
     fontSize: 25,
     letterSpacing: 0.18,
     color: vinho,
   );
-  static const TextStyle subheadlinewhite = TextStyle(
-    fontFamily: fontName,
+
+  static TextStyle subheadlinewhite = GoogleFonts.getFont(
+    fontName,
     fontWeight: FontWeight.bold,
     fontSize: 19,
     letterSpacing: 0.18,
     color: nearlyWhite,
   );
-  static const TextStyle title = TextStyle(
-    // h6 -> title
-    fontFamily: fontName,
+
+  static TextStyle title = GoogleFonts.getFont(
+    fontName,
     fontWeight: FontWeight.bold,
-    fontSize: 16,
+    fontSize: 10.sp,
     letterSpacing: 0.18,
     color: nearlyBlack,
   );
-  static const TextStyle titlewhite = TextStyle(
-    // h6 -> title
-    fontFamily: fontName,
+
+  static TextStyle titlewhite = GoogleFonts.getFont(
+    fontName,
     fontWeight: FontWeight.bold,
-    fontSize: 16,
+    fontSize: 10.sp,
     letterSpacing: 0.18,
     color: nearlyWhite,
   );
 
-  static const TextStyle subtitle = TextStyle(
-    // subtitle2 -> subtitle
-    fontFamily: fontName,
+  static TextStyle subtitle = GoogleFonts.getFont(
+    fontName,
     fontWeight: FontWeight.bold,
     fontSize: 14,
     letterSpacing: -0.04,
     color: nearlyBlack,
   );
 
-  static const TextStyle subtitlewhite = TextStyle(
-    // subtitle2 -> subtitle
-    fontFamily: fontName,
+  static TextStyle subtitlewhite = GoogleFonts.getFont(
+    fontName,
     fontWeight: FontWeight.bold,
     fontSize: 14,
     letterSpacing: -0.04,
     color: nearlyWhite,
   );
 
-  static const TextStyle body2 = TextStyle(
-    // body1 -> body2
-    fontFamily: fontName,
+  static TextStyle body2 = GoogleFonts.getFont(
+    fontName,
     fontWeight: FontWeight.bold,
     fontSize: 14,
     letterSpacing: 0.2,
     color: nearlyBlack,
   );
 
-  static const TextStyle body1 = TextStyle(
-    // body2 -> body1
-    fontFamily: fontName,
-    fontWeight: FontWeight.bold,
-    fontSize: 16,
-    letterSpacing: -0.05,
-    color: nearlyBlack,
-  );
-  static const TextStyle body1white = TextStyle(
-    // body2 -> body1
-    fontFamily: fontName,
+  static TextStyle body1white = GoogleFonts.getFont(
+    fontName,
     fontWeight: FontWeight.bold,
     fontSize: 16,
     letterSpacing: -0.05,
     color: nearlyWhite,
   );
 
-  static const TextStyle caption = TextStyle(
-    // Caption -> caption
-    fontFamily: fontName,
+  static TextStyle caption = GoogleFonts.getFont(
+    fontName,
     fontWeight: FontWeight.bold,
     fontSize: 12,
     letterSpacing: 0.2,
     color: nearlyBlack,
   );
 
-  static const TextStyle dividerfont = TextStyle(
-    // subtitle2 -> subtitle
-    fontFamily: fontName2,
+  static TextStyle dividerfont = GoogleFonts.getFont(
+    fontName2,
     fontWeight: FontWeight.w600,
     fontSize: 13,
     letterSpacing: -0.04,

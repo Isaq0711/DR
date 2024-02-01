@@ -2,6 +2,8 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:dressing_room/providers/user_provider.dart';
 import 'package:dressing_room/models/user.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:gap/gap.dart';
 import 'package:provider/provider.dart';
 import 'package:dressing_room/widgets/select_image_dialog.dart';
 import 'package:dressing_room/utils/colors.dart';
@@ -130,22 +132,53 @@ class _BasketScreenState extends State<BasketScreen>
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: AppTheme.vinho,
-        title: const Text(
+        backgroundColor: Colors.transparent,
+        title: Text(
           'My basket',
-          style: AppTheme.subheadlinewhite,
+          style: AppTheme.subheadline.copyWith(
+            shadows: [
+              Shadow(
+                blurRadius: 2.0,
+                color: Colors.black, // Cor da sombra
+                // Deslocamento X e Y da sombra
+              ),
+            ],
+          ),
         ),
         centerTitle: true,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 26),
+            child: IconButton(
+              icon: Icon(
+                shadows: <Shadow>[
+                  Shadow(color: AppTheme.nearlyBlack, blurRadius: 5.0)
+                ],
+                Icons.check,
+                color: AppTheme.vinho,
+              ),
+              onPressed: () {},
+            ),
+          )
+        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(height: MediaQuery.of(context).size.height * 0.008),
+          Gap(MediaQuery.of(context).size.height * 0.008),
           TabBar(
             controller: _tabController,
             indicatorColor: AppTheme.vinhoescuro,
-            labelColor: AppTheme.vinhoescuro,
-            unselectedLabelColor: AppTheme.vinho,
+            labelStyle: AppTheme.subtitle.copyWith(
+              shadows: [
+                Shadow(
+                  blurRadius: 5.0,
+                  color: Colors.black, // Cor da sombra
+                  // Deslocamento X e Y da sombra
+                ),
+              ],
+            ),
+            unselectedLabelColor: AppTheme.nearlyWhite,
             tabs: [
               Tab(text: 'TOP'),
               Tab(text: 'BOTTOM'),

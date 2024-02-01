@@ -15,7 +15,7 @@ class SelectImageDialog extends StatelessWidget {
       backgroundColor: AppTheme.nearlyWhite,
       title: Align(
         alignment: Alignment.center,
-        child: const Text(
+        child: Text(
           'UPLOAD',
           style: AppTheme.subheadline,
         ),

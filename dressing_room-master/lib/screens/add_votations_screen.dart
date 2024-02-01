@@ -43,7 +43,7 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
           backgroundColor: AppTheme.nearlyWhite,
           title: Align(
             alignment: Alignment.center,
-            child: const Text(
+            child: Text(
               'UPLOAD',
               style: AppTheme.subheadline,
             ),
@@ -152,7 +152,6 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
       MaterialPageRoute(
         builder: (context) => const ResponsiveLayout(
           mobileScreenLayout: MobileScreenLayout(),
-          webScreenLayout: WebScreenLayout(),
         ),
       ),
       (route) => false,
@@ -335,7 +334,7 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
                             child: TextField(
                               controller: _descriptionControllers[index],
                               style: AppTheme.title,
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 hintText:
                                     "Write a description for the option...",
                                 hintStyle: AppTheme.title,

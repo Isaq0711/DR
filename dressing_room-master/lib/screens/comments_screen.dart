@@ -8,7 +8,6 @@ import 'package:dressing_room/utils/utils.dart';
 import 'package:dressing_room/widgets/comment_card.dart';
 import 'package:provider/provider.dart';
 
-
 class CommentsScreen extends StatefulWidget {
   final postId;
   const CommentsScreen({Key? key, required this.postId}) : super(key: key);
@@ -34,12 +33,10 @@ class _CommentsScreenState extends State<CommentsScreen> {
         name,
         profilePic,
       );
- 
-       if (res != 'success') {
-      showSnackBar(context, res);
-    } else {
-    
-    }
+
+      if (res != 'success') {
+        showSnackBar(context, res);
+      } else {}
       setState(() {
         commentEditingController.text = '';
       });
@@ -61,6 +58,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
       showSnackBar(context, err.toString());
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<UserProvider>(
@@ -78,7 +76,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
         return Scaffold(
           appBar: AppBar(
             backgroundColor: AppTheme.nearlyWhite,
-            title: const Text(
+            title: Text(
               'Comments',
               style: AppTheme.title,
             ),
@@ -148,8 +146,8 @@ class _CommentsScreenState extends State<CommentsScreen> {
                       user.photoUrl,
                     ),
                     child: Container(
-                      padding:
-                          const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 8, horizontal: 8),
                       child: const Text(
                         'Post',
                         style: TextStyle(

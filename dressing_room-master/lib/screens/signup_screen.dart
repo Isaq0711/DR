@@ -4,15 +4,13 @@ import 'package:image_picker/image_picker.dart';
 import 'package:dressing_room/resources/auth_methods.dart';
 import 'package:dressing_room/responsive/mobile_screen_layout.dart';
 import 'package:dressing_room/responsive/responsive_layout.dart';
-import 'package:dressing_room/responsive/web_screen_layout.dart';
 import 'package:dressing_room/screens/login_screen.dart';
 import 'package:dressing_room/utils/colors.dart';
 import 'package:image_cropper/image_cropper.dart';
-import 'package:dressing_room/utils/global_variable.dart';
 import 'package:dressing_room/utils/utils.dart';
 
 class SignupScreen extends StatefulWidget {
-  const SignupScreen({Key? key}) : super(key: key);
+  SignupScreen({Key? key}) : super(key: key);
 
   @override
   _SignupScreenState createState() => _SignupScreenState();
@@ -35,7 +33,6 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   void signUpUser() async {
-   
     setState(() {
       _isLoading = true;
     });
@@ -55,9 +52,8 @@ class _SignupScreenState extends State<SignupScreen> {
       // navigate to the home screen
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => const ResponsiveLayout(
+          builder: (context) => ResponsiveLayout(
             mobileScreenLayout: MobileScreenLayout(),
-            webScreenLayout: WebScreenLayout(),
           ),
         ),
       );
@@ -69,30 +65,30 @@ class _SignupScreenState extends State<SignupScreen> {
       showSnackBar(context, res);
     }
   }
-selectImage() async {
-  final pickedImage = await ImagePicker().getImage(source: ImageSource.gallery);
-  if (pickedImage != null) {
-    final croppedImage = await ImageCropper().cropImage(
-      sourcePath: pickedImage.path,
-      aspectRatio: CropAspectRatio(ratioX: 1, ratioY: 1),
-      compressQuality: 70,
-      maxWidth: 80,
-      maxHeight: 80,
-    compressFormat: ImageCompressFormat.jpg,
-      androidUiSettings: AndroidUiSettings(
-        toolbarColor: Colors.white,
-        toolbarTitle: "Crop Image",
-        statusBarColor: Colors.black,
-        backgroundColor: Colors.white,
-      ),
-    );
-    if (croppedImage != null) {
-      setState(() {
-        _image = croppedImage.readAsBytesSync();
-      });
+
+  selectImage() async {
+    final pickedImage =
+        await ImagePicker().getImage(source: ImageSource.gallery);
+    if (pickedImage != null) {
+      final croppedImage = await ImageCropper().cropImage(
+        sourcePath: pickedImage.path,
+        aspectRatio: CropAspectRatio(ratioX: 1, ratioY: 1),
+        compressQuality: 70,
+        compressFormat: ImageCompressFormat.jpg,
+        androidUiSettings: AndroidUiSettings(
+          toolbarColor: Colors.white,
+          toolbarTitle: "Crop Image",
+          statusBarColor: Colors.black,
+          backgroundColor: Colors.white,
+        ),
+      );
+      if (croppedImage != null) {
+        setState(() {
+          _image = croppedImage.readAsBytesSync();
+        });
+      }
     }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +96,7 @@ selectImage() async {
       resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
+          padding: EdgeInsets.symmetric(horizontal: 32),
           width: double.infinity,
           child: Theme(
             data: Theme.of(context).copyWith(
@@ -115,7 +111,8 @@ selectImage() async {
                   borderSide: BorderSide(color: Colors.black),
                 ),
                 labelStyle: TextStyle(color: Colors.black),
-                contentPadding: const EdgeInsets.all(8), // Padding for the text field content
+                contentPadding:
+                    EdgeInsets.all(8), // Padding for the text field content
               ),
             ),
             child: Column(
@@ -133,7 +130,7 @@ selectImage() async {
                             backgroundImage: MemoryImage(_image!),
                             backgroundColor: Colors.red,
                           )
-                        : const CircleAvatar(
+                        : CircleAvatar(
                             radius: 64,
                             backgroundImage: NetworkImage(
                                 'https://static.vecteezy.com/system/resources/thumbnails/007/033/146/small/profile-icon-login-head-icon-vector.jpg'),
@@ -144,13 +141,13 @@ selectImage() async {
                       left: 80,
                       child: IconButton(
                         onPressed: selectImage,
-                        icon: const Icon(Icons.add_a_photo),
+                        icon: Icon(Icons.add_a_photo),
                         color: Colors.grey,
                       ),
                     )
                   ],
                 ),
-                const SizedBox(
+                SizedBox(
                   height: 24,
                 ),
                 TextField(
@@ -159,7 +156,7 @@ selectImage() async {
                     labelText: 'Enter your username',
                   ),
                 ),
-                const SizedBox(
+                SizedBox(
                   height: 24,
                 ),
                 TextField(
@@ -168,7 +165,7 @@ selectImage() async {
                     labelText: 'Enter your email',
                   ),
                 ),
-                const SizedBox(
+                SizedBox(
                   height: 24,
                 ),
                 TextField(
@@ -178,26 +175,25 @@ selectImage() async {
                   ),
                   obscureText: true,
                 ),
-                const SizedBox(
+                SizedBox(
                   height: 24,
                 ),
-
-                const SizedBox(
+                SizedBox(
                   height: 24,
                 ),
                 InkWell(
                   child: Container(
                     child: !_isLoading
-                        ? const Text(
+                        ? Text(
                             'Sign up',
                             style: AppTheme.body1white,
                           )
-                        : const CircularProgressIndicator(
+                        : CircularProgressIndicator(
                             color: Colors.white,
                           ),
                     width: double.infinity,
                     alignment: Alignment.center,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: EdgeInsets.symmetric(vertical: 12),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(4),
                       color: AppTheme.vinho,
@@ -205,7 +201,7 @@ selectImage() async {
                   ),
                   onTap: signUpUser,
                 ),
-                const SizedBox(
+                SizedBox(
                   height: 12,
                 ),
                 Flexible(
@@ -216,24 +212,24 @@ selectImage() async {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      child: const Text(
+                      child: Text(
                         'Already have an account?',
                         style: AppTheme.title,
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      padding: EdgeInsets.symmetric(vertical: 8),
                     ),
                     GestureDetector(
                       onTap: () => Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => const LoginScreen(),
+                          builder: (context) => LoginScreen(),
                         ),
                       ),
                       child: Container(
-                        child: const Text(
+                        child: Text(
                           ' Login.',
                           style: AppTheme.title,
                         ),
-                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        padding: EdgeInsets.symmetric(vertical: 8),
                       ),
                     ),
                   ],

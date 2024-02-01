@@ -1,10 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:dressing_room/widgets/post_card.dart';
 import 'package:dressing_room/utils/colors.dart';
-import 'package:dressing_room/widgets/votation_card.dart';
-import 'package:dressing_room/widgets/product_card.dart';
+import 'package:dressing_room/2d_cards/votation_card.dart';
+import 'package:dressing_room/2d_cards/product_card.dart';
 
 class SeePost extends StatefulWidget {
   final String postId;
@@ -67,11 +68,19 @@ class _SeePostState extends State<SeePost> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        elevation: 0,
-        backgroundColor: AppTheme.vinho,
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          icon: Icon(
+            CupertinoIcons.arrow_left,
+            color: AppTheme.nearlyBlack,
+          ),
+        ),
+        backgroundColor: Colors.transparent,
       ),
-      body: Center(
-        child: Column(
+      body: ListView(children: <Widget>[
+        Column(
           children: [
             StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
               stream: _postStream,
@@ -80,7 +89,12 @@ class _SeePostState extends State<SeePost> {
                   return Container();
                 }
                 final post = snapshot.data!.data();
-                return PostCard(snap: post);
+                return Container(
+                  margin: EdgeInsets.symmetric(
+                    horizontal: MediaQuery.of(context).size.width * 0.023,
+                  ),
+                  child: PostCard(snap: post),
+                );
               },
             ),
             StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
@@ -127,7 +141,7 @@ class _SeePostState extends State<SeePost> {
             ),
           ],
         ),
-      ),
+      ]),
     );
   }
 }
