@@ -1,58 +1,98 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dressing_room/screens/product_screen.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:gap/gap.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'dart:typed_data';
 import 'package:dots_indicator/dots_indicator.dart';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
-import 'package:http/http.dart' as http;
-import 'package:dressing_room/resources/storage_methods.dart';
 import 'package:flutter/material.dart';
 import 'package:dressing_room/models/user.dart' as model;
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:dressing_room/providers/user_provider.dart';
 import 'package:dressing_room/resources/firestore_methods.dart';
 import 'package:dressing_room/screens/seepost.dart';
-import 'package:dressing_room/screens/profile_screen.dart';
+import 'package:dressing_room/screens/store_screen.dart';
 import 'package:dressing_room/utils/colors.dart';
 import 'package:dressing_room/utils/utils.dart';
-import 'package:dressing_room/widgets/like_animation.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-
-class NewPostCard extends StatefulWidget {
+class NewProductCard extends StatefulWidget {
   final snap;
 
-  const NewPostCard({
+  const NewProductCard({
     Key? key,
     required this.snap,
   }) : super(key: key);
 
   @override
-  State<NewPostCard> createState() => _NewPostCardState();
+  State<NewProductCard> createState() => _NewProductCardState();
 }
 
-class _NewPostCardState extends State<NewPostCard> {
+class _NewProductCardState extends State<NewProductCard> {
   int commentLen = 0;
   bool isLikeAnimating = false;
+  bool isAddedOnCart = false;
   bool isAddedOnFav = false;
+  int selectedSize = 0;
+  Map<String, List<String>> categorySizes = {
+    'TOP': ['XS', 'S', 'M', 'L', 'XL'],
+    'BOTTOM': ['34', '36', '38', '40', '42', '44'],
+    'SHOES': ['34', '35', '36', '37', '38', '39', '40', '41', '42'],
+    'COATS': ['PP', 'P', 'M', 'G', 'GG'],
+  };
   bool showreactions = false;
   int currentImageIndex = 0;
   bool isFavorite = false;
+  List<String> availableSizes = [];
 
   double rating = 0;
 
   @override
   void initState() {
     super.initState();
+    generateAvailableSizes();
     fetchCommentLen();
-    getInitialRating();
     isOnFav(
-      widget.snap['postId'],
+      widget.snap['productId'],
     );
+    isOnCart(
+      widget.snap['productId'],
+    );
+  }
+
+  void generateAvailableSizes() {
+    List<dynamic>? sizesIndices =
+        widget.snap['variations'][0]['sizesAvailable'] as List<dynamic>;
+
+    if (sizesIndices.isNotEmpty) {
+      String selectedCategory = widget.snap['category'];
+
+      availableSizes = sizesIndices.map((index) {
+        return categorySizes[selectedCategory]![index];
+      }).toList();
+    }
+  }
+
+  Future<bool> isOnCart(String productId) async {
+    try {
+      DocumentSnapshot cartDoc = await FirebaseFirestore.instance
+          .collection('cart')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .get();
+
+      if (cartDoc.exists) {
+        Map<String, dynamic> cartData = cartDoc.data() as Map<String, dynamic>;
+        if (cartData.containsKey(productId)) {
+          isAddedOnCart = true;
+        }
+      }
+    } catch (e) {
+      showSnackBar(
+        context,
+        e.toString(),
+      );
+    }
+    return false;
   }
 
   Future<bool> isOnFav(String postId) async {
@@ -65,10 +105,14 @@ class _NewPostCardState extends State<NewPostCard> {
           .get();
 
       if (fav.exists) {
-        isAddedOnFav = true;
+        setState(() {
+          isAddedOnFav = true; // Defina o estado inicial do ícone
+        });
         return true;
       } else {
-        isAddedOnFav = false;
+        setState(() {
+          isAddedOnFav = false; // Defina o estado inicial do ícone
+        });
         return false;
       }
     } catch (e) {
@@ -97,23 +141,6 @@ class _NewPostCardState extends State<NewPostCard> {
     setState(() {});
   }
 
-  getInitialRating() async {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    model.User? user = userProvider.getUser;
-    if (user != null) {
-      String uid = user.uid;
-      String postId = widget.snap['postId'].toString();
-      // Obtenha a nota diretamente do Firebase
-      double initialRating = await FireStoreMethods().getUserGrade(
-        postId,
-        uid,
-      );
-      setState(() {
-        rating = initialRating;
-      });
-    }
-  }
-
   deletePost(String postId) async {
     try {
       await FireStoreMethods().deletePost(postId);
@@ -125,22 +152,42 @@ class _NewPostCardState extends State<NewPostCard> {
     }
   }
 
-  deleteAnonymousPost(String postId) async {
-    try {
-      await FireStoreMethods().deleteAnonymousPost(postId);
-    } catch (err) {
-      showSnackBar(
-        context,
-        err.toString(),
-      );
-    }
-  }
-
-  Future<void> handleFavAction(String uid) async {
+  Future<void> handleCartAction(String uid) async {
     setState(() {});
 
     try {
-      await FireStoreMethods().toggleFavorite(widget.snap['postId'], uid);
+      if (!isAddedOnCart) {
+        String res = await FireStoreMethods().removeFromCart(
+          uid,
+          widget.snap['productId'],
+        );
+
+        if (res == "success") {
+          showSnackBar(context, 'Removed from cart');
+          isAddedOnCart = false;
+        } else {
+          showSnackBar(context, res);
+        }
+      } else {
+        String res = await FireStoreMethods().uploadtoCart(
+          widget.snap['description'],
+          uid,
+          widget.snap['username'],
+          widget.snap['productId'],
+          widget.snap['category'],
+          widget.snap['variations'][0]['variationdescription'],
+          availableSizes[selectedSize],
+          widget.snap['variations'][0]['photoUrls'][0],
+          widget.snap['variations'][0]['price'],
+        );
+
+        if (res == "success") {
+          showSnackBar(context, 'Added to cart');
+          isAddedOnCart = true;
+        } else {
+          showSnackBar(context, res);
+        }
+      }
     } catch (err) {
       showSnackBar(context, err.toString());
     }
@@ -148,37 +195,16 @@ class _NewPostCardState extends State<NewPostCard> {
     setState(() {});
   }
 
-  Future<Uint8List?> downloadFile(String url) async {
+  Future<void> handleFavAction(String uid) async {
+    setState(() {});
+
     try {
-      final response = await http.get(Uri.parse(url));
-
-      if (response.statusCode == 200) {
-        Uint8List bytes = response.bodyBytes;
-        return bytes;
-      } else {
-        throw Exception("Falha ao baixar o arquivo");
-      }
-    } catch (e) {
-      throw Exception("Erro durante o download: $e");
+      await FireStoreMethods().toggleFavorite(widget.snap['productId'], uid);
+    } catch (err) {
+      showSnackBar(context, err.toString());
     }
-  }
 
-  Future<File> saveBytesToFile(Uint8List bytes) async {
-    Directory tempDir = await getTemporaryDirectory();
-    File tempFile = File('${tempDir.path}/temp_image.png');
-    await tempFile.writeAsBytes(bytes);
-    return tempFile;
-  }
-
-  double getLikePercentage() {
-    int totalReactions =
-        widget.snap['likes'].length + widget.snap['dislikes'].length;
-    if (totalReactions == 0) {
-      return 0.0;
-    }
-    double likePercentage =
-        (widget.snap['likes'].length / totalReactions) * 100;
-    return likePercentage;
+    setState(() {});
   }
 
   @override
@@ -209,7 +235,7 @@ class _NewPostCardState extends State<NewPostCard> {
                     context,
                     MaterialPageRoute(
                       builder: (context) =>
-                          SeePost(postId: widget.snap['postId']),
+                          SeePost(postId: widget.snap['productId']),
                     ),
                   );
                 },
@@ -234,14 +260,14 @@ class _NewPostCardState extends State<NewPostCard> {
                                             height: MediaQuery.of(context)
                                                     .size
                                                     .height *
-                                                0.7,
+                                                0.5,
                                             width: double.infinity,
                                             child: ClipRRect(
                                               borderRadius:
                                                   BorderRadius.circular(10.0),
                                               child: PageView.builder(
                                                 itemCount: widget
-                                                    .snap['photoUrls'].length,
+                                                    .snap['variations'].length,
                                                 controller: PageController(
                                                     initialPage:
                                                         currentImageIndex),
@@ -256,8 +282,9 @@ class _NewPostCardState extends State<NewPostCard> {
                                                         BorderRadius.circular(
                                                             25.0),
                                                     child: Image.network(
-                                                      widget.snap['photoUrls']
-                                                          [index],
+                                                      widget.snap['variations']
+                                                              [index]
+                                                          ['photoUrls'][0],
                                                       fit: BoxFit.cover,
                                                     ),
                                                   );
@@ -268,12 +295,12 @@ class _NewPostCardState extends State<NewPostCard> {
                                           Padding(
                                             padding: const EdgeInsets.symmetric(
                                                 vertical: 4.5),
-                                            child: widget.snap['photoUrls']
+                                            child: widget.snap['variations']
                                                         .length >
                                                     1
                                                 ? DotsIndicator(
                                                     dotsCount: widget
-                                                        .snap['photoUrls']
+                                                        .snap['variations']
                                                         .length,
                                                     position: position,
                                                     decorator: DotsDecorator(
@@ -297,40 +324,43 @@ class _NewPostCardState extends State<NewPostCard> {
                                                   )
                                                 : SizedBox.shrink(),
                                           ),
-                                          Text("Rate this post:",
-                                              style: AppTheme.subheadline),
-                                          Gap(5.sp),
-                                          RatingBar.builder(
-                                            initialRating: rating,
-                                            minRating: 0,
-                                            direction: Axis.horizontal,
-                                            allowHalfRating: true,
-                                            itemCount: 5,
-                                            itemPadding: EdgeInsets.symmetric(
-                                                horizontal: 2.0),
-                                            itemBuilder: (context, _) => Icon(
-                                              shadows: <Shadow>[
-                                                Shadow(
-                                                    color: AppTheme.nearlyBlack,
-                                                    blurRadius: 10.0)
-                                              ],
-                                              Icons.star,
-                                              color: AppTheme.vinho,
+                                          Padding(
+                                            padding: const EdgeInsets.all(10.0),
+                                            child: Center(
+                                              child: ElevatedButton(
+                                                onPressed: () {},
+                                                child: Padding(
+                                                  padding: const EdgeInsets.all(
+                                                      12.0),
+                                                  child: Row(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      Text(
+                                                        'Add to Cart',
+                                                        style: TextStyle(
+                                                            fontSize: 16),
+                                                      ),
+                                                      Gap(8),
+                                                      Icon(
+                                                        Icons.shopping_cart,
+                                                        size: 20,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                style: ElevatedButton.styleFrom(
+                                                  primary: AppTheme.vinho,
+                                                  onPrimary: Colors.white,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            16),
+                                                  ),
+                                                ),
+                                              ),
                                             ),
-                                            itemSize: 30.0,
-                                            unratedColor: Colors.grey,
-                                            onRatingUpdate: (rating) async {
-                                              print("Rating: $rating");
-                                              String uid = user.uid;
-                                              String postId = widget
-                                                  .snap['postId']
-                                                  .toString();
-                                              await FireStoreMethods()
-                                                  .getUserGrade(
-                                                      postId, uid, rating);
-                                              setState(() {});
-                                            },
-                                          ),
+                                          )
                                         ],
                                       ),
                                     ],
@@ -338,9 +368,7 @@ class _NewPostCardState extends State<NewPostCard> {
                             },
                           ),
                         );
-                      }).then((value) {
-                    getInitialRating();
-                  });
+                      });
                 },
                 child: Stack(
                   alignment: Alignment.center,
@@ -354,12 +382,12 @@ class _NewPostCardState extends State<NewPostCard> {
                               borderRadius: BorderRadius.circular(10.0),
                               child: ClipRRect(
                                 child: Image.network(
-                                  widget.snap['photoUrls'][0],
+                                  widget.snap['variations'][0]['photoUrls'][0],
                                   fit: BoxFit.cover,
                                 ),
                               )),
                         )),
-                    widget.snap['photoUrls'].length > 1
+                    widget.snap['variations'].length > 1
                         ? Positioned(
                             top: 10,
                             left: 10,
@@ -371,7 +399,7 @@ class _NewPostCardState extends State<NewPostCard> {
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
-                                '${currentImageIndex + 1} / ${widget.snap['photoUrls'].length}',
+                                'Variation ${currentImageIndex + 1} of ${widget.snap['variations'].length}',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 12,
@@ -385,20 +413,20 @@ class _NewPostCardState extends State<NewPostCard> {
                       right: 10,
                       child: Column(
                         children: [
-                          Visibility(
-                            visible:
-                                widget.snap['username'] == "Anonymous User",
-                            child: Icon(
-                              shadows: <Shadow>[
-                                Shadow(
-                                  color: AppTheme.nearlyBlack,
-                                  blurRadius: 5.0,
-                                ),
-                              ],
-                              Icons.person,
-                              color: AppTheme.vinho,
-                            ),
-                          ),
+                          // Visibility(
+                          //   visible:
+                          //       widget.snap['category'] == "COATS",
+                          //   child: Icon(
+                          //     shadows: <Shadow>[
+                          //       Shadow(
+                          //         color: AppTheme.nearlyBlack,
+                          //         blurRadius: 5.0,
+                          //       ),
+                          //     ],
+                          //     Icons.,
+                          //     color: AppTheme.vinho,
+                          //   ),
+                          // ),
                           Gap(5.h),
                           SpeedDial(
                             direction: SpeedDialDirection.down,
@@ -446,60 +474,25 @@ class _NewPostCardState extends State<NewPostCard> {
                                 },
                               ),
                               SpeedDialChild(
-                                child: Icon(
-                                  CupertinoIcons.arrow_up,
-                                  color: Colors.black.withOpacity(0.6),
-                                ),
+                                child: isAddedOnCart
+                                    ? Icon(
+                                        Icons.shopping_cart,
+                                        color: Colors.black.withOpacity(0.6),
+                                      )
+                                    : Icon(
+                                        Icons.shopping_cart_outlined,
+                                        color: Colors.black.withOpacity(0.6),
+                                      ),
                                 backgroundColor: AppTheme.cinza,
                                 labelStyle: TextStyle(fontSize: 18.0),
-                                onTap: () async {
-                                  if (widget.snap['photoUrls'] != null) {
-                                    String imageUrl = widget.snap['photoUrls']
-                                        [currentImageIndex];
-                                    try {
-                                      Uint8List? imageBytes =
-                                          await downloadFile(imageUrl);
-                                      if (imageBytes != null) {
-                                        File tempFile =
-                                            await saveBytesToFile(imageBytes);
-                                        Uint8List? processedImage =
-                                            await removeBg(tempFile.path);
-
-                                        if (processedImage != null) {
-                                          // Faz o upload da imagem processada para o Firebase Storage
-                                          String processedImageUrl =
-                                              await StorageMethods()
-                                                  .uploadImageToStorage('posts',
-                                                      processedImage, true);
-
-                                          // Obtém a lista existente de photoUrls
-                                          List<String> photoUrls = List.from(
-                                              widget.snap['photoUrls']);
-
-                                          // Atualiza a URL no índice correto da lista
-                                          photoUrls[currentImageIndex] =
-                                              processedImageUrl;
-
-                                          // Atualiza a lista no Firestore
-                                          await FirebaseFirestore.instance
-                                              .collection('posts')
-                                              .doc(widget.snap['postId'])
-                                              .update({
-                                            'photoUrls': photoUrls,
-                                          });
-
-                                          // Exclui o arquivo temporário
-                                          await tempFile.delete();
-                                        }
-                                      }
-                                    } catch (e) {
-                                      showSnackBar(context,
-                                          'Erro ao processar a imagem: $e');
-                                    }
-                                  } else {
-                                    showSnackBar(
-                                        context, 'Nenhuma imagem selecionada');
-                                  }
+                                onTap: () {
+                                  setState(() {
+                                    isAddedOnCart = !isAddedOnCart;
+                                  });
+                                  Future.microtask(() {
+                                    handleCartAction(
+                                        FirebaseAuth.instance.currentUser!.uid);
+                                  });
                                 },
                               ),
                               SpeedDialChild(
@@ -561,17 +554,14 @@ class _NewPostCardState extends State<NewPostCard> {
                                         children: <Widget>[
                                           InkWell(
                                             onTap: () {
-                                              if (widget.snap['username'] !=
-                                                  "Anonymous User") {
-                                                Navigator.of(context).push(
-                                                  MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        ProfileScreen(
-                                                      uid: widget.snap['uid'],
-                                                    ),
+                                              Navigator.of(context).push(
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      StoreScreen(
+                                                    uid: widget.snap['uid'],
                                                   ),
-                                                );
-                                              }
+                                                ),
+                                              );
                                             },
                                             child: Text(
                                               widget.snap['username'],
@@ -593,9 +583,22 @@ class _NewPostCardState extends State<NewPostCard> {
                                       ),
                                     ),
                                   ),
+                                  Spacer(),
+                                  Text(
+                                    '\$${widget.snap['variations'][0]['price'].toString()}',
+                                    style: AppTheme.subtitlewhite.copyWith(
+                                      shadows: [
+                                        Shadow(
+                                          blurRadius: 3.0,
+                                          color: Colors.black, // Cor da sombra
+                                          offset: Offset(2.0,
+                                              2.0), // Deslocamento X e Y da sombra
+                                        ),
+                                      ],
+                                    ),
+                                  )
                                 ],
                               ),
-                              //DESCRIÇÃOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
                               // Align(
                               //   alignment: Alignment.topLeft,
                               //   child: Text(
@@ -604,8 +607,7 @@ class _NewPostCardState extends State<NewPostCard> {
                               //       shadows: [
                               //         Shadow(
                               //           blurRadius: 3.0,
-                              //           color:
-                              //               Colors.black, // Cor da sombra
+                              //           color: Colors.black, // Cor da sombra
                               //           offset: Offset(2.0,
                               //               2.0), // Deslocamento X e Y da sombra
                               //         ),

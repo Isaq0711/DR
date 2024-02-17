@@ -52,6 +52,9 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
           children: homeScreenItems,
           controller: pageController,
           onPageChanged: onPageChanged,
+          physics: (_page == 0)
+              ? NeverScrollableScrollPhysics()
+              : PageScrollPhysics(),
         ),
         bottomNavigationBar: Visibility(
             visible: isBottomVisible,
@@ -85,8 +88,8 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
                   BottomNavigationBarItem(
                     icon: Icon(
                       (_page == 1)
-                          ? Icons.shopping_cart
-                          : Icons.shopping_cart_outlined,
+                          ? Icons.notification_add
+                          : Icons.notification_add_outlined,
                       color: AppTheme.vinho,
                       size: 24.h,
                     ),
@@ -103,10 +106,10 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
                     label: '',
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(
+                    icon: ImageIcon(
                       (_page == 3)
-                          ? Icons.notification_add
-                          : Icons.notification_add_outlined,
+                          ? AssetImage('assets/CLOSET-FILL.png')
+                          : AssetImage('assets/CLOSET.png'),
                       color: AppTheme.vinho,
                       size: 24.h,
                     ),

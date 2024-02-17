@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:custom_image_crop/custom_image_crop.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -30,8 +30,8 @@ pickImage(ImageSource source) async {
     final croppedFile = await ImageCropper().cropImage(
       sourcePath: _file.path,
       aspectRatio: CropAspectRatio(
-        ratioX: 2,
-        ratioY: 3,
+        ratioX: 9,
+        ratioY: 16,
       ),
       compressQuality: 100,
       androidUiSettings: AndroidUiSettings(

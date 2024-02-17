@@ -6,8 +6,6 @@ import 'package:dressing_room/utils/colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:gap/gap.dart';
 import 'package:dressing_room/utils/utils.dart';
-import 'package:dressing_room/resources/storage_methods.dart';
-import 'package:dressing_room/widgets/select_image_dialog.dart';
 
 class OutfitScreen extends StatefulWidget {
   final String uid;
@@ -31,7 +29,7 @@ class _OutfitScreenState extends State<OutfitScreen> {
 
   List<String> pantsImages = [
     'https://cdn-icons-png.flaticon.com/512/808/808726.png',
-    // Add more pants image URLs as needed
+    'https://i.pinimg.com/originals/bb/c3/5e/bbc35e5e40de2799464a1fd65047021b.png',
   ];
 
   List<String> shoesImages = [

@@ -287,9 +287,10 @@ class _AddPostScreenState extends State<AddPostScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Container(
-                              height: 600.h,
+                              height: 550.h,
+                              width: double.infinity,
                               child: AspectRatio(
-                                aspectRatio: 2 / 3,
+                                aspectRatio: 9 / 16,
                                 child: Stack(
                                   children: [
                                     PageView.builder(
@@ -384,7 +385,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                                                   BorderRadius.circular(10.0),
                                               child: Image.memory(
                                                 _files![index],
-                                                fit: BoxFit.cover,
+                                                fit: BoxFit.fill,
                                               ),
                                             ),
                                           ));

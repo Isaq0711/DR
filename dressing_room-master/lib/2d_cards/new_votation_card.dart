@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:gap/gap.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:dots_indicator/dots_indicator.dart';
 import 'package:flutter/material.dart';
@@ -30,14 +31,44 @@ class NewVotationCard extends StatefulWidget {
 class _NewVotationCardState extends State<NewVotationCard> {
   int commentLen = 0;
   bool isLikeAnimating = false;
+  bool isAddedOnFav = false;
   int currentImageIndex = 0;
   List<String> descriptions = [];
-
   @override
   void initState() {
     super.initState();
     fetchCommentLen();
     extractDescriptions();
+    isOnFav(widget.snap['votationId']); // Chame isOnFav aqui
+  }
+
+  Future<bool> isOnFav(String postId) async {
+    try {
+      DocumentSnapshot fav = await FirebaseFirestore.instance
+          .collection('favorites')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .collection('userFavorites')
+          .doc(postId)
+          .get();
+
+      if (fav.exists) {
+        setState(() {
+          isAddedOnFav = true; // Defina o estado inicial do ícone
+        });
+        return true;
+      } else {
+        setState(() {
+          isAddedOnFav = false; // Defina o estado inicial do ícone
+        });
+        return false;
+      }
+    } catch (e) {
+      showSnackBar(
+        context,
+        e.toString(),
+      );
+      return false;
+    }
   }
 
   fetchCommentLen() async {
@@ -54,6 +85,18 @@ class _NewVotationCardState extends State<NewVotationCard> {
         err.toString(),
       );
     }
+    setState(() {});
+  }
+
+  Future<void> handleFavAction(String uid) async {
+    setState(() {});
+
+    try {
+      await FireStoreMethods().toggleFavorite(widget.snap['votationId'], uid);
+    } catch (err) {
+      showSnackBar(context, err.toString());
+    }
+
     setState(() {});
   }
 
@@ -136,7 +179,6 @@ class _NewVotationCardState extends State<NewVotationCard> {
                       showDialog(
                           context: context,
                           builder: (BuildContext context) {
-                            int position = currentImageIndex;
                             return Dialog(
                               backgroundColor: AppTheme.nearlyWhite,
                               child: StatefulBuilder(
@@ -153,7 +195,7 @@ class _NewVotationCardState extends State<NewVotationCard> {
                                                 height: MediaQuery.of(context)
                                                         .size
                                                         .height *
-                                                    0.7,
+                                                    0.5,
                                                 width: double.infinity,
                                                 child: ClipRRect(
                                                   borderRadius:
@@ -363,39 +405,21 @@ class _NewVotationCardState extends State<NewVotationCard> {
                                 },
                               ),
                             );
-                          }).then((value) {});
+                          });
                     },
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
-                        SizedBox(
-                            width: double.infinity,
-                            child: AspectRatio(
-                              aspectRatio: 2 / 3,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(10.0),
-                                child: PageView.builder(
-                                  itemCount: widget.snap['options'].length,
-                                  controller: PageController(
-                                      initialPage: currentImageIndex),
-                                  onPageChanged: (index) {
-                                    setState(() {
-                                      currentImageIndex = index;
-                                    });
-                                  },
-                                  itemBuilder: (context, index) {
-                                    return ClipRRect(
-                                      borderRadius: BorderRadius.circular(10.0),
-                                      child: Image.network(
-                                        widget.snap['options'][index]
-                                            ['photoUrl'],
-                                        fit: BoxFit.cover,
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            )),
+                        AspectRatio(
+                          aspectRatio: 9 / 16,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10.0),
+                            child: Image.network(
+                              widget.snap['options'][0]['photoUrl'],
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
                         Positioned(
                           top: 10,
                           left: 10,
@@ -434,7 +458,7 @@ class _NewVotationCardState extends State<NewVotationCard> {
                                 SpeedDial(
                                   direction: SpeedDialDirection.down,
                                   child: Icon(
-                                    Icons.add,
+                                    Icons.more_vert_rounded,
                                     size: 28,
                                   ),
                                   buttonSize: Size(1.0, 29.0),
@@ -448,12 +472,36 @@ class _NewVotationCardState extends State<NewVotationCard> {
                                   shape: CircleBorder(),
                                   children: [
                                     SpeedDialChild(
-                                        child: Icon(
-                                          CupertinoIcons.heart,
-                                          color: Colors.black.withOpacity(0.6),
-                                        ),
-                                        backgroundColor: AppTheme.cinza,
-                                        onTap: () => print('FIRST CHILD')),
+                                      child: isAddedOnFav
+                                          ? Icon(
+                                              CupertinoIcons.heart_fill,
+                                              color:
+                                                  Colors.black.withOpacity(0.6),
+                                            )
+                                          : Icon(
+                                              CupertinoIcons.heart,
+                                              color:
+                                                  Colors.black.withOpacity(0.6),
+                                            ),
+                                      backgroundColor: AppTheme.cinza,
+                                      onTap: () {
+                                        setState(() {
+                                          isAddedOnFav = !isAddedOnFav;
+                                          Future.delayed(
+                                              Duration(milliseconds: 500), () {
+                                            isAddedOnFav
+                                                ? showSnackBar(context,
+                                                    'Added to Favorites')
+                                                : showSnackBar(context,
+                                                    'Removed from Favorites');
+                                          });
+                                        });
+                                        Future.microtask(() {
+                                          handleFavAction(FirebaseAuth
+                                              .instance.currentUser!.uid);
+                                        });
+                                      },
+                                    ),
                                     SpeedDialChild(
                                       child: Icon(
                                         CupertinoIcons.arrow_up,

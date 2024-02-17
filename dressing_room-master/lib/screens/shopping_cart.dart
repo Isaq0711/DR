@@ -166,6 +166,15 @@ class _ShoppingCartState extends State<ShoppingCart> {
             appBar: AppBar(
               automaticallyImplyLeading: false,
               backgroundColor: Colors.transparent,
+              leading: IconButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                icon: Icon(
+                  Icons.arrow_back_ios,
+                  color: AppTheme.nearlyBlack,
+                ),
+              ),
               title: Text('Shopping Cart',
                   style: AppTheme.barapp.copyWith(
                     shadows: [

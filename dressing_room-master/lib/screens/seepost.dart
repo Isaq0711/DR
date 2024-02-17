@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:dressing_room/widgets/post_card.dart';
 import 'package:dressing_room/utils/colors.dart';
-import 'package:dressing_room/2d_cards/votation_card.dart';
-import 'package:dressing_room/2d_cards/product_card.dart';
+import 'package:dressing_room/screens/votation_card.dart';
+import 'package:dressing_room/screens/product_card.dart';
 
 class SeePost extends StatefulWidget {
   final String postId;
@@ -73,7 +73,7 @@ class _SeePostState extends State<SeePost> {
             Navigator.pop(context);
           },
           icon: Icon(
-            CupertinoIcons.arrow_left,
+            Icons.arrow_back_ios,
             color: AppTheme.nearlyBlack,
           ),
         ),

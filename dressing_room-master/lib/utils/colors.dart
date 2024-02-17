@@ -12,11 +12,9 @@ class AppTheme {
   static Color vinho = Color(0xFF6D123F);
 
   static Color vinhoescuro = Color(0xFF53191F);
-  static Color darkText = Color(0xFF253840);
+
   static Color darkerText = Color(0xFF17262A);
   static Color lightText = Color(0xFF4A6572);
-  static Color deactivatedText = Color(0xFF767676);
-  static Color dismissibleBackground = Color(0xFF364A54);
   static Color chipBackground = Color(0xFFEEF1F3);
   static Color spacer = Color(0xFFF2F2F2);
   static String fontName = 'Quicksand';

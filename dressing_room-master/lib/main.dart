@@ -1,4 +1,5 @@
 import 'package:dressing_room/providers/bottton_nav_controller.dart';
+import 'package:dressing_room/providers/isshop_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
@@ -41,6 +42,7 @@ class MyApp extends StatelessWidget {
           create: (_) => UserProvider(),
         ),
         ChangeNotifierProvider(create: (_) => BottonNavController()),
+        ChangeNotifierProvider(create: (_) => ShopProvider()),
       ],
       child: ScreenUtilInit(
         designSize: const Size(375, 812),

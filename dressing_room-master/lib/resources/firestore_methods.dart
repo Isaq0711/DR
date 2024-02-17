@@ -26,6 +26,7 @@ class FireStoreMethods {
       for (Uint8List file in files) {
         String photoUrl =
             await StorageMethods().uploadImageToStorage('posts', file, true);
+
         photoUrls.add(photoUrl);
       }
 
@@ -134,6 +135,63 @@ class FireStoreMethods {
     return res;
   }
 
+  Future<String> createOrUpdateTabViewCollection(
+    String uid,
+    String collectionName,
+    List<String> selectedPostIds,
+  ) async {
+    String res = "Some error occurred";
+    try {
+      DocumentReference userDocRef = _firestore.collection('users').doc(uid);
+
+      DocumentSnapshot userSnap = await userDocRef.get();
+      Map<String, dynamic>? userData = userSnap.data() as Map<String, dynamic>?;
+
+      if (userData != null) {
+        List<dynamic> tabViews = userData['tabviews'] ?? [];
+        int existingIndex =
+            tabViews.indexWhere((tab) => tab.keys.first == collectionName);
+
+        if (existingIndex != -1) {
+          Map<String, dynamic> updatedCollection = {
+            collectionName: selectedPostIds,
+          };
+          tabViews[existingIndex] = updatedCollection;
+        } else {
+          Map<String, dynamic> newCollection = {
+            collectionName: selectedPostIds,
+          };
+          tabViews.add(newCollection);
+        }
+
+        await userDocRef.update({'tabviews': tabViews});
+
+        res = "success";
+      } else {
+        res = "User data not found";
+      }
+    } catch (err) {
+      res = err.toString();
+    }
+    return res;
+  }
+
+  Future<String> updateTabViews(
+      String uid, List<Map<String, dynamic>> tabViews) async {
+    String res = "Some error occurred";
+    try {
+      // Update the 'users' collection with the new tabviews
+      await _firestore
+          .collection('users')
+          .doc(uid)
+          .update({'tabviews': tabViews});
+      res = "success";
+    } catch (err) {
+      res = err.toString();
+    }
+    return res;
+  }
+
   Future<String> uploadtoCart(
     String description,
     String uid,
@@ -176,8 +234,6 @@ class FireStoreMethods {
             '$productId.qntspedidos': quantity,
           });
         } else {
-          // Initialize quantity if the product doesn't exist in the cart
-
           await _firestore.collection('cart').doc(uid).update({
             '$productId': product.toJson(),
           });
@@ -189,8 +245,8 @@ class FireStoreMethods {
       }
       res = "success";
     } catch (err) {
-      res = "Error: $err"; // Update error message for better understanding
-      // Log the error for debugging purposes
+      res = "Error: $err";
+
       print("Error occurred: $err");
     }
     return res;
@@ -352,7 +408,6 @@ class FireStoreMethods {
       if (votationSnapshot.exists) {
         List<dynamic> votes = (votationSnapshot.data() as dynamic)['votes'];
 
-        // Verifica se o usuário já votou na votação
         bool hasVoted = false;
         int existingVoteIndex =
             -1; // Índice do voto existente do usuário (se houver)
@@ -660,7 +715,6 @@ class FireStoreMethods {
           .get();
 
       if (favoriteSnapshot.exists) {
-        // The post is already in favorites, so remove it
         await _firestore
             .collection('favorites')
             .doc(uid)
@@ -674,6 +728,10 @@ class FireStoreMethods {
             await _firestore.collection('posts').doc(postId).get();
         DocumentSnapshot anonymousPostSnapshot =
             await _firestore.collection('anonymous_posts').doc(postId).get();
+        DocumentSnapshot productSnapshot =
+            await _firestore.collection('products').doc(postId).get();
+        DocumentSnapshot votationSnapshot =
+            await _firestore.collection('votations').doc(postId).get();
 
         if (postSnapshot.exists) {
           List<dynamic> photoUrls =
@@ -709,6 +767,45 @@ class FireStoreMethods {
           });
 
           return 'Post added to favorites';
+        } else if (productSnapshot.exists) {
+          List<dynamic> variations =
+              (productSnapshot.data() as dynamic)['variations'];
+          List<dynamic> photoUrls = variations[0]['photoUrls'];
+          await _firestore
+              .collection('favorites')
+              .doc(uid)
+              .collection('userFavorites')
+              .doc(postId)
+              .set({
+            'postId': postId,
+            'uid': uid,
+            'dateAdded': DateTime.now(),
+            'photoUrls': photoUrls,
+          });
+
+          return 'Post added to favorites';
+        } else if (votationSnapshot.exists) {
+          Votation votation = Votation.fromSnap(votationSnapshot);
+
+          if (votation.options.isNotEmpty) {
+            VotationOption firstOption = votation.options.first;
+
+            await _firestore
+                .collection('favorites')
+                .doc(uid)
+                .collection('userFavorites')
+                .doc(postId)
+                .set({
+              'postId': postId,
+              'uid': uid,
+              'dateAdded': DateTime.now(),
+              'photoUrls': [firstOption.photoUrl],
+            });
+
+            return 'Post added to favorites';
+          } else {
+            return 'No options found for the votation';
+          }
         } else {
           return 'Post not found';
         }

@@ -133,6 +133,15 @@ class _BasketScreenState extends State<BasketScreen>
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          icon: Icon(
+            CupertinoIcons.arrow_left,
+            color: AppTheme.nearlyBlack,
+          ),
+        ),
         title: Text(
           'My basket',
           style: AppTheme.subheadline.copyWith(
