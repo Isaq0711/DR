@@ -146,12 +146,17 @@ class _ProfileScreenState extends State<ProfileScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          CircleAvatar(
-                            backgroundColor: Colors.grey,
-                            backgroundImage: NetworkImage(
-                              userData['photoUrl'],
+                          InkWell(
+                            child: CircleAvatar(
+                              backgroundColor: Colors.grey,
+                              backgroundImage: NetworkImage(
+                                userData['photoUrl'],
+                              ),
+                              radius: 45,
                             ),
-                            radius: 45,
+                            onTap: () {
+                              print(widget.uid);
+                            },
                           ),
                           Gap(16.h),
                           Text(

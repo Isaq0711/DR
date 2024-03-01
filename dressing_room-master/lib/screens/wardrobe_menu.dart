@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dressing_room/utils/colors.dart';
+import 'add_cloth_screen.dart';
 import 'package:gap/gap.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dressing_room/screens/outfit_screen.dart';
@@ -37,7 +38,12 @@ class WardrobeMenu extends StatelessWidget {
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AddClothScreen()),
+                );
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.vinho,
                 shape: RoundedRectangleBorder(

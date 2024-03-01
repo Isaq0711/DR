@@ -110,7 +110,6 @@ class _ShoppingCartState extends State<ShoppingCart> {
                   await FireStoreMethods()
                       .removeFromCart(widget.uid, itens[index]['productId']);
 
-                  // Refresh the page by fetching the updated data
                   getData();
 
                   // Close the dialog

@@ -1,6 +1,6 @@
 import 'package:dressing_room/providers/bottton_nav_controller.dart';
 import 'package:flutter/material.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dressing_room/utils/colors.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
@@ -42,6 +42,7 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
 
   void navigationTapped(int page) {
     pageController.jumpToPage(page);
+    print(FirebaseAuth.instance.currentUser!.uid);
   }
 
   @override

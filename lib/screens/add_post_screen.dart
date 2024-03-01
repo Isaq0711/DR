@@ -1,5 +1,4 @@
 import 'dart:typed_data';
-
 import 'package:dressing_room/responsive/mobile_screen_layout.dart';
 import 'package:dressing_room/responsive/responsive_layout.dart';
 import 'package:dressing_room/responsive/web_screen_layout.dart';
@@ -192,7 +191,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
             appBar: AppBar(
               backgroundColor: AppTheme.nearlyWhite,
               leading: IconButton(
-                icon: const Icon(Icons.arrow_back),
+                icon: const Icon(Icons.arrow_back_ios),
                 color: AppTheme.nearlyBlack,
                 onPressed: clearImages,
               ),

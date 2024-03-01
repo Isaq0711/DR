@@ -9,7 +9,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
-import 'package:dressing_room/screens/store_screen.dart';
+import 'package:dressing_room/screens/notificationscreen.dart';
 import 'package:dressing_room/screens/chat_page[1].dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/rendering.dart';

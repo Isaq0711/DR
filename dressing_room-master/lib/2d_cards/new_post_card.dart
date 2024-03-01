@@ -20,7 +20,6 @@ import 'package:dressing_room/utils/colors.dart';
 import 'package:dressing_room/utils/utils.dart';
 import 'package:dressing_room/widgets/like_animation.dart';
 import 'package:provider/provider.dart';
-
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 class NewPostCard extends StatefulWidget {
@@ -466,17 +465,14 @@ class _NewPostCardState extends State<NewPostCard> {
                                             await removeBg(tempFile.path);
 
                                         if (processedImage != null) {
-                                          // Faz o upload da imagem processada para o Firebase Storage
                                           String processedImageUrl =
                                               await StorageMethods()
                                                   .uploadImageToStorage('posts',
                                                       processedImage, true);
 
-                                          // Obtém a lista existente de photoUrls
                                           List<String> photoUrls = List.from(
                                               widget.snap['photoUrls']);
 
-                                          // Atualiza a URL no índice correto da lista
                                           photoUrls[currentImageIndex] =
                                               processedImageUrl;
 
@@ -488,7 +484,6 @@ class _NewPostCardState extends State<NewPostCard> {
                                             'photoUrls': photoUrls,
                                           });
 
-                                          // Exclui o arquivo temporário
                                           await tempFile.delete();
                                         }
                                       }
