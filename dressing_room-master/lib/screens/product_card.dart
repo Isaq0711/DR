@@ -76,16 +76,16 @@ class _ProductCardState extends State<ProductCard> {
 
     try {
       String res = await FireStoreMethods().uploadtoCart(
-        widget.snap['description'],
-        uid,
-        widget.snap['username'],
-        widget.snap['productId'],
-        widget.snap['category'],
-        widget.snap['variations'][_currentPageIndex]['variationdescription'],
-        availableSizes[selectedSize],
-        widget.snap['variations'][_currentPageIndex]['photoUrls'][0],
-        widget.snap['variations'][_currentPageIndex]['price'],
-      );
+          widget.snap['description'],
+          uid,
+          widget.snap['username'],
+          widget.snap['productId'],
+          widget.snap['category'],
+          widget.snap['variations'][_currentPageIndex]['variationdescription'],
+          availableSizes[selectedSize],
+          widget.snap['variations'][_currentPageIndex]['photoUrls'][0],
+          widget.snap['variations'][_currentPageIndex]['price'],
+          context);
 
       if (res == "success") {
       } else {

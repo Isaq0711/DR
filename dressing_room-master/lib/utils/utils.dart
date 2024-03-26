@@ -4,6 +4,7 @@ import 'package:custom_image_crop/custom_image_crop.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'dart:typed_data';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'colors.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -11,19 +12,27 @@ import 'package:dressing_room/resources/comn[1].dart';
 
 String server = '192.168.1.2';
 String port = '5000';
-
 Future<Uint8List> removeBg(String imagePath) async {
   var request =
       http.MultipartRequest("POST", Uri.parse('http://$server:$port/removebg'));
   request.files.add(await http.MultipartFile.fromPath("image_file", imagePath));
   request.headers.addAll({"X-API-Key": "dress"});
   request.fields['user'] = FirebaseAuth.instance.currentUser!.uid;
-  final response = await request.send();
-  if (response.statusCode == 200) {
+
+  final response = await Future.any([
+    request.send(),
+    Future.delayed(Duration(seconds: 2), () => null) // Timeout after 2 seconds
+  ]);
+
+  if (response == null) {
+    // Se a resposta for nula (timeout), retorne a imagem original
+    return await File(imagePath).readAsBytes();
+  } else if (response is http.StreamedResponse && response.statusCode == 200) {
+    // Se a resposta for bem-sucedida, retorne os bytes da imagem removida do fundo
     http.Response imgRes = await http.Response.fromStream(response);
     return imgRes.bodyBytes;
   } else {
-    throw Exception("Error");
+    return await File(imagePath).readAsBytes();
   }
 }
 
@@ -68,6 +77,7 @@ pickImage1por1(ImageSource source) async {
         toolbarTitle: 'Crop Item',
         toolbarColor: AppTheme.vinho,
         toolbarWidgetColor: Colors.white,
+        lockAspectRatio: false,
       ),
     );
 

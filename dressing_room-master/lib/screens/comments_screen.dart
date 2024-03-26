@@ -2,9 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:dressing_room/models/user.dart';
 import 'package:dressing_room/providers/user_provider.dart';
+import 'package:gap/gap.dart';
 import 'package:dressing_room/resources/firestore_methods.dart';
 import 'package:dressing_room/utils/colors.dart';
 import 'package:dressing_room/utils/utils.dart';
+import 'package:flutter/cupertino.dart';
+
 import 'package:dressing_room/widgets/comment_card.dart';
 import 'package:provider/provider.dart';
 
@@ -19,6 +22,59 @@ class CommentsScreen extends StatefulWidget {
 class _CommentsScreenState extends State<CommentsScreen> {
   final TextEditingController commentEditingController =
       TextEditingController();
+
+  void showDeleteItemDialog(BuildContext context, int index, String snapshot) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppTheme.nearlyWhite,
+          title: Align(
+            alignment: Alignment.center,
+            child: Text(
+              'Do you want to delete this item?',
+              style: AppTheme.subheadline,
+            ),
+          ),
+          content: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              ElevatedButton(
+                child: Text(
+                  'No',
+                  style: TextStyle(
+                    fontFamily: 'Quicksand',
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(primary: AppTheme.vinho),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+              Gap(10),
+              ElevatedButton(
+                child: Text(
+                  'Yes',
+                  style: TextStyle(
+                    fontFamily: 'Quicksand',
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(primary: AppTheme.vinho),
+                onPressed: () async {
+                  deleteComment(snapshot);
+
+                  // Close the dialog
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   Future<void> postCommentAndCreateNotification(
     String uid,
@@ -75,11 +131,25 @@ class _CommentsScreenState extends State<CommentsScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            backgroundColor: AppTheme.nearlyWhite,
-            title: Text(
-              'Comments',
-              style: AppTheme.title,
+            backgroundColor: Colors.transparent,
+            leading: IconButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              icon: Icon(
+                Icons.arrow_back_ios,
+                color: AppTheme.nearlyBlack,
+              ),
             ),
+            title: Text('Comments',
+                style: AppTheme.barapp.copyWith(
+                  shadows: [
+                    Shadow(
+                      blurRadius: 2.0,
+                      color: Colors.black,
+                    ),
+                  ],
+                )),
             centerTitle: true,
             iconTheme: IconThemeData(
               color: AppTheme.nearlyBlack,
@@ -100,14 +170,17 @@ class _CommentsScreenState extends State<CommentsScreen> {
                   child: CircularProgressIndicator(),
                 );
               }
-
-              return ListView.builder(
-                itemCount: snapshot.data!.docs.length,
-                itemBuilder: (ctx, index) => CommentCard(
-                  snap: snapshot.data!.docs[index],
-                  onDelete: () => deleteComment(snapshot.data!.docs[index].id),
-                ),
-              );
+              return Scrollbar(
+                  thickness: 7,
+                  thumbVisibility: true,
+                  child: ListView.builder(
+                    itemCount: snapshot.data!.docs.length,
+                    itemBuilder: (ctx, index) => CommentCard(
+                      snap: snapshot.data!.docs[index],
+                      onDelete: () => showDeleteItemDialog(
+                          context, index, snapshot.data!.docs[index].id),
+                    ),
+                  ));
             },
           ),
           bottomNavigationBar: SafeArea(
@@ -146,17 +219,9 @@ class _CommentsScreenState extends State<CommentsScreen> {
                       user.photoUrl,
                     ),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 8, horizontal: 8),
-                      child: const Text(
-                        'Post',
-                        style: TextStyle(
-                          color: Colors.blue,
-                          fontFamily: 'Quicksand',
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 8, horizontal: 8),
+                        child: Icon(Icons.send, color: AppTheme.nearlyBlack)),
                   )
                 ],
               ),

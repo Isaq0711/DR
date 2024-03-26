@@ -10,9 +10,7 @@ class AppTheme {
   static Color nearlyBlack = Color(0xFF213333);
   static Color cinza = Color(0xFFF1F1F1);
   static Color vinho = Color(0xFF6D123F);
-
   static Color vinhoescuro = Color(0xFF53191F);
-
   static Color darkerText = Color(0xFF17262A);
   static Color lightText = Color(0xFF4A6572);
   static Color chipBackground = Color(0xFFEEF1F3);
@@ -25,7 +23,7 @@ class AppTheme {
     fontName3,
     fontWeight: FontWeight.bold,
     fontSize: 20.sp,
-    letterSpacing: 0.4,
+    letterSpacing: 0.6,
     color: nearlyBlack,
   );
 
@@ -96,7 +94,7 @@ class AppTheme {
   static TextStyle title = GoogleFonts.getFont(
     fontName,
     fontWeight: FontWeight.bold,
-    fontSize: 10.sp,
+    fontSize: 15,
     letterSpacing: 0.18,
     color: nearlyBlack,
   );
@@ -104,7 +102,7 @@ class AppTheme {
   static TextStyle titlewhite = GoogleFonts.getFont(
     fontName,
     fontWeight: FontWeight.bold,
-    fontSize: 10.sp,
+    fontSize: 15,
     letterSpacing: 0.18,
     color: nearlyWhite,
   );
@@ -112,7 +110,7 @@ class AppTheme {
   static TextStyle subtitle = GoogleFonts.getFont(
     fontName,
     fontWeight: FontWeight.bold,
-    fontSize: 14,
+    fontSize: 12,
     letterSpacing: -0.04,
     color: nearlyBlack,
   );
@@ -120,7 +118,7 @@ class AppTheme {
   static TextStyle subtitlewhite = GoogleFonts.getFont(
     fontName,
     fontWeight: FontWeight.bold,
-    fontSize: 14,
+    fontSize: 12,
     letterSpacing: -0.04,
     color: nearlyWhite,
   );
@@ -144,7 +142,7 @@ class AppTheme {
   static TextStyle caption = GoogleFonts.getFont(
     fontName,
     fontWeight: FontWeight.bold,
-    fontSize: 12,
+    fontSize: 10,
     letterSpacing: 0.2,
     color: nearlyBlack,
   );

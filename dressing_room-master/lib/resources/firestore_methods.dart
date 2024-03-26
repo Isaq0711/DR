@@ -4,13 +4,18 @@ import 'package:dressing_room/models/post.dart';
 import 'package:dressing_room/models/products.dart';
 import 'package:dressing_room/models/votations.dart';
 import 'package:dressing_room/widgets/friends_list.dart';
+import 'package:flutter/material.dart';
 import 'package:dressing_room/widgets/tag_card.dart';
 import 'package:dressing_room/resources/storage_methods.dart';
+import 'package:provider/provider.dart';
+import 'package:dressing_room/providers/bottton_nav_controller.dart';
 import 'package:uuid/uuid.dart';
 import 'package:dressing_room/models/cart.dart';
+import 'package:dressing_room/models/clothes.dart';
 
 class FireStoreMethods {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   Future<String> uploadPost(
     String description,
     List<Uint8List> files,
@@ -135,6 +140,40 @@ class FireStoreMethods {
     return res;
   }
 
+  Future<String> uploadCloth(
+      String description,
+      String photoUrl,
+      String uid,
+      String category,
+      String barCode,
+      List<String>? marcas,
+      List<String>? tecido) async {
+    String res = "Some error occurred";
+    try {
+      String clothId = const Uuid().v1();
+      Cloth product = Cloth(
+          description: description,
+          uid: uid,
+          clothId: clothId,
+          photoUrl: photoUrl,
+          dateAdded: DateTime.now(),
+          category: category,
+          barCode: barCode,
+          marcas: marcas,
+          tecido: tecido);
+
+      await FirebaseFirestore.instance
+          .collection('clothes')
+          .doc(clothId)
+          .set(product.toJson());
+
+      res = "success";
+    } catch (err) {
+      res = err.toString();
+    }
+    return res;
+  }
+
   Future<String> createOrUpdateTabViewCollection(
     String uid,
     String collectionName,
@@ -202,6 +241,7 @@ class FireStoreMethods {
     String size,
     String photoUrl,
     double price,
+    BuildContext context, // Adicione o parâmetro BuildContext
   ) async {
     String res = "Some error occurred";
     try {
@@ -237,11 +277,15 @@ class FireStoreMethods {
           await _firestore.collection('cart').doc(uid).update({
             '$productId': product.toJson(),
           });
+          Provider.of<CartCounterProvider>(context, listen: false)
+              .increment(); // Utilize o Provider.of com o contexto
         }
       } else {
         await _firestore.collection('cart').doc(uid).set({
           '$productId': product.toJson(),
         });
+        Provider.of<CartCounterProvider>(context, listen: false)
+            .increment(); // Utilize o Provider.of com o contexto
       }
       res = "success";
     } catch (err) {
@@ -252,7 +296,8 @@ class FireStoreMethods {
     return res;
   }
 
-  Future<String> removeFromCart(String uid, String productId) async {
+  Future<String> removeFromCart(
+      String uid, String productId, BuildContext context) async {
     String res = "Some error occurred";
     try {
       DocumentSnapshot productsnapshot =
@@ -262,9 +307,9 @@ class FireStoreMethods {
         await _firestore.collection('cart').doc(uid).update({
           '$productId': FieldValue.delete(),
         });
+        Provider.of<CartCounterProvider>(context, listen: false)
+            .decrement(); // Utilize o Provider.of com o contexto
         res = "success";
-      } else {
-        res = "Cart is empty";
       }
     } catch (err) {
       res = "Error: $err";

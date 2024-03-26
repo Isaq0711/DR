@@ -1,6 +1,8 @@
 import 'package:dressing_room/providers/bottton_nav_controller.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:dressing_room/providers/isshop_provider.dart';
 import 'package:dressing_room/utils/colors.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
@@ -89,8 +91,8 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
                   BottomNavigationBarItem(
                     icon: Icon(
                       (_page == 1)
-                          ? Icons.notification_add
-                          : Icons.notification_add_outlined,
+                          ? Icons.chat_bubble
+                          : Icons.chat_bubble_outline,
                       color: AppTheme.vinho,
                       size: 24.h,
                     ),

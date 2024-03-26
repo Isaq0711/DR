@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:dressing_room/widgets/post_card.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:dressing_room/utils/colors.dart';
 import 'package:dressing_room/screens/votation_card.dart';
 import 'package:dressing_room/screens/product_card.dart';
@@ -89,12 +90,7 @@ class _SeePostState extends State<SeePost> {
                   return Container();
                 }
                 final post = snapshot.data!.data();
-                return Container(
-                  margin: EdgeInsets.symmetric(
-                    horizontal: MediaQuery.of(context).size.width * 0.023,
-                  ),
-                  child: PostCard(snap: post),
-                );
+                return PostCard(snap: post);
               },
             ),
             StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(

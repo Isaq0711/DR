@@ -17,7 +17,7 @@ class ShoppingCart extends StatefulWidget {
 }
 
 class _ShoppingCartState extends State<ShoppingCart> {
-  List<bool> picked = [false, false, false, false, false, false, false];
+  List<bool> picked = [true, true, true, true, false, false, false];
 
   bool isLoading = false;
   List<dynamic> itens = [];
@@ -37,7 +37,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
   }
 
   getTotalAmount() {
-    num count = 0; // Alteração para declarar 'count' como 'num'
+    num count = 0;
     for (int i = 0; i < itens.length; i++) {
       if (picked[i]) {
         count += (itens[i]['price'] * itens[i]['qntspedidos']);
@@ -107,8 +107,8 @@ class _ShoppingCartState extends State<ShoppingCart> {
                 ),
                 style: ElevatedButton.styleFrom(primary: AppTheme.vinho),
                 onPressed: () async {
-                  await FireStoreMethods()
-                      .removeFromCart(widget.uid, itens[index]['productId']);
+                  await FireStoreMethods().removeFromCart(
+                      widget.uid, itens[index]['productId'], context);
 
                   getData();
 
@@ -149,7 +149,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
       // Tratar exceções, se necessário
       print('Error fetching data: $e');
     }
-
+    getTotalAmount();
     setState(() {
       isLoading = false;
     });

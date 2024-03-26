@@ -9,7 +9,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
-import 'package:dressing_room/screens/notificationscreen.dart';
 import 'package:dressing_room/screens/chat_page[1].dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/rendering.dart';
@@ -74,6 +73,8 @@ class _FeedScreenState extends State<FeedScreen> {
   Widget build(BuildContext context) {
     bool isBottomVisible = context.watch<BottonNavController>().isBottonVisible;
     final shopProvider = Provider.of<ShopProvider>(context, listen: false);
+    final cartQuantityy = Provider.of<CartCounterProvider>(context)
+        .cartQuantity; //está na página do isBottonVisible
     return PrimaryScrollController(
         controller: scrollController,
         child: Scaffold(
@@ -129,27 +130,57 @@ class _FeedScreenState extends State<FeedScreen> {
                         },
                       ),
                       shopProvider.isShop
-                          ? IconButton(
-                              icon: Icon(
-                                shadows: <Shadow>[
-                                  Shadow(
-                                      color: AppTheme.vinho,
-                                      //    blurRadius: 5.0)
-                                      blurRadius: 3.0)
-                                ],
-                                CupertinoIcons.shopping_cart,
-                                color: AppTheme.vinho,
-                              ),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => ShoppingCart(
-                                            uid: FirebaseAuth
-                                                .instance.currentUser!.uid,
-                                          )),
-                                );
-                              },
+                          ? Stack(
+                              children: [
+                                if (cartQuantityy > 0)
+                                  Positioned(
+                                    right: 0,
+                                    top: 0,
+                                    child: Container(
+                                      padding: EdgeInsets.all(2),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.vinho,
+                                        borderRadius: BorderRadius.circular(7),
+                                      ),
+                                      constraints: BoxConstraints(
+                                        minWidth: 20,
+                                        minHeight: 20,
+                                      ),
+                                      child: Text(
+                                        '$cartQuantityy',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ),
+                                IconButton(
+                                  icon: Icon(
+                                    shadows: <Shadow>[
+                                      Shadow(
+                                        color: AppTheme.vinho,
+                                        blurRadius: 3.0,
+                                      ),
+                                    ],
+                                    CupertinoIcons.shopping_cart,
+                                    color: AppTheme.vinho,
+                                  ),
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ShoppingCart(
+                                          uid: FirebaseAuth
+                                              .instance.currentUser!.uid,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
                             )
                           : Container()
                     ],

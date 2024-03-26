@@ -157,10 +157,8 @@ class _NewProductCardState extends State<NewProductCard> {
 
     try {
       if (!isAddedOnCart) {
-        String res = await FireStoreMethods().removeFromCart(
-          uid,
-          widget.snap['productId'],
-        );
+        String res = await FireStoreMethods()
+            .removeFromCart(uid, widget.snap['productId'], context);
 
         if (res == "success") {
           showSnackBar(context, 'Removed from cart');
@@ -170,16 +168,16 @@ class _NewProductCardState extends State<NewProductCard> {
         }
       } else {
         String res = await FireStoreMethods().uploadtoCart(
-          widget.snap['description'],
-          uid,
-          widget.snap['username'],
-          widget.snap['productId'],
-          widget.snap['category'],
-          widget.snap['variations'][0]['variationdescription'],
-          availableSizes[selectedSize],
-          widget.snap['variations'][0]['photoUrls'][0],
-          widget.snap['variations'][0]['price'],
-        );
+            widget.snap['description'],
+            uid,
+            widget.snap['username'],
+            widget.snap['productId'],
+            widget.snap['category'],
+            widget.snap['variations'][0]['variationdescription'],
+            availableSizes[selectedSize],
+            widget.snap['variations'][0]['photoUrls'][0],
+            widget.snap['variations'][0]['price'],
+            context);
 
         if (res == "success") {
           showSnackBar(context, 'Added to cart');

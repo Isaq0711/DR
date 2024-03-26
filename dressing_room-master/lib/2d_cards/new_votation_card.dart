@@ -444,15 +444,9 @@ class _NewVotationCardState extends State<NewVotationCard> {
                             right: 10,
                             child: Column(
                               children: [
-                                Icon(
-                                  shadows: <Shadow>[
-                                    Shadow(
-                                      color: AppTheme.nearlyBlack,
-                                      blurRadius: 5.0,
-                                    ),
-                                  ],
-                                  Icons.check_box,
-                                  color: AppTheme.vinho,
+                                ImageIcon(
+                                  AssetImage('assets/ELECTION.png'),
+                                  color: AppTheme.nearlyWhite,
                                 ),
                                 Gap(5.h),
                                 SpeedDial(

@@ -1,418 +1,173 @@
-import 'dart:math' as math;
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dressing_room/providers/bottton_nav_controller.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:provider/provider.dart';
-import 'package:dressing_room/screens/product_card.dart';
 import 'package:flutter/material.dart';
-import 'package:dressing_room/screens/outfit_screen.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:gap/gap.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter/rendering.dart';
-import 'package:dressing_room/2d_cards/new_votation_card.dart';
-import 'package:dressing_room/utils/colors.dart';
-import 'package:dressing_room/2d_cards/new_post_card.dart';
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
 
-double altura = 650.h;
-double largura = (altura * 9) / 16;
-
-class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+class ImageCropPage extends StatefulWidget {
+  const ImageCropPage({Key? key}) : super(key: key);
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  _ImageCropPageState createState() => _ImageCropPageState();
 }
 
-class _HomePageState extends State<HomePage> {
-  late Stream<QuerySnapshot<Map<String, dynamic>>> _anonymousPostsStream;
-  late Stream<QuerySnapshot<Map<String, dynamic>>> _postsStream;
-  late Stream<QuerySnapshot<Map<String, dynamic>>> _votationsStream;
-  late Stream<QuerySnapshot<Map<String, dynamic>>> _productsStream;
-  bool isLoading = false;
-  bool isShop = false;
-  late ScrollController scrollController;
-
-  late String fotoUrl = '';
+class _ImageCropPageState extends State<ImageCropPage> {
+  List<Uint8List> _croppedImages = [];
+  List<String> _captions = [];
+  XFile? _imageFile;
+  Uint8List? _originalImageBytes;
 
   @override
   void initState() {
     super.initState();
-    scrollController = ScrollController();
-
-    scrollController.addListener(() {
-      final bool isScrollingUp =
-          scrollController.position.userScrollDirection ==
-              ScrollDirection.reverse;
-
-      if (isScrollingUp) {
-        context.read<BottonNavController>().setBottomVisible(false);
-      } else {
-        context.read<BottonNavController>().setBottomVisible(true);
-      }
-    });
-
-    _anonymousPostsStream =
-        FirebaseFirestore.instance.collection('anonymous_posts').snapshots();
-    _postsStream = FirebaseFirestore.instance.collection('posts').snapshots();
-    _votationsStream =
-        FirebaseFirestore.instance.collection('votations').snapshots();
-    _productsStream =
-        FirebaseFirestore.instance.collection('products').snapshots();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    scrollController.dispose();
+    _pickImage();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: 60.h,
-        elevation: 0.0,
-        centerTitle: false,
-        backgroundColor: Colors.transparent,
-        title: Padding(
-          padding: EdgeInsets.only(left: 8.w),
-          child: Text(
-            "DressRoom",
-            style: AppTheme.headlinevinho.copyWith(
-              shadows: [
-                Shadow(
-                  blurRadius: 4.0,
-                  color: Colors.black, // Cor da sombra
-                ),
-              ],
+        actions: [
+          IconButton(
+            icon: Icon(Icons.skip_next),
+            onPressed: () {
+              print(_captions);
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.send),
+            onPressed: () {
+              setState(() {
+                if (_originalImageBytes != null) {
+                  _croppedImages.insert(0, _originalImageBytes!);
+                }
+
+                segmenta(_croppedImages);
+              });
+            },
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Container(
+            height: 300.h,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10.0),
+              child: _originalImageBytes != null
+                  ? Image.memory(_originalImageBytes!)
+                  : Container(), // Verifica se a imagem foi selecionada
             ),
           ),
-        ),
-        actions: [
-          Padding(
-              padding: EdgeInsets.symmetric(horizontal: 26.w),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: Icon(
-                      shadows: <Shadow>[
-                        Shadow(color: AppTheme.vinho, blurRadius: 2.0)
-                      ],
-                      CupertinoIcons.search,
-                      color: AppTheme.vinho,
+          Gap(20.h),
+          Expanded(
+            child: GridView.builder(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 4.0,
+                mainAxisSpacing: 4.0,
+              ),
+              itemCount: _croppedImages.length,
+              itemBuilder: (BuildContext context, int index) {
+                return GridTile(
+                  child: Image.memory(_croppedImages[index]),
+                  footer: Material(
+                    color: Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.vertical(bottom: Radius.circular(4))),
+                    child: GridTileBar(
+                      backgroundColor: Colors.black45,
+                      title: Text(_captions.isNotEmpty
+                          ? _captions[index]
+                          : 'Loading...'),
                     ),
-                    onPressed: () {},
                   ),
-                  IconButton(
-                    icon: Icon(
-                      shadows: <Shadow>[
-                        Shadow(color: AppTheme.vinho, blurRadius: 3.0)
-                      ],
-                      CupertinoIcons.info_circle,
-                      color: AppTheme.vinho,
-                    ),
-                    onPressed: () {},
-                  ),
-                  isShop
-                      ? IconButton(
-                          icon: Icon(
-                            shadows: <Shadow>[
-                              Shadow(
-                                  color: AppTheme.nearlyBlack, blurRadius: 5.0)
-                            ],
-                            CupertinoIcons.shopping_cart,
-                            color: AppTheme.vinho,
-                          ),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => OutfitScreen(
-                                        uid: FirebaseAuth
-                                            .instance.currentUser!.uid,
-                                      )),
-                            );
-                          },
-                        )
-                      : Container()
-                ],
-              ))
-        ],
-      ), // Adicionei 'const' ao Text
-      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: _anonymousPostsStream,
-        builder: (context, anonymousPostsSnapshot) {
-          if (anonymousPostsSnapshot.connectionState ==
-              ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-
-          List<DocumentSnapshot<Map<String, dynamic>>> anonymousPosts =
-              anonymousPostsSnapshot.data!.docs;
-
-          return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-            stream: _postsStream,
-            builder: (context, postsSnapshot) {
-              if (postsSnapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: CircularProgressIndicator(),
                 );
-              }
-
-              List<DocumentSnapshot<Map<String, dynamic>>> posts =
-                  postsSnapshot.data!.docs;
-
-              return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                stream: _votationsStream,
-                builder: (context, votationsSnapshot) {
-                  if (votationsSnapshot.connectionState ==
-                      ConnectionState.waiting) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  }
-
-                  List<DocumentSnapshot<Map<String, dynamic>>> votations =
-                      votationsSnapshot.data!.docs;
-
-                  return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                    stream: _productsStream,
-                    builder: (context, productsSnapshot) {
-                      if (productsSnapshot.connectionState ==
-                          ConnectionState.waiting) {
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      }
-
-                      List<DocumentSnapshot<Map<String, dynamic>>> products =
-                          productsSnapshot.data!.docs;
-
-                      List<DocumentSnapshot<Map<String, dynamic>>>
-                          allDocuments = [];
-
-                      if (isShop) {
-                        allDocuments = [
-                          ...products,
-                        ];
-                      } else {
-                        allDocuments = [
-                          ...anonymousPosts,
-                          ...posts,
-                          ...votations,
-                        ];
-                      }
-
-                      allDocuments.sort((a, b) => (b.data()!['datePublished']
-                              as Timestamp)
-                          .compareTo(a.data()!['datePublished'] as Timestamp));
-
-                      return TwoDimensionalGridView(
-                        diagonalDragBehavior: DiagonalDragBehavior.free,
-                        delegate: TwoDimensionalChildBuilderDelegate(
-                          maxXIndex: 4,
-                          maxYIndex: 4,
-                          builder:
-                              (BuildContext context, ChildVicinity vicinity) {
-                            final int index =
-                                vicinity.yIndex * 5 + vicinity.xIndex;
-                            if (index < allDocuments.length) {
-                              final documentData = allDocuments[index].data();
-
-                              if (documentData!.containsKey('options')) {
-                                return Container(
-                                  height: altura,
-                                  width: largura,
-                                  child: NewVotationCard(
-                                    snap: documentData,
-                                  ),
-                                );
-                              } else if (documentData.containsKey('category')) {
-                                return Container(
-                                  height: altura,
-                                  width: largura,
-                                  child: ProductCard(
-                                    snap: documentData,
-                                  ),
-                                );
-                              } else {
-                                return Container(
-                                  height: altura,
-                                  width: largura,
-                                  child: NewPostCard(
-                                    snap: documentData,
-                                  ),
-                                );
-                              }
-                            } else {
-                              return Container();
-                            }
-                          },
-                        ),
-                      );
-                    },
-                  );
-                },
-              );
-            },
-          );
+              },
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _cropImage(_imageFile!.path);
         },
+        child: Icon(Icons.crop),
       ),
     );
   }
-}
 
-class TwoDimensionalGridView extends TwoDimensionalScrollView {
-  const TwoDimensionalGridView({
-    Key? key,
-    super.primary,
-    super.mainAxis = Axis.vertical,
-    super.verticalDetails = const ScrollableDetails.vertical(),
-    super.horizontalDetails = const ScrollableDetails.horizontal(),
-    required TwoDimensionalChildBuilderDelegate delegate,
-    super.cacheExtent,
-    super.diagonalDragBehavior = DiagonalDragBehavior.none,
-    super.keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.manual,
-    super.clipBehavior = Clip.hardEdge,
-  }) : super(key: key, delegate: delegate);
+  Future<void> _pickImage() async {
+    final ImagePicker _imagePicker = ImagePicker();
 
-  @override
-  Widget buildViewport(
-    BuildContext context,
-    ViewportOffset verticalOffset,
-    ViewportOffset horizontalOffset,
-  ) {
-    return TwoDimensionalGridViewport(
-      key: key,
-      verticalOffset: verticalOffset,
-      verticalAxisDirection: verticalDetails.direction,
-      horizontalOffset: horizontalOffset,
-      horizontalAxisDirection: horizontalDetails.direction,
-      mainAxis: mainAxis,
-      delegate: delegate as TwoDimensionalChildBuilderDelegate,
-      cacheExtent: cacheExtent,
-      clipBehavior: clipBehavior,
-    );
-  }
-}
+    _imageFile = await _imagePicker.pickImage(source: ImageSource.gallery);
 
-class TwoDimensionalGridViewport extends TwoDimensionalViewport {
-  const TwoDimensionalGridViewport({
-    Key? key,
-    required ViewportOffset verticalOffset,
-    required AxisDirection verticalAxisDirection,
-    required ViewportOffset horizontalOffset,
-    required AxisDirection horizontalAxisDirection,
-    required TwoDimensionalChildBuilderDelegate delegate,
-    required Axis mainAxis,
-    double? cacheExtent,
-    Clip clipBehavior = Clip.hardEdge,
-  }) : super(
-          key: key,
-          verticalOffset: verticalOffset,
-          verticalAxisDirection: verticalAxisDirection,
-          horizontalOffset: horizontalOffset,
-          horizontalAxisDirection: horizontalAxisDirection,
-          delegate: delegate,
-          mainAxis: mainAxis,
-          cacheExtent: cacheExtent,
-          clipBehavior: clipBehavior,
-        );
-
-  @override
-  RenderTwoDimensionalViewport createRenderObject(BuildContext context) {
-    return RenderTwoDimensionalGridViewport(
-      key: key,
-      verticalOffset: verticalOffset,
-      verticalAxisDirection: verticalAxisDirection,
-      horizontalOffset: horizontalOffset,
-      horizontalAxisDirection: horizontalAxisDirection,
-      delegate: delegate as TwoDimensionalChildBuilderDelegate,
-      childManager: context as TwoDimensionalChildManager,
-      mainAxis: mainAxis,
-      cacheExtent: cacheExtent,
-      clipBehavior: clipBehavior,
-    );
-  }
-}
-
-class RenderTwoDimensionalGridViewport extends RenderTwoDimensionalViewport {
-  RenderTwoDimensionalGridViewport({
-    Key? key,
-    required ViewportOffset horizontalOffset,
-    required AxisDirection horizontalAxisDirection,
-    required ViewportOffset verticalOffset,
-    required AxisDirection verticalAxisDirection,
-    required TwoDimensionalChildBuilderDelegate delegate,
-    required Axis mainAxis,
-    required TwoDimensionalChildManager childManager,
-    double? cacheExtent,
-    Clip clipBehavior = Clip.hardEdge,
-  }) : super(
-          horizontalOffset: horizontalOffset,
-          horizontalAxisDirection: horizontalAxisDirection,
-          verticalOffset: verticalOffset,
-          verticalAxisDirection: verticalAxisDirection,
-          delegate: delegate,
-          mainAxis: mainAxis,
-          childManager: childManager,
-          cacheExtent: cacheExtent,
-          clipBehavior: clipBehavior,
-        );
-
-  @override
-  void layoutChildSequence() {
-    final double horizontalPixels = horizontalOffset.pixels;
-    final double verticalPixels = verticalOffset.pixels;
-    final double viewportWidth = viewportDimension.width + cacheExtent;
-    final double viewportHeight = viewportDimension.height + cacheExtent;
-    final TwoDimensionalChildBuilderDelegate builderDelegate =
-        delegate as TwoDimensionalChildBuilderDelegate;
-
-    final int maxRowIndex = builderDelegate.maxYIndex!;
-    final int maxColumnIndex = builderDelegate.maxXIndex!;
-
-    final int leadingColumn = math.max((horizontalPixels / largura).floor(), 0);
-    final int leadingRow = math.max((verticalPixels / altura).floor(), 0);
-    final int trailingColumn = math.min(
-      ((horizontalPixels + viewportWidth) / largura).ceil(),
-      maxColumnIndex,
-    );
-    final int trailingRow = math.min(
-      ((verticalPixels + viewportHeight) / altura).ceil(),
-      maxRowIndex,
-    );
-
-    double xLayoutOffset = (leadingColumn * largura) - horizontalOffset.pixels;
-    for (int column = leadingColumn; column <= trailingColumn; column++) {
-      double yLayoutOffset = (leadingRow * altura) - verticalOffset.pixels;
-      for (int row = leadingRow; row <= trailingRow; row++) {
-        final ChildVicinity vicinity =
-            ChildVicinity(xIndex: column, yIndex: row);
-        final RenderBox? child = buildOrObtainChildFor(vicinity);
-        if (child != null) {
-          child.layout(constraints.loosen(), parentUsesSize: true);
-          // Subclasses only need to set the normalized layout offset. The super
-          // class adjusts for reversed axes.
-          parentDataOf(child).layoutOffset =
-              Offset(xLayoutOffset, yLayoutOffset);
-          yLayoutOffset += altura;
-        }
-      }
-      xLayoutOffset += largura;
+    if (_imageFile != null) {
+      Uint8List? imageBytes = await _imageFile!.readAsBytes();
+      setState(() {
+        _originalImageBytes = imageBytes;
+      });
     }
+  }
 
-    final double verticalExtent = altura * (maxRowIndex + 1);
-    verticalOffset.applyContentDimensions(
-      0.0,
-      math.max(verticalExtent - viewportDimension.height, 0.0),
+  Future<void> _cropImage(String imagePath) async {
+    final ImageCropper _imageCropper = ImageCropper();
+    final croppedFile = await _imageCropper.cropImage(
+      sourcePath: imagePath,
+      androidUiSettings: AndroidUiSettings(
+        toolbarTitle: 'Crop Item',
+        toolbarColor: Colors.green,
+        toolbarWidgetColor: Colors.white,
+        lockAspectRatio: false,
+      ),
     );
-    final double horizontalExtent = largura * (maxColumnIndex + 1);
-    horizontalOffset.applyContentDimensions(
-      0.0,
-      math.max(horizontalExtent - viewportDimension.width, 0.0),
-    );
+
+    if (croppedFile != null) {
+      Uint8List? croppedBytes = await croppedFile.readAsBytes();
+      if (croppedBytes != null) {
+        setState(() {
+          _croppedImages.add(croppedBytes!);
+        });
+      }
+    }
+  }
+
+  String server = '192.168.1.2';
+  String port = '5000';
+
+  Future<void> segmenta(List<Uint8List> imageBytesList) async {
+    var request = http.MultipartRequest(
+        "POST", Uri.parse('http://$server:$port/segmentacao'));
+
+    for (int i = 0; i < imageBytesList.length; i++) {
+      final imageFile = http.MultipartFile.fromBytes(
+        'image_file', // Nome do campo no servidor
+        imageBytesList[i],
+        filename: 'image_$i.png', // Nome do arquivo
+      );
+      request.files.add(imageFile);
+    }
+    request.headers.addAll({"X-API-Key": "dress"});
+    request.fields['user'] = FirebaseAuth.instance.currentUser!.uid;
+    request.fields['id_imagem'] = "teste";
+    try {
+      final response = await request.send();
+      if (response.statusCode == 200) {
+        final responseJson = await http.Response.fromStream(response);
+        final captions = json.decode(responseJson.body);
+        setState(() {
+          _captions = captions.values.toList().cast<String>();
+        });
+      } else {
+        throw Exception('Erro ao enviar imagem para o servidor');
+      }
+    } catch (e) {
+      print('Erro durante a solicitação: $e');
+    }
   }
 }

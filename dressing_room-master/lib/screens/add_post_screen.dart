@@ -17,7 +17,9 @@ import 'package:dressing_room/models/user.dart';
 import 'package:provider/provider.dart';
 
 class AddPostScreen extends StatefulWidget {
-  const AddPostScreen({Key? key}) : super(key: key);
+  final Uint8List? image;
+
+  const AddPostScreen({Key? key, this.image}) : super(key: key);
 
   @override
   _AddPostScreenState createState() => _AddPostScreenState();
@@ -44,11 +46,18 @@ class _AddPostScreenState extends State<AddPostScreen> {
   int _currentPageIndex = 0;
 
   @override
+  @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _selectImage(context);
-    });
+    _files = [];
+
+    if (widget.image == null) {
+      WidgetsBinding.instance!.addPostFrameCallback((_) {
+        _selectImage(context);
+      });
+    } else {
+      _files!.add(widget.image!);
+    }
   }
 
   void exibirTagCard(
@@ -244,7 +253,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
             appBar: AppBar(
                 backgroundColor: AppTheme.nearlyWhite,
                 leading: IconButton(
-                  icon: const Icon(Icons.arrow_back),
+                  icon: const Icon(Icons.arrow_back_ios),
                   color: AppTheme.nearlyBlack,
                   onPressed: clearImages,
                 ),
@@ -271,76 +280,69 @@ class _AddPostScreenState extends State<AddPostScreen> {
                 direction: FlipDirection.HORIZONTAL,
                 side: CardSide.FRONT,
                 front: ListView(children: <Widget>[
-                  Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppTheme.nearlyWhite,
                     ),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Colors.grey,
-                        ),
-                        color: AppTheme.nearlyWhite,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                              height: 550.h,
-                              width: double.infinity,
-                              child: AspectRatio(
-                                aspectRatio: 9 / 16,
-                                child: Stack(
-                                  children: [
-                                    PageView.builder(
-                                      controller: _pageController,
-                                      itemCount: _files!.length,
-                                      onPageChanged: (int index) {
-                                        setState(() {
-                                          _currentPageIndex = index;
-                                        });
-                                      },
-                                      itemBuilder: (context, pageIndex) {
-                                        return ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(10.0),
-                                          child: Image.memory(
-                                            _files![pageIndex],
-                                            fit: BoxFit.cover,
-                                            height: double.infinity,
-                                            width: double.infinity,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              )),
-                          GestureDetector(
-                            onTap: () => _selectImage(context),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                const Icon(
-                                  Icons.add,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                            height: 600.h,
+                            child: Align(
+                                alignment: Alignment.center,
+                                child: AspectRatio(
+                                  aspectRatio: 9 / 16,
+                                  child: Stack(
+                                    children: [
+                                      PageView.builder(
+                                        controller: _pageController,
+                                        itemCount: _files!.length,
+                                        onPageChanged: (int index) {
+                                          setState(() {
+                                            _currentPageIndex = index;
+                                          });
+                                        },
+                                        itemBuilder: (context, pageIndex) {
+                                          return ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(10.0),
+                                            child: Image.memory(
+                                              _files![pageIndex],
+                                              fit: BoxFit.cover,
+                                              height: double.infinity,
+                                              width: double.infinity,
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ))),
+                        GestureDetector(
+                          onTap: () => _selectImage(context),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              const Icon(
+                                Icons.add,
+                                color: Colors.black,
+                              ),
+                              const SizedBox(width: 4),
+                              const Text(
+                                'Add More',
+                                style: TextStyle(
+                                  fontFamily: 'Quicksand',
+                                  fontWeight: FontWeight.bold,
                                   color: Colors.black,
                                 ),
-                                const SizedBox(width: 4),
-                                const Text(
-                                  'Add More',
-                                  style: TextStyle(
-                                    fontFamily: 'Quicksand',
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                Gap(20),
-                              ],
-                            ),
+                              ),
+                              Gap(20),
+                            ],
                           ),
-                          if (_files!.length > 1)
-                            Padding(
+                        ),
+                        _files!.length > 1
+                            ? Padding(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 10,
                                 ),
@@ -392,10 +394,10 @@ class _AddPostScreenState extends State<AddPostScreen> {
                                     },
                                   ),
                                 ))
-                        ],
-                      ),
+                            : Gap(MediaQuery.of(context).size.height * 0.1)
+                      ],
                     ),
-                  )
+                  ),
                 ]),
                 back: Card(
                     shape: RoundedRectangleBorder(
@@ -837,7 +839,6 @@ class _AddPostScreenState extends State<AddPostScreen> {
                                                 0.08,
                                         child: Row(
                                           children: [
-                                            // Item fixo
                                             Padding(
                                               padding:
                                                   const EdgeInsets.all(10.0),

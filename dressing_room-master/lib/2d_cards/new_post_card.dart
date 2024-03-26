@@ -18,7 +18,6 @@ import 'package:dressing_room/screens/seepost.dart';
 import 'package:dressing_room/screens/profile_screen.dart';
 import 'package:dressing_room/utils/colors.dart';
 import 'package:dressing_room/utils/utils.dart';
-import 'package:dressing_room/widgets/like_animation.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
