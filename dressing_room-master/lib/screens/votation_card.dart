@@ -392,6 +392,7 @@ class _VotationCardState extends State<VotationCard> {
                           onPressed: () => Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) => CommentsScreen(
+                                category: 'votations',
                                 postId: widget.snap['postId'].toString(),
                               ),
                             ),

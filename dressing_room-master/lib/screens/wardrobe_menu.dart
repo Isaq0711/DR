@@ -1,4 +1,5 @@
 import 'package:dressing_room/screens/handle_outside_media.dart';
+import 'package:dressing_room/screens/tinder_like_page.dart';
 import 'package:flutter/material.dart';
 import 'package:dressing_room/utils/colors.dart';
 import 'add_cloth_screen.dart';
@@ -6,6 +7,7 @@ import 'package:gap/gap.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:dressing_room/screens/outfit_screen.dart';
+import 'package:dressing_room/screens/my_wardrobe.dart';
 
 class WardrobeMenu extends StatelessWidget {
   @override
@@ -46,7 +48,7 @@ class WardrobeMenu extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => HandleOutsideMedia()),
+                              builder: (context) => Wardrobe(isDialog: false)),
                         );
                       },
                       style: ElevatedButton.styleFrom(
@@ -58,14 +60,17 @@ class WardrobeMenu extends StatelessWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.public,
+                          ImageIcon(
+                            AssetImage(
+                              'assets/CLOSET-FILL.png',
+                            ),
                             size: 40,
                             color: AppTheme.nearlyWhite,
                           ),
                           Gap(10),
-                          Text('See my wardrobe',
-                              style: AppTheme.subheadlinewhite),
+                          Text('My wardrobe',
+                              style: AppTheme.subheadlinewhite,
+                              textAlign: TextAlign.center),
                         ],
                       ),
                     ),
@@ -92,7 +97,9 @@ class WardrobeMenu extends StatelessWidget {
                             color: AppTheme.nearlyWhite,
                           ),
                           Gap(10),
-                          Text('Add cloth', style: AppTheme.subheadlinewhite),
+                          Text('Add cloth',
+                              style: AppTheme.subheadlinewhite,
+                              textAlign: TextAlign.center),
                         ],
                       ),
                     ),
@@ -101,7 +108,7 @@ class WardrobeMenu extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => OutfitScreen(
+                            builder: (context) => TinderScreen(
                                 uid: FirebaseAuth.instance.currentUser!.uid),
                           ),
                         );
@@ -115,18 +122,28 @@ class WardrobeMenu extends StatelessWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            CupertinoIcons.bag_fill,
-                            size: 40,
+                          ImageIcon(
+                            AssetImage(
+                              'assets/CABIDE.png',
+                            ),
+                            size: 55,
                             color: AppTheme.nearlyWhite,
                           ),
                           Gap(10),
-                          Text('Plan a look', style: AppTheme.subheadlinewhite),
+                          Text('Plan a look',
+                              style: AppTheme.subheadlinewhite,
+                              textAlign: TextAlign.center),
                         ],
                       ),
                     ),
                     ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => HandleOutsideMedia()),
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.vinho,
                         shape: RoundedRectangleBorder(
@@ -137,7 +154,7 @@ class WardrobeMenu extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
-                            CupertinoIcons.info_circle,
+                            Icons.calendar_month_sharp,
                             size: 40,
                             color: AppTheme.nearlyWhite,
                           ),

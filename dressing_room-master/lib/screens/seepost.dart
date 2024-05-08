@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dressing_room/widgets/cloth_card.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -22,6 +23,7 @@ class _SeePostState extends State<SeePost> {
   late Stream<DocumentSnapshot<Map<String, dynamic>>> _anonymousPostStream;
   late Stream<QuerySnapshot<Map<String, dynamic>>> _votationsStream;
   late Stream<QuerySnapshot<Map<String, dynamic>>> _productStream;
+  late Stream<QuerySnapshot<Map<String, dynamic>>> _clothStream;
 
   @override
   void initState() {
@@ -31,6 +33,7 @@ class _SeePostState extends State<SeePost> {
     _anonymousPostStream = _subscribeToAnonymousPost();
     _votationsStream = _subscribeToVotations();
     _productStream = _subscribeToProducts();
+    _clothStream = _subscribeToCloth();
   }
 
   void _initializeFirebase() async {
@@ -55,6 +58,13 @@ class _SeePostState extends State<SeePost> {
     return FirebaseFirestore.instance
         .collection('votations')
         .where('votationId', isEqualTo: widget.postId)
+        .snapshots();
+  }
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> _subscribeToCloth() {
+    return FirebaseFirestore.instance
+        .collection('clothes')
+        .where('clothId', isEqualTo: widget.postId)
         .snapshots();
   }
 
@@ -131,6 +141,22 @@ class _SeePostState extends State<SeePost> {
                   itemCount: votations.length,
                   itemBuilder: (context, index) {
                     return VotationCard(snap: votations[index].data());
+                  },
+                );
+              },
+            ),
+            StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: _clothStream,
+              builder: (context, snapshot) {
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return Container(); // handle the case where data does not exist
+                }
+                final cloth = snapshot.data!.docs;
+                return ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: cloth.length,
+                  itemBuilder: (context, index) {
+                    return ClothCard(snap: cloth[index].data());
                   },
                 );
               },

@@ -40,6 +40,7 @@ class _FeedScreenState extends State<FeedScreen> {
   @override
   void initState() {
     super.initState();
+
     scrollController = ScrollController();
 
     scrollController.addListener(() {
@@ -71,7 +72,8 @@ class _FeedScreenState extends State<FeedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    bool isBottomVisible = context.watch<BottonNavController>().isBottonVisible;
+    // bool isBottomVisible = context.watch<BottonNavController>().isBottonVisible;
+    bool isBottomVisible = true;
     final shopProvider = Provider.of<ShopProvider>(context, listen: false);
     final cartQuantityy = Provider.of<CartCounterProvider>(context)
         .cartQuantity; //está na página do isBottonVisible

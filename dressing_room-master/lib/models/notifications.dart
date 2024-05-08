@@ -1,173 +1,234 @@
+import 'dart:async';
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:gap/gap.dart';
-import 'package:image_cropper/image_cropper.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'dart:convert';
-import 'dart:typed_data';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:http/http.dart' as http;
+import 'package:geolocator/geolocator.dart';
 
-class ImageCropPage extends StatefulWidget {
-  const ImageCropPage({Key? key}) : super(key: key);
-
-  @override
-  _ImageCropPageState createState() => _ImageCropPageState();
+void main() {
+  runApp(const GeolocatorWidget());
 }
 
-class _ImageCropPageState extends State<ImageCropPage> {
-  List<Uint8List> _croppedImages = [];
-  List<String> _captions = [];
-  XFile? _imageFile;
-  Uint8List? _originalImageBytes;
+class GeolocatorWidget extends StatefulWidget {
+  const GeolocatorWidget({Key? key}) : super(key: key);
+
+  @override
+  State<GeolocatorWidget> createState() => _GeolocatorWidgetState();
+}
+
+class _GeolocatorWidgetState extends State<GeolocatorWidget> {
+  final GeolocatorPlatform _geolocatorPlatform = GeolocatorPlatform.instance;
+  final List<String> _positionItems = [];
+  StreamSubscription<Position>? _positionStreamSubscription;
+  StreamSubscription<ServiceStatus>? _serviceStatusStreamSubscription;
+  bool positionStreamStarted = false;
 
   @override
   void initState() {
     super.initState();
-    _pickImage();
+    _toggleServiceStatusStream();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        title: Text('Geolocator Example'),
         actions: [
-          IconButton(
-            icon: Icon(Icons.skip_next),
-            onPressed: () {
-              print(_captions);
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.send),
-            onPressed: () {
-              setState(() {
-                if (_originalImageBytes != null) {
-                  _croppedImages.insert(0, _originalImageBytes!);
-                }
-
-                segmenta(_croppedImages);
-              });
-            },
-          ),
+          _createActions(),
         ],
       ),
-      body: Column(
-        children: [
-          Container(
-            height: 300.h,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10.0),
-              child: _originalImageBytes != null
-                  ? Image.memory(_originalImageBytes!)
-                  : Container(), // Verifica se a imagem foi selecionada
-            ),
-          ),
-          Gap(20.h),
-          Expanded(
-            child: GridView.builder(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 4.0,
-                mainAxisSpacing: 4.0,
-              ),
-              itemCount: _croppedImages.length,
-              itemBuilder: (BuildContext context, int index) {
-                return GridTile(
-                  child: Image.memory(_croppedImages[index]),
-                  footer: Material(
-                    color: Colors.transparent,
-                    shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.vertical(bottom: Radius.circular(4))),
-                    child: GridTileBar(
-                      backgroundColor: Colors.black45,
-                      title: Text(_captions.isNotEmpty
-                          ? _captions[index]
-                          : 'Loading...'),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
+      body: ListView.builder(
+        itemCount: _positionItems.length,
+        itemBuilder: (context, index) {
+          final positionItem = _positionItems[index];
+          return ListTile(
+            title: Text(positionItem),
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _cropImage(_imageFile!.path);
+          positionStreamStarted = !positionStreamStarted;
+          _toggleListening();
         },
-        child: Icon(Icons.crop),
+        tooltip: (_positionStreamSubscription == null)
+            ? 'Start position updates'
+            : _positionStreamSubscription!.isPaused
+                ? 'Resume'
+                : 'Pause',
+        child: (_positionStreamSubscription == null ||
+                _positionStreamSubscription!.isPaused)
+            ? const Icon(Icons.play_arrow)
+            : const Icon(Icons.pause),
       ),
     );
   }
 
-  Future<void> _pickImage() async {
-    final ImagePicker _imagePicker = ImagePicker();
+  PopupMenuButton _createActions() {
+    return PopupMenuButton(
+      onSelected: (value) async {
+        switch (value) {
+          case 1:
+            _getLocationAccuracy();
+            break;
+          case 2:
+            _requestTemporaryFullAccuracy();
+            break;
+          case 3:
+            _openAppSettings();
+            break;
+          case 4:
+            _openLocationSettings();
+            break;
+          case 5:
+            setState(() {
+              _positionItems.clear();
+            });
+            break;
+          default:
+            break;
+        }
+      },
+      itemBuilder: (context) => [
+        if (Platform.isIOS)
+          const PopupMenuItem(
+            value: 1,
+            child: Text("Get Location Accuracy"),
+          ),
+        if (Platform.isIOS)
+          const PopupMenuItem(
+            value: 2,
+            child: Text("Request Temporary Full Accuracy"),
+          ),
+        const PopupMenuItem(
+          value: 3,
+          child: Text("Open App Settings"),
+        ),
+        if (Platform.isAndroid || Platform.isWindows)
+          const PopupMenuItem(
+            value: 4,
+            child: Text("Open Location Settings"),
+          ),
+        const PopupMenuItem(
+          value: 5,
+          child: Text("Clear"),
+        ),
+      ],
+    );
+  }
 
-    _imageFile = await _imagePicker.pickImage(source: ImageSource.gallery);
+  Future<void> _getLocationAccuracy() async {
+    final status = await _geolocatorPlatform.getLocationAccuracy();
+    _handleLocationAccuracyStatus(status);
+  }
 
-    if (_imageFile != null) {
-      Uint8List? imageBytes = await _imageFile!.readAsBytes();
-      setState(() {
-        _originalImageBytes = imageBytes;
+  Future<void> _requestTemporaryFullAccuracy() async {
+    final status = await _geolocatorPlatform.requestTemporaryFullAccuracy(
+      purposeKey: "TemporaryPreciseAccuracy",
+    );
+    _handleLocationAccuracyStatus(status);
+  }
+
+  void _handleLocationAccuracyStatus(LocationAccuracyStatus status) {
+    String locationAccuracyStatusValue;
+    if (status == LocationAccuracyStatus.precise) {
+      locationAccuracyStatusValue = 'Precise';
+    } else if (status == LocationAccuracyStatus.reduced) {
+      locationAccuracyStatusValue = 'Reduced';
+    } else {
+      locationAccuracyStatusValue = 'Unknown';
+    }
+    _updatePositionList(
+        '$locationAccuracyStatusValue location accuracy granted.');
+  }
+
+  void _updatePositionList(String displayValue) {
+    _positionItems.add(displayValue);
+    setState(() {});
+  }
+
+  void _toggleServiceStatusStream() {
+    if (_serviceStatusStreamSubscription == null) {
+      final serviceStatusStream = _geolocatorPlatform.getServiceStatusStream();
+      _serviceStatusStreamSubscription =
+          serviceStatusStream.handleError((error) {
+        _serviceStatusStreamSubscription?.cancel();
+        _serviceStatusStreamSubscription = null;
+      }).listen((serviceStatus) {
+        String serviceStatusValue;
+        if (serviceStatus == ServiceStatus.enabled) {
+          if (positionStreamStarted) {
+            _toggleListening();
+          }
+          serviceStatusValue = 'enabled';
+        } else {
+          if (_positionStreamSubscription != null) {
+            setState(() {
+              _positionStreamSubscription?.cancel();
+              _positionStreamSubscription = null;
+              _updatePositionList('Position Stream has been canceled');
+            });
+          }
+          serviceStatusValue = 'disabled';
+        }
+        _updatePositionList('Location service has been $serviceStatusValue');
       });
     }
   }
 
-  Future<void> _cropImage(String imagePath) async {
-    final ImageCropper _imageCropper = ImageCropper();
-    final croppedFile = await _imageCropper.cropImage(
-      sourcePath: imagePath,
-      androidUiSettings: AndroidUiSettings(
-        toolbarTitle: 'Crop Item',
-        toolbarColor: Colors.green,
-        toolbarWidgetColor: Colors.white,
-        lockAspectRatio: false,
-      ),
-    );
-
-    if (croppedFile != null) {
-      Uint8List? croppedBytes = await croppedFile.readAsBytes();
-      if (croppedBytes != null) {
-        setState(() {
-          _croppedImages.add(croppedBytes!);
-        });
-      }
+  void _toggleListening() {
+    if (_positionStreamSubscription == null) {
+      final positionStream = _geolocatorPlatform.getPositionStream();
+      _positionStreamSubscription = positionStream.handleError((error) {
+        _positionStreamSubscription?.cancel();
+        _positionStreamSubscription = null;
+      }).listen((position) {
+        _updatePositionList(position.toString());
+      });
+      _positionStreamSubscription?.pause();
     }
+
+    setState(() {
+      if (_positionStreamSubscription == null) {
+        return;
+      }
+
+      String statusDisplayValue;
+      if (_positionStreamSubscription!.isPaused) {
+        _positionStreamSubscription!.resume();
+        statusDisplayValue = 'resumed';
+      } else {
+        _positionStreamSubscription!.pause();
+        statusDisplayValue = 'paused';
+      }
+
+      _updatePositionList('Listening for position updates $statusDisplayValue');
+    });
   }
 
-  String server = '192.168.1.2';
-  String port = '5000';
+  void _openAppSettings() async {
+    final opened = await _geolocatorPlatform.openAppSettings();
+    String displayValue;
 
-  Future<void> segmenta(List<Uint8List> imageBytesList) async {
-    var request = http.MultipartRequest(
-        "POST", Uri.parse('http://$server:$port/segmentacao'));
+    if (opened) {
+      displayValue = 'Opened Application Settings.';
+    } else {
+      displayValue = 'Error opening Application Settings.';
+    }
 
-    for (int i = 0; i < imageBytesList.length; i++) {
-      final imageFile = http.MultipartFile.fromBytes(
-        'image_file', // Nome do campo no servidor
-        imageBytesList[i],
-        filename: 'image_$i.png', // Nome do arquivo
-      );
-      request.files.add(imageFile);
+    _updatePositionList(displayValue);
+  }
+
+  void _openLocationSettings() async {
+    final opened = await _geolocatorPlatform.openLocationSettings();
+    String displayValue;
+
+    if (opened) {
+      displayValue = 'Opened Location Settings';
+    } else {
+      displayValue = 'Error opening Location Settings';
     }
-    request.headers.addAll({"X-API-Key": "dress"});
-    request.fields['user'] = FirebaseAuth.instance.currentUser!.uid;
-    request.fields['id_imagem'] = "teste";
-    try {
-      final response = await request.send();
-      if (response.statusCode == 200) {
-        final responseJson = await http.Response.fromStream(response);
-        final captions = json.decode(responseJson.body);
-        setState(() {
-          _captions = captions.values.toList().cast<String>();
-        });
-      } else {
-        throw Exception('Erro ao enviar imagem para o servidor');
-      }
-    } catch (e) {
-      print('Erro durante a solicitação: $e');
-    }
+
+    _updatePositionList(displayValue);
   }
 }

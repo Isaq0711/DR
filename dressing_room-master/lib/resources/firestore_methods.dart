@@ -19,6 +19,8 @@ class FireStoreMethods {
   Future<String> uploadPost(
     String description,
     List<Uint8List> files,
+    List<String>? pecasIds,
+    List<String>? pecasPhotoUrls,
     String uid,
     String username,
     String profImage,
@@ -44,6 +46,8 @@ class FireStoreMethods {
         postId: postId,
         datePublished: DateTime.now(),
         photoUrls: photoUrls,
+        pecasIds: pecasIds,
+        pecasPhotoUrls: pecasPhotoUrls,
         profImage: profImage,
         votes: {}, // Inicializa o mapa de votos vazio
       );
@@ -59,6 +63,8 @@ class FireStoreMethods {
   Future<String> uploadAnonymousPost(
     String description,
     List<Uint8List> files,
+    List<String>? pecasIds,
+    List<String>? pecasPhotoUrls,
     String uid,
   ) async {
     String res = "Some error occurred";
@@ -79,9 +85,11 @@ class FireStoreMethods {
         username: "Anonymous User",
         grade: 0.0,
         postId: postId,
+        pecasIds: pecasIds,
+        pecasPhotoUrls: pecasPhotoUrls,
         datePublished: DateTime.now(),
         photoUrls: photoUrls,
-        profImage: "generic_photo_url",
+        profImage: "https://cdn-icons-png.flaticon.com/512/4123/4123763.png",
         votes: {},
       );
 
@@ -141,37 +149,48 @@ class FireStoreMethods {
   }
 
   Future<String> uploadCloth(
-      String description,
-      String photoUrl,
-      String uid,
-      String category,
-      String barCode,
-      List<String>? marcas,
-      List<String>? tecido) async {
-    String res = "Some error occurred";
+    String description,
+    Uint8List file,
+    String uid,
+    String? category,
+    bool isPublic,
+    String? barCode,
+    List<String>? marcas,
+    List<String>? tecido,
+  ) async {
     try {
+      // Faz o upload da imagem para o armazenamento
+      String photoUrl =
+          await StorageMethods().uploadImageToStorage('cloth', file, true);
+
+      // Cria um ID único para o produto de roupa
       String clothId = const Uuid().v1();
-      Cloth product = Cloth(
-          description: description,
-          uid: uid,
-          clothId: clothId,
-          photoUrl: photoUrl,
-          dateAdded: DateTime.now(),
-          category: category,
-          barCode: barCode,
-          marcas: marcas,
-          tecido: tecido);
+
+      // Cria um objeto Cloth com os dados fornecidos
+      Cloth cloth = Cloth(
+        description: description,
+        uid: uid,
+        clothId: clothId,
+        photoUrl: photoUrl,
+        dateAdded: DateTime.now(),
+        category: category,
+        isPublic: isPublic,
+        barCode: barCode,
+        marcas: marcas,
+        tecido: tecido,
+      );
 
       await FirebaseFirestore.instance
           .collection('clothes')
           .doc(clothId)
-          .set(product.toJson());
+          .set(cloth.toJson());
 
-      res = "success";
+      await FireStoreMethods().addToWardrobe(clothId, uid, uid);
+
+      return "success";
     } catch (err) {
-      res = err.toString();
+      return err.toString();
     }
-    return res;
   }
 
   Future<String> createOrUpdateTabViewCollection(
@@ -621,13 +640,13 @@ class FireStoreMethods {
   }
 
   Future<String> postComment(String postId, String text, String uid,
-      String name, String profilePic) async {
+      String name, String profilePic, String category) async {
     String res = "Some error occurred";
     try {
       if (text.isNotEmpty) {
         String commentId = const Uuid().v1();
         _firestore
-            .collection('posts')
+            .collection(category)
             .doc(postId)
             .collection('comments')
             .doc(commentId)
@@ -649,15 +668,41 @@ class FireStoreMethods {
     return res;
   }
 
-  Future<String> deleteComment(String postId, String commentId) async {
+  Future<String> deleteComment(
+      String postId, String commentId, String category) async {
     String res = "Some error occurred";
     try {
       await _firestore
-          .collection('posts')
+          .collection(category)
           .doc(postId)
           .collection('comments')
           .doc(commentId)
           .delete();
+      res = 'success';
+    } catch (err) {
+      res = err.toString();
+    }
+    return res;
+  }
+
+  Future<String> suggest(String? postId, String text, String uid,
+      List<dynamic> photoUrls, List<String> postIds, String categoria) async {
+    String res = "Some error occurred";
+    try {
+      String suggestionId = const Uuid().v1();
+      _firestore
+          .collection(categoria)
+          .doc(postId)
+          .collection('suggestion')
+          .doc(suggestionId)
+          .set({
+        'uid': uid,
+        'text': text,
+        'photoUrls': photoUrls,
+        'suggestionId': suggestionId,
+        'postIds': postIds,
+        'datePublished': DateTime.now(),
+      });
       res = 'success';
     } catch (err) {
       res = err.toString();
@@ -855,6 +900,64 @@ class FireStoreMethods {
           return 'Post not found';
         }
       }
+    } catch (err) {
+      return 'An error occurred: $err';
+    }
+  }
+
+  Future<String> addToWardrobe(
+      String clothId, String uid, String userquecriou) async {
+    try {
+      // Referência para o documento dentro da subcoleção 'wardrobe'
+      DocumentReference clothRef = _firestore
+          .collection('wardrobe')
+          .doc(uid)
+          .collection('clothes') // Subcoleção para roupas
+          .doc(clothId); // Usando clothId como identificador do documento
+
+      // Verificar se o documento já existe
+      DocumentSnapshot clothSnapshot = await clothRef.get();
+
+      if (clothSnapshot.exists) {
+        // Se o documento existir, removê-lo
+        await clothRef.delete();
+      } else {
+        await clothRef.set({
+          'dateAdded': DateTime.now(),
+          'userquecriou': userquecriou,
+          'clothId': clothId
+        });
+      }
+
+      return 'Success'; // Operação bem-sucedida
+    } catch (err) {
+      return 'An error occurred: $err'; // Retornar mensagem de erro em caso de falha
+    }
+  }
+
+  Future<String> planLook(Uint8List photo, String uid, DateTime data,
+      String troncoId, String pernasId, String pesId) async {
+    try {
+      String photoUrl = await StorageMethods()
+          .uploadImageToStorage('looksdodia', photo, true);
+
+      String collectionName = '${data.day}-${data.month}-${data.year}';
+      CollectionReference collectionRef =
+          _firestore.collection('calendar').doc(uid).collection(collectionName);
+
+      String documentId =
+          Uuid().v4(); // You may need to import the uuid package
+
+      await collectionRef.doc(documentId).set({
+        'data': data,
+        'look': photoUrl,
+        'uid': uid,
+        'troncoId': troncoId,
+        'pernasId': pernasId,
+        'pesId': pesId
+      });
+
+      return 'Success';
     } catch (err) {
       return 'An error occurred: $err';
     }

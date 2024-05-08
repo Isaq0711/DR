@@ -1,4 +1,8 @@
 import 'dart:typed_data';
+import 'package:dressing_room/responsive/mobile_screen_layout.dart';
+import 'package:dressing_room/responsive/responsive_layout.dart';
+import 'package:flip_card/flip_card_controller.dart';
+import 'package:dressing_room/resources/firestore_methods.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/material.dart';
 import 'package:flip_card/flip_card.dart';
@@ -26,10 +30,12 @@ class AddClothScreen extends StatefulWidget {
 }
 
 class _AddClothScreenState extends State<AddClothScreen> {
+  GlobalKey<FlipCardState> cardKey = GlobalKey<FlipCardState>();
   bool _isPaintingMode = false;
+  bool isFront = true;
   bool isSelected = false;
+  bool isPublic = true;
   GlobalKey _globalKey = GlobalKey();
-
   List<Offset> _referencePositions = [];
   List<Offset> _destinationPositions = [];
   List<List<Offset>> _paintHistory = [];
@@ -39,7 +45,6 @@ class _AddClothScreenState extends State<AddClothScreen> {
   String categoria1 = 'Marcas de roupas presentes';
   String categoria2 = 'Tecido da roupa';
   String categoria3 = 'Locais ou ocasião';
-  String? categoriaSelecionada;
   List<String>? marcas;
   List<String>? tecido;
   final Map<String, List<String>> clothingItems = {
@@ -115,6 +120,7 @@ class _AddClothScreenState extends State<AddClothScreen> {
   double _sliderValue = 25;
   double _scale = 1.0;
   List<Uint8List>? _files;
+  late FlipCardController _flipCardController;
   bool isLoading = false;
   bool _isDraggingImage = false;
   final TextEditingController _descriptionController = TextEditingController();
@@ -122,6 +128,17 @@ class _AddClothScreenState extends State<AddClothScreen> {
   late PageController _pageController;
   int _currentPageIndex = 0;
   Map<int, List<Offset>> _selectedPositionsMap = {};
+
+  void clearImages() {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (context) => const ResponsiveLayout(
+          mobileScreenLayout: MobileScreenLayout(),
+        ),
+      ),
+      (route) => false,
+    );
+  }
 
   void showCategoryDialog(BuildContext context, String category,
       Function(String?) setSelectedClothType) {
@@ -195,7 +212,6 @@ class _AddClothScreenState extends State<AddClothScreen> {
                                     }
                                     setSelectedClothType(
                                         selectedClothType); // Atualize o estado fora do diálogo
-                                    print(selectedClothType);
                                   });
                                 },
                               );
@@ -214,27 +230,51 @@ class _AddClothScreenState extends State<AddClothScreen> {
     );
   }
 
-  void _saveImage() async {
+  void _saveImage(String uid) async {
     try {
+      setState(() {
+        isLoading = true;
+      });
       if (_globalKey.currentContext != null) {
         RenderRepaintBoundary? boundary = _globalKey.currentContext!
             .findRenderObject() as RenderRepaintBoundary?;
         if (boundary != null) {
-          ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+          ui.Image image = await boundary.toImage(pixelRatio: 1.0);
           ByteData? byteData =
               await image.toByteData(format: ui.ImageByteFormat.png);
           Uint8List pngBytes = byteData!.buffer.asUint8List();
+          File tempFile2 = await saveBytesToFile(pngBytes);
 
-          setState(() {
-            _draggedImagePosition = Offset.zero;
-            _scale = 1.0;
+          try {
+            Uint8List? processedImage2 = await removeBg(tempFile2.path);
+            setState(() {
+              isLoading = true;
+            });
 
-            _selectedPositionsMap = {};
-          });
+            String res = await FireStoreMethods().uploadCloth(
+                _descriptionController.text,
+                processedImage2!,
+                uid,
+                selectedClothType,
+                isPublic,
+                _barCodeController.text,
+                marcas,
+                tecido);
+
+            if (res == "success") {
+              showSnackBar(context, 'Posted!');
+
+              clearImages();
+            } else {
+              showSnackBar(context, res);
+            }
+          } catch (err) {
+            showSnackBar(context, err.toString());
+          }
         }
       }
     } catch (e) {
-      print('Erro ao capturar imagem: $e');
+      showSnackBar(context, e.toString());
     }
   }
 
@@ -296,30 +336,18 @@ class _AddClothScreenState extends State<AddClothScreen> {
     });
   }
 
-  void _deleteCurrentImage() {
-    setState(() {
-      _files!.removeAt(_currentPageIndex);
-      _selectedPositionsMap.remove(_currentPageIndex);
-      if (_currentPageIndex >= _files!.length) {
-        // Se a página atual era a última imagem, volta uma página
-        _currentPageIndex = (_files!.isEmpty ? 0 : _files!.length - 1);
-        _pageController.animateToPage(
-          _currentPageIndex,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.ease,
-        );
-      }
-    });
-  }
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance!.addPostFrameCallback((_) {
       _selectImage(context);
     });
+    _flipCardController = FlipCardController();
+
     _draggedImagePosition = Offset.zero;
-    _pageController = PageController(initialPage: 0);
+    _pageController = PageController(
+      initialPage: 0,
+    );
   }
 
   Future<File> saveBytesToFile(Uint8List bytes) async {
@@ -339,14 +367,14 @@ class _AddClothScreenState extends State<AddClothScreen> {
             setState(() {
               _files ??= [];
               _files!.add(file);
-              isLoading = true; // Ativar indicador de progresso
+              isLoading = true;
             });
 
             try {
-              Uint8List processedImage = await removeBg(tempFile.path);
+              Uint8List? processedImage = await removeBg(tempFile.path);
               setState(() {
                 _files!.removeLast();
-                _files!.add(processedImage);
+                _files!.add(processedImage!);
                 isLoading = false;
               });
             } catch (e) {
@@ -356,8 +384,6 @@ class _AddClothScreenState extends State<AddClothScreen> {
                 isLoading = false;
               });
             }
-
-            await tempFile.delete();
           },
         );
       },
@@ -403,13 +429,6 @@ class _AddClothScreenState extends State<AddClothScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: <Widget>[
-                      IconButton(
-                        onPressed: _deleteCurrentImage,
-                        icon: Icon(
-                          Icons.delete,
-                          color: AppTheme.vinho,
-                        ),
-                      ),
                       Spacer(),
                       IconButton(
                         icon: Icon(
@@ -449,7 +468,6 @@ class _AddClothScreenState extends State<AddClothScreen> {
                                           ),
                                           color: AppTheme.nearlyWhite,
                                         ),
-                                        SizedBox(width: 8),
                                         Expanded(
                                           child: Slider(
                                             value: _sliderValue,
@@ -469,7 +487,7 @@ class _AddClothScreenState extends State<AddClothScreen> {
                               ),
                             ];
                           },
-                          child: Icon(Icons.circle, color: Colors.grey),
+                          child: Icon(Icons.circle, color: AppTheme.vinho),
                         ),
                       ],
                       IconButton(
@@ -507,243 +525,202 @@ class _AddClothScreenState extends State<AddClothScreen> {
                 ),
               ),
               actions: [
-                IconButton(
-                  onPressed: () {
-                    _saveImage();
-                  },
-                  icon: const Icon(Icons.save),
-                ),
+                isFront
+                    ? IconButton(
+                        onPressed: () {
+                          _flipCardController.toggleCard();
+                        },
+                        icon: Icon(Icons.info, color: Colors.blue),
+                      )
+                    : IconButton(
+                        onPressed: () {
+                          if (selectedClothType != null) {
+                            _saveImage(user.uid);
+                          } else {
+                            showSnackBar(
+                                context, "Choose a category for your cloth");
+                          }
+                        },
+                        icon: const Icon(
+                          Icons.save,
+                          color: Colors.blue,
+                        ),
+                      ),
               ],
             ),
             body: FlipCard(
+                onFlip: () {
+                  setState(() {
+                    isFront = !isFront;
+                  });
+                },
+                key: cardKey,
+                controller: _flipCardController,
                 fill: Fill.fillBack,
                 direction: FlipDirection.HORIZONTAL,
                 side: CardSide.FRONT,
                 front: Card(
-                    color: AppTheme.nearlyWhite,
+                    color: AppTheme.cinza,
                     child: Column(
                       children: <Widget>[
                         isLoading
                             ? LinearProgressIndicator()
                             : Flexible(
-                                child: Stack(
-                                  children: [
-                                    PageView.builder(
-                                      physics: NeverScrollableScrollPhysics(),
-                                      controller: _pageController,
-                                      itemCount: _files!.length,
-                                      onPageChanged: (int index) {
-                                        setState(() {
-                                          _currentPageIndex = index;
-                                        });
-                                      },
-                                      itemBuilder: (context, pageIndex) {
-                                        _selectedPositionsMap.putIfAbsent(
-                                            pageIndex, () => []);
-                                        return GestureDetector(
-                                            onTapDown: (details) {
-                                              if (_isPaintingMode) {
-                                                _paintOnImage(
-                                                    details.localPosition);
-                                              }
-                                            },
-                                            onPanUpdate: (details) {
-                                              if (_isPaintingMode) {
-                                                _paintOnImage(
-                                                    details.localPosition);
-                                              } else if (_isDraggingImage) {
-                                                setState(() {
-                                                  _draggedImagePosition +=
-                                                      details.delta;
-                                                });
-                                              }
-                                            },
-                                            onTapUp: (details) {
-                                              _endPainting();
-                                            },
-                                            onPanEnd: (details) {
-                                              _endPainting();
-                                            },
-                                            child: SizedBox(
-                                              child: RepaintBoundary(
-                                                key: _globalKey,
-                                                child: Stack(
-                                                  children: [
-                                                    Transform.scale(
-                                                      scale: _scale,
+                                child: Center(
+                                child: RepaintBoundary(
+                                    key: _globalKey,
+                                    child: SizedBox(
+                                        height: 670.h,
+                                        child: AspectRatio(
+                                          aspectRatio: 9 / 16,
+                                          child: Stack(children: [
+                                            Container(
+                                              color: AppTheme.cinza,
+                                              child: PageView.builder(
+                                                physics:
+                                                    NeverScrollableScrollPhysics(),
+                                                controller: _pageController,
+                                                itemCount: _files!.length,
+                                                onPageChanged: (int index) {
+                                                  setState(() {
+                                                    _currentPageIndex = index;
+                                                  });
+                                                },
+                                                itemBuilder:
+                                                    (context, pageIndex) {
+                                                  _selectedPositionsMap
+                                                      .putIfAbsent(
+                                                          pageIndex, () => []);
+                                                  return GestureDetector(
+                                                    onTapDown: (details) {
+                                                      if (_isPaintingMode) {
+                                                        _paintOnImage(details
+                                                            .localPosition);
+                                                      } else if (!_isDraggingImage) {
+                                                        _flipCardController
+                                                            .toggleCard();
+                                                      }
+                                                    },
+                                                    onPanUpdate: (details) {
+                                                      if (_isPaintingMode) {
+                                                        _paintOnImage(details
+                                                            .localPosition);
+                                                      } else if (_isDraggingImage) {
+                                                        setState(() {
+                                                          _draggedImagePosition +=
+                                                              details.delta;
+                                                        });
+                                                      }
+                                                    },
+                                                    onTapUp: (details) {
+                                                      _endPainting();
+                                                    },
+                                                    child: SizedBox(
                                                       child: Stack(
                                                         children: [
-                                                          Transform.translate(
-                                                            offset:
-                                                                _draggedImagePosition,
-                                                            child: Image.memory(
-                                                              _files![
-                                                                  _currentPageIndex],
-                                                              fit: BoxFit.cover,
+                                                          Transform.scale(
+                                                            scale: _scale,
+                                                            child: Stack(
+                                                              children: [
+                                                                Transform
+                                                                    .translate(
+                                                                  offset:
+                                                                      _draggedImagePosition,
+                                                                  child: Image
+                                                                      .memory(
+                                                                    _files![
+                                                                        _currentPageIndex],
+                                                                    fit: BoxFit
+                                                                        .cover,
+                                                                  ),
+                                                                ),
+                                                                Positioned.fill(
+                                                                  child:
+                                                                      CustomPaint(
+                                                                    painter:
+                                                                        _ImagePainter(
+                                                                      image: _files![
+                                                                          pageIndex],
+                                                                      selectedPositions:
+                                                                          _selectedPositionsMap[
+                                                                              pageIndex]!,
+                                                                      sliderValues:
+                                                                          _sliderValues,
+                                                                      imageOffset:
+                                                                          _draggedImagePosition,
+                                                                      scale:
+                                                                          _scale,
+                                                                    ),
+                                                                    // Sem child para o CustomPaint
+                                                                  ),
+                                                                ),
+                                                              ],
                                                             ),
                                                           ),
                                                           Positioned.fill(
-                                                            child: CustomPaint(
-                                                              painter:
-                                                                  _ImagePainter(
-                                                                image: _files![
-                                                                    pageIndex],
-                                                                selectedPositions:
-                                                                    _selectedPositionsMap[
-                                                                        pageIndex]!,
-                                                                sliderValues:
-                                                                    _sliderValues,
-                                                                imageOffset:
-                                                                    _draggedImagePosition,
-                                                                scale: _scale,
+                                                            child: Container(
+                                                              decoration:
+                                                                  BoxDecoration(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            10),
+                                                                border:
+                                                                    Border.all(
+                                                                  color: AppTheme
+                                                                      .vinho,
+                                                                ),
                                                               ),
-                                                              // Sem child para o CustomPaint
+                                                              // Seu conteúdo aqui
                                                             ),
                                                           ),
                                                         ],
                                                       ),
                                                     ),
-                                                    Positioned.fill(
-                                                      child: Container(
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(10),
-                                                          border: Border.all(
-                                                            color:
-                                                                AppTheme.vinho,
-                                                          ),
-                                                        ),
-                                                        // Seu conteúdo aqui
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
+                                                  );
+                                                },
                                               ),
-                                            ));
-                                      },
-                                    ),
-                                    // Positioned(
-                                    //   bottom: 5,
-                                    //   right: 30.w,
-                                    //   child: Row(
-                                    //     children: [
-                                    //       InkWell(
-                                    //         child: Container(
-                                    //           decoration: BoxDecoration(
-                                    //               borderRadius:
-                                    //                   BorderRadius.circular(10),
-                                    //               color: AppTheme.vinho),
-                                    //           child: Icon(Icons.zoom_out),
-                                    //         ),
-                                    //         onTap: () {
-                                    //           setState(() {
-                                    //             _scale -= 0.05;
-                                    //           });
-                                    //         },
-                                    //       ),
-                                    //       Gap(10),
-                                    //       InkWell(
-                                    //         child: Container(
-                                    //           decoration: BoxDecoration(
-                                    //               borderRadius:
-                                    //                   BorderRadius.circular(10),
-                                    //               color: AppTheme.vinho),
-                                    //           child: Icon(Icons.zoom_in),
-                                    //         ),
-                                    //         onTap: () {
-                                    //           setState(() {
-                                    //             _scale += 0.05;
-                                    //           });
-                                    //         },
-                                    //       )
-                                    //     ],
-                                    //   ),
-                                    // ),
-                                    if (_currentPageIndex > 0) ...[
-                                      Positioned(
-                                        top:
-                                            MediaQuery.of(context).size.height /
-                                                    2 -
-                                                15.0,
-                                        left: 16.0,
-                                        child: GestureDetector(
-                                          onTap: () {
-                                            _pageController.animateToPage(
-                                                _currentPageIndex - 1,
-                                                duration: const Duration(
-                                                    milliseconds: 300),
-                                                curve: Curves.ease);
-                                          },
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: AppTheme.vinho,
-                                            ),
-                                            child: const Padding(
-                                              padding: EdgeInsets.all(8.0),
-                                              child: Icon(
-                                                Icons.arrow_back_ios,
-                                                color: Colors.white,
-                                                size: 20.0,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                    if (_currentPageIndex <
-                                        _files!.length - 1) ...[
-                                      Positioned(
-                                        top:
-                                            MediaQuery.of(context).size.height /
-                                                    2 -
-                                                15.0,
-                                        right: 16.0,
-                                        child: GestureDetector(
-                                          onTap: () {
-                                            _pageController.animateToPage(
-                                                _currentPageIndex + 1,
-                                                duration: const Duration(
-                                                    milliseconds: 300),
-                                                curve: Curves.ease);
-                                          },
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: AppTheme.vinho,
-                                            ),
-                                            child: const Padding(
-                                              padding: EdgeInsets.all(8.0),
-                                              child: Icon(
-                                                Icons.arrow_forward_ios,
-                                                color: Colors.white,
-                                                size: 20.0,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 30.w),
-                          child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Clothing info",
-                                  style: TextStyle(
-                                    fontFamily: 'Quicksand',
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ]),
-                        ),
+                                              // Positioned(
+                                              //   bottom: 5,
+                                              //   right: 30.w,
+                                              //   child: Row(
+                                              //     children: [
+                                              //       InkWell(
+                                              //         child: Container(
+                                              //           decoration: BoxDecoration(
+                                              //               borderRadius:
+                                              //                   BorderRadius.circular(10),
+                                              //               color: AppTheme.vinho),
+                                              //           child: Icon(Icons.zoom_out),
+                                              //         ),
+                                              //         onTap: () {
+                                              //           setState(() {
+                                              //             _scale -= 0.05;
+                                              //           });
+                                              //         },
+                                              //       ),
+                                              //       Gap(10),
+                                              //       InkWell(
+                                              //         child: Container(
+                                              //           decoration: BoxDecoration(
+                                              //               borderRadius:
+                                              //                   BorderRadius.circular(10),
+                                              //               color: AppTheme.vinho),
+                                              //           child: Icon(Icons.zoom_in),
+                                              //         ),
+                                              //         onTap: () {
+                                              //           setState(() {
+                                              //             _scale += 0.05;
+                                              //           });
+                                              //         },
+                                              //       )
+                                              //     ],
+                                              //   ),
+                                              // ),
+                                            )
+                                          ]),
+                                        ))),
+                              ))
                       ],
                     )),
                 back: SingleChildScrollView(
@@ -751,347 +728,406 @@ class _AddClothScreenState extends State<AddClothScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15),
                         ),
-                        child: Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Colors.grey,
-                              ),
-                              color: AppTheme.nearlyWhite,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Column(
-                              children: [
-                                Text(
-                                  "Description",
-                                  style: AppTheme.dividerfont,
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: TextField(
-                                    controller: _descriptionController,
-                                    style: AppTheme.title,
-                                    decoration: InputDecoration(
-                                      hintText: "Type the name of the cloth..",
-                                      hintStyle: AppTheme.title,
-                                      border: InputBorder.none,
-                                    ),
+                        child: isLoading
+                            ? LinearProgressIndicator()
+                            : Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: Colors.grey,
                                   ),
+                                  color: AppTheme.nearlyWhite,
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
-                                Gap(20),
-                                Divider(
-                                  color: AppTheme.cinza,
-                                ),
-                                Text(
-                                  "Category of the cloth",
-                                  style: AppTheme.dividerfont,
-                                ),
-                                Gap(10),
-                                selectedClothType == null
-                                    ? Wrap(
-                                        spacing:
-                                            10.0, // Espaçamento horizontal entre os botões
-                                        runSpacing:
-                                            5.0, // Espaçamento vertical entre os botões
-                                        children: List.generate(
-                                          clothingItems.length,
-                                          (index) {
-                                            final category = clothingItems.keys
-                                                .elementAt(index);
-                                            return SizedBox(
-                                              height: 50.0,
-                                              child: ElevatedButton(
-                                                onPressed: () {
-                                                  setState(() {
-                                                    selectedCategory = category;
-                                                    showCategoryDialog(
-                                                        context, category,
-                                                        (value) {
-                                                      setState(() {
-                                                        selectedClothType =
-                                                            value;
-                                                      });
-                                                    });
-                                                  });
-                                                },
-                                                style: ElevatedButton.styleFrom(
-                                                  primary: selectedCategory ==
-                                                          category
-                                                      ? AppTheme.vinho
-                                                      : Colors.grey,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            10.0),
-                                                  ),
-                                                ),
-                                                child: Text(
-                                                  category,
-                                                  style: AppTheme.subtitlewhite,
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      )
-                                    : Padding(
-                                        padding: const EdgeInsets.all(10.0),
-                                        child: Stack(
-                                          children: [
-                                            Container(
-                                              width: 120.w,
-                                              height: 50.h,
-                                              decoration: BoxDecoration(
-                                                color: AppTheme.vinho,
-                                                borderRadius:
-                                                    BorderRadius.circular(15),
-                                              ),
-                                              child: Center(
-                                                child: Text(
-                                                  selectedClothType!,
-                                                  style:
-                                                      AppTheme.subheadlinewhite,
-                                                ),
-                                              ),
-                                            ),
-                                            Positioned(
-                                              top: 0,
-                                              right: 0,
-                                              child: GestureDetector(
-                                                onTap: () {
-                                                  setState(() {
-                                                    selectedClothType = null;
-                                                  });
-                                                  print(selectedClothType);
-                                                },
-                                                child: Container(
-                                                  padding: EdgeInsets.all(2),
-                                                  decoration: BoxDecoration(
-                                                    shape: BoxShape.circle,
-                                                    color: Colors.white,
-                                                  ),
-                                                  child: Icon(
-                                                    Icons.close,
-                                                    color: Colors.black,
-                                                    size: 12,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      "Description",
+                                      style: AppTheme.dividerfont,
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: TextField(
+                                        controller: _descriptionController,
+                                        style: AppTheme.title,
+                                        decoration: InputDecoration(
+                                          hintText:
+                                              "Type the name of the cloth..",
+                                          hintStyle: AppTheme.title,
+                                          border: InputBorder.none,
                                         ),
                                       ),
-                                Gap(MediaQuery.of(context).size.height * 0.003),
-                                Divider(
-                                  color: AppTheme.cinza,
-                                ),
-                                Text(
-                                  "Post information",
-                                  style: AppTheme.dividerfont,
-                                ),
-                                Gap(10),
-                                Column(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Gap(10),
-                                        Center(
-                                          child: Text(
-                                            "Marcas de roupas presentes:",
-                                            style: AppTheme.title,
+                                    ),
+                                    Gap(10),
+                                    Divider(
+                                      color: AppTheme.cinza,
+                                    ),
+                                    Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceEvenly,
+                                        children: [
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              setState(() {
+                                                isPublic = !isPublic;
+                                              });
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              primary: isPublic
+                                                  ? AppTheme.vinho
+                                                  : Colors.grey,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(10.0),
+                                              ),
+                                            ),
+                                            child: Text('Public',
+                                                style: AppTheme.subtitlewhite),
                                           ),
-                                        ),
-                                        Gap(MediaQuery.of(context).size.height *
-                                            0.005),
-                                        SizedBox(
-                                          width: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.9,
-                                          height: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.08,
-                                          child: Row(
-                                            children: [
-                                              // Item fixo
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.all(10.0),
-                                                child: Container(
-                                                  width: MediaQuery.of(context)
-                                                          .size
-                                                          .width *
-                                                      0.2,
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              setState(() {
+                                                isPublic = !isPublic;
+                                              });
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              primary: !isPublic
+                                                  ? AppTheme.vinho
+                                                  : Colors.grey,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(10.0),
+                                              ),
+                                            ),
+                                            child: Text('Private',
+                                                style: AppTheme.subtitlewhite),
+                                          ),
+                                        ]),
+                                    Gap(10),
+                                    Divider(
+                                      color: AppTheme.cinza,
+                                    ),
+                                    Text(
+                                      "Category of the cloth",
+                                      style: AppTheme.dividerfont,
+                                    ),
+                                    Gap(10),
+                                    selectedClothType == null
+                                        ? Wrap(
+                                            spacing:
+                                                10.0, // Espaçamento horizontal entre os botões
+                                            runSpacing:
+                                                5.0, // Espaçamento vertical entre os botões
+                                            children: List.generate(
+                                              clothingItems.length,
+                                              (index) {
+                                                final category = clothingItems
+                                                    .keys
+                                                    .elementAt(index);
+                                                return SizedBox(
+                                                  height: 50.0,
+                                                  child: ElevatedButton(
+                                                    onPressed: () {
+                                                      setState(() {
+                                                        selectedCategory =
+                                                            category;
+                                                        showCategoryDialog(
+                                                            context, category,
+                                                            (value) {
+                                                          setState(() {
+                                                            selectedClothType =
+                                                                value;
+                                                          });
+                                                        });
+                                                      });
+                                                    },
+                                                    style: ElevatedButton
+                                                        .styleFrom(
+                                                      primary:
+                                                          selectedCategory ==
+                                                                  category
+                                                              ? AppTheme.vinho
+                                                              : Colors.grey,
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(10.0),
+                                                      ),
+                                                    ),
+                                                    child: Text(
+                                                      category,
+                                                      style: AppTheme
+                                                          .subtitlewhite,
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          )
+                                        : Padding(
+                                            padding: const EdgeInsets.all(10.0),
+                                            child: Stack(
+                                              children: [
+                                                Container(
+                                                  width: 120.w,
+                                                  height: 50.h,
                                                   decoration: BoxDecoration(
-                                                    color: AppTheme.cinza,
+                                                    color: AppTheme.vinho,
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             15),
                                                   ),
                                                   child: Center(
-                                                    child: IconButton(
-                                                      onPressed: () {
-                                                        exibirTagCard(context,
-                                                            categoria1);
-                                                      },
-                                                      icon: Icon(
-                                                        Icons.add,
+                                                    child: Text(
+                                                      selectedClothType!,
+                                                      style: AppTheme
+                                                          .subheadlinewhite,
+                                                    ),
+                                                  ),
+                                                ),
+                                                Positioned(
+                                                  top: 0,
+                                                  right: 0,
+                                                  child: GestureDetector(
+                                                    onTap: () {
+                                                      setState(() {
+                                                        selectedClothType =
+                                                            null;
+                                                      });
+                                                    },
+                                                    child: Container(
+                                                      padding:
+                                                          EdgeInsets.all(2),
+                                                      decoration: BoxDecoration(
+                                                        shape: BoxShape.circle,
+                                                        color: Colors.white,
+                                                      ),
+                                                      child: Icon(
+                                                        Icons.close,
                                                         color: Colors.black,
                                                         size: 18,
                                                       ),
                                                     ),
                                                   ),
                                                 ),
-                                              ),
-                                              // Lista rolável
-                                              Expanded(
-                                                child:
-                                                    marcas != null &&
-                                                            marcas!.isNotEmpty
-                                                        ? ListView.builder(
-                                                            scrollDirection:
-                                                                Axis.horizontal,
-                                                            itemCount:
-                                                                marcas!.length,
-                                                            itemBuilder:
-                                                                (ctx, index) {
-                                                              return Padding(
-                                                                padding:
-                                                                    const EdgeInsets
-                                                                        .all(
-                                                                        10.0),
-                                                                child: Stack(
-                                                                  children: [
-                                                                    Container(
-                                                                      width: MediaQuery.of(context)
-                                                                              .size
-                                                                              .width *
-                                                                          0.2,
-                                                                      decoration:
-                                                                          BoxDecoration(
-                                                                        color: AppTheme
-                                                                            .cinza,
-                                                                        borderRadius:
-                                                                            BorderRadius.circular(15),
-                                                                      ),
-                                                                      child:
-                                                                          Center(
-                                                                        child:
-                                                                            Text(
-                                                                          marcas![
-                                                                              index],
-                                                                          style:
-                                                                              AppTheme.subtitle,
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                    Positioned(
-                                                                      top: 0,
-                                                                      right: 0,
-                                                                      child:
-                                                                          GestureDetector(
-                                                                        onTap:
-                                                                            () {
-                                                                          setState(
-                                                                              () {
-                                                                            marcas!.remove(marcas![index]);
-                                                                          });
-                                                                        },
-                                                                        child:
-                                                                            Container(
-                                                                          padding:
-                                                                              EdgeInsets.all(2),
-                                                                          decoration:
-                                                                              BoxDecoration(
-                                                                            shape:
-                                                                                BoxShape.circle,
-                                                                            color:
-                                                                                Colors.white,
-                                                                          ),
-                                                                          child:
-                                                                              Icon(
-                                                                            Icons.close,
-                                                                            color:
-                                                                                Colors.black,
-                                                                            size:
-                                                                                12,
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                  ],
-                                                                ),
-                                                              );
-                                                            },
-                                                          )
-                                                        : Container(),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Gap(10),
-                                          Center(
-                                            child: Text(
-                                              "Tecido da roupa:",
-                                              style: AppTheme.title,
+                                              ],
                                             ),
                                           ),
-                                          SizedBox(
-                                            width: MediaQuery.of(context)
-                                                    .size
-                                                    .width *
-                                                0.9,
-                                            height: MediaQuery.of(context)
+                                    Gap(MediaQuery.of(context).size.height *
+                                        0.003),
+                                    Divider(
+                                      color: AppTheme.cinza,
+                                    ),
+                                    Text(
+                                      "Post information",
+                                      style: AppTheme.dividerfont,
+                                    ),
+                                    Gap(10),
+                                    Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Gap(10),
+                                            Center(
+                                              child: Text(
+                                                "Marcas de roupas presentes:",
+                                                style: AppTheme.title,
+                                              ),
+                                            ),
+                                            Gap(MediaQuery.of(context)
                                                     .size
                                                     .height *
-                                                0.08,
-                                            child: Row(
-                                              children: [
-                                                // Item fixo
-                                                Padding(
-                                                  padding: const EdgeInsets.all(
-                                                      10.0),
-                                                  child: Container(
-                                                    width:
-                                                        MediaQuery.of(context)
-                                                                .size
-                                                                .width *
-                                                            0.2,
-                                                    decoration: BoxDecoration(
-                                                      color: AppTheme.cinza,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              15),
-                                                    ),
-                                                    child: Center(
-                                                      child: IconButton(
-                                                        onPressed: () {
-                                                          exibirTagCard(context,
-                                                              categoria2);
-                                                        },
-                                                        icon: Icon(
-                                                          Icons.add,
-                                                          color: Colors.black,
-                                                          size: 18,
+                                                0.005),
+                                            SizedBox(
+                                              width: MediaQuery.of(context)
+                                                      .size
+                                                      .width *
+                                                  0.9,
+                                              height: MediaQuery.of(context)
+                                                      .size
+                                                      .height *
+                                                  0.08,
+                                              child: Row(
+                                                children: [
+                                                  // Item fixo
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            10.0),
+                                                    child: Container(
+                                                      width:
+                                                          MediaQuery.of(context)
+                                                                  .size
+                                                                  .width *
+                                                              0.2,
+                                                      decoration: BoxDecoration(
+                                                        color: AppTheme.cinza,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(15),
+                                                      ),
+                                                      child: Center(
+                                                        child: IconButton(
+                                                          onPressed: () {
+                                                            exibirTagCard(
+                                                                context,
+                                                                categoria1);
+                                                          },
+                                                          icon: Icon(
+                                                            Icons.add,
+                                                            color: Colors.black,
+                                                            size: 18,
+                                                          ),
                                                         ),
                                                       ),
                                                     ),
                                                   ),
-                                                ),
-                                                // Lista rolável
-                                                Expanded(
+                                                  // Lista rolável
+                                                  Expanded(
                                                     child:
-                                                        tecido != null &&
+                                                        marcas != null &&
+                                                                marcas!
+                                                                    .isNotEmpty
+                                                            ? ListView.builder(
+                                                                scrollDirection:
+                                                                    Axis.horizontal,
+                                                                itemCount:
+                                                                    marcas!
+                                                                        .length,
+                                                                itemBuilder:
+                                                                    (ctx,
+                                                                        index) {
+                                                                  return Padding(
+                                                                    padding:
+                                                                        const EdgeInsets
+                                                                            .all(
+                                                                            10.0),
+                                                                    child:
+                                                                        Stack(
+                                                                      children: [
+                                                                        Container(
+                                                                          width:
+                                                                              MediaQuery.of(context).size.width * 0.2,
+                                                                          decoration:
+                                                                              BoxDecoration(
+                                                                            color:
+                                                                                AppTheme.cinza,
+                                                                            borderRadius:
+                                                                                BorderRadius.circular(15),
+                                                                          ),
+                                                                          child:
+                                                                              Center(
+                                                                            child:
+                                                                                Text(
+                                                                              marcas![index],
+                                                                              style: AppTheme.subtitle,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                        Positioned(
+                                                                          top:
+                                                                              0,
+                                                                          right:
+                                                                              0,
+                                                                          child:
+                                                                              GestureDetector(
+                                                                            onTap:
+                                                                                () {
+                                                                              setState(() {
+                                                                                marcas!.remove(marcas![index]);
+                                                                              });
+                                                                            },
+                                                                            child:
+                                                                                Container(
+                                                                              padding: EdgeInsets.all(2),
+                                                                              decoration: BoxDecoration(
+                                                                                shape: BoxShape.circle,
+                                                                                color: Colors.white,
+                                                                              ),
+                                                                              child: Icon(
+                                                                                Icons.close,
+                                                                                color: Colors.black,
+                                                                                size: 12,
+                                                                              ),
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                  );
+                                                                },
+                                                              )
+                                                            : Container(),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Gap(10),
+                                              Center(
+                                                child: Text(
+                                                  "Tecido da roupa:",
+                                                  style: AppTheme.title,
+                                                ),
+                                              ),
+                                              SizedBox(
+                                                width: MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    0.9,
+                                                height: MediaQuery.of(context)
+                                                        .size
+                                                        .height *
+                                                    0.08,
+                                                child: Row(
+                                                  children: [
+                                                    // Item fixo
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              10.0),
+                                                      child: Container(
+                                                        width: MediaQuery.of(
+                                                                    context)
+                                                                .size
+                                                                .width *
+                                                            0.2,
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color: AppTheme.cinza,
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(15),
+                                                        ),
+                                                        child: Center(
+                                                          child: IconButton(
+                                                            onPressed: () {
+                                                              exibirTagCard(
+                                                                  context,
+                                                                  categoria2);
+                                                            },
+                                                            icon: Icon(
+                                                              Icons.add,
+                                                              color:
+                                                                  Colors.black,
+                                                              size: 18,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    // Lista rolável
+                                                    Expanded(
+                                                        child: tecido != null &&
                                                                 tecido!
                                                                     .isNotEmpty
                                                             ? ListView.builder(
@@ -1164,65 +1200,68 @@ class _AddClothScreenState extends State<AddClothScreen> {
                                                                 },
                                                               )
                                                             : Container()),
-                                              ],
-                                            ),
-                                          ),
-                                        ]),
-                                    Gap(10),
-                                    Column(
-                                      children: [
-                                        Text("Código de Barras:",
-                                            style: AppTheme.title),
-                                        SizedBox(height: 10),
-                                        Container(
-                                          width: 350.w,
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal: 8),
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey[200],
-                                            borderRadius:
-                                                BorderRadius.circular(10.0),
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              Expanded(
-                                                child: TextField(
-                                                  controller:
-                                                      _barCodeController,
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    color: Colors.black,
-                                                  ),
-                                                  decoration: InputDecoration(
-                                                    border: InputBorder.none,
-                                                    hintText:
-                                                        'Paste or write the barcode here...',
-                                                    hintStyle: TextStyle(
-                                                      fontSize: 14,
-                                                      color: Colors.grey,
+                                                  ],
+                                                ),
+                                              ),
+                                            ]),
+                                        Gap(10),
+                                        Column(
+                                          children: [
+                                            Text("Código de Barras:",
+                                                style: AppTheme.title),
+                                            SizedBox(height: 10),
+                                            Container(
+                                              width: 350.w,
+                                              padding: EdgeInsets.symmetric(
+                                                  horizontal: 8),
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey[200],
+                                                borderRadius:
+                                                    BorderRadius.circular(10.0),
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: TextField(
+                                                      controller:
+                                                          _barCodeController,
+                                                      style: TextStyle(
+                                                        fontSize: 14,
+                                                        color: Colors.black,
+                                                      ),
+                                                      decoration:
+                                                          InputDecoration(
+                                                        border:
+                                                            InputBorder.none,
+                                                        hintText:
+                                                            'Paste or write the barcode here...',
+                                                        hintStyle: TextStyle(
+                                                          fontSize: 14,
+                                                          color: Colors.grey,
+                                                        ),
+                                                      ),
                                                     ),
                                                   ),
-                                                ),
+                                                  IconButton(
+                                                    onPressed: () {
+                                                      // Adicione sua lógica aqui para o botão de envio
+                                                    },
+                                                    icon: Icon(
+                                                      Icons.photo,
+                                                      color:
+                                                          AppTheme.nearlyBlack,
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
-                                              IconButton(
-                                                onPressed: () {
-                                                  // Adicione sua lógica aqui para o botão de envio
-                                                },
-                                                icon: Icon(
-                                                  Icons.photo,
-                                                  color: AppTheme.nearlyBlack,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Gap(10)
+                                            ),
+                                            Gap(10)
+                                          ],
+                                        )
                                       ],
-                                    )
+                                    ),
                                   ],
-                                ),
-                              ],
-                            ))))));
+                                ))))));
   }
 }
 
@@ -1249,7 +1288,7 @@ class _ImagePainter extends CustomPainter {
       final position = selectedPositions[i];
       final sliderValue =
           sliderValues[i]; // Obtendo o valor do slider correspondente
-      final paint = Paint()..color = AppTheme.nearlyWhite;
+      final paint = Paint()..color = AppTheme.cinza;
       final imagePosition = Offset(
         position.dx + imageOffset.dx,
         position.dy + imageOffset.dy,

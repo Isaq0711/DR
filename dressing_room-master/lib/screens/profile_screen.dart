@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dressing_room/screens/basket_screen.dart';
 import 'package:dressing_room/screens/favorites_screen.dart';
+import 'package:dressing_room/screens/product_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:dressing_room/screens/store_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:dressing_room/resources/auth_methods.dart';
@@ -340,7 +342,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                                               image: NetworkImage(
                                                                   snap['photoUrls']
                                                                       [0]),
-                                                              fit: BoxFit.cover,
+                                                              fit: BoxFit.fill,
                                                             ),
                                                           ),
                                                         ),
@@ -431,7 +433,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                                                   snap['options']
                                                                           [0][
                                                                       'photoUrl']),
-                                                              fit: BoxFit.cover,
+                                                              fit: BoxFit.fill,
                                                             ),
                                                           ),
                                                         ),
@@ -532,7 +534,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                                                       snap['photoUrls']
                                                                           [0]),
                                                                   fit: BoxFit
-                                                                      .cover,
+                                                                      .fill,
                                                                 ),
                                                               ),
                                                             ),
@@ -544,13 +546,102 @@ class _ProfileScreenState extends State<ProfileScreen>
                                                 );
                                               },
                                             ),
+
+                                            // Padding(
+                                            //   padding: EdgeInsets.symmetric(
+                                            //       horizontal: 16),
+                                            //   child: Row(
+                                            //     children: [
+                                            //       Text(
+                                            //         "Favorites",
+                                            //         style: AppTheme.subheadline,
+                                            //       ),
+                                            //     ],
+                                            //   ),
+                                            // ),
+                                            // FutureBuilder(
+                                            //   future: FirebaseFirestore.instance
+                                            //       .collection('favorites')
+                                            //       .doc(widget
+                                            //           .uid) // Use the user's ID as the document ID
+                                            //       .collection('userFavorites')
+                                            //       .get(),
+                                            //   builder: (context, snapshot) {
+                                            //     if (snapshot.connectionState ==
+                                            //         ConnectionState.waiting) {
+                                            //       return Center(
+                                            //         child:
+                                            //             CircularProgressIndicator(),
+                                            //       );
+                                            //     }
+
+                                            //     List<QueryDocumentSnapshot>
+                                            //         favorites = (snapshot.data!
+                                            //                 as QuerySnapshot)
+                                            //             .docs;
+
+                                            //     return SizedBox(
+                                            //       height: 150,
+                                            //       child: ListView.builder(
+                                            //         itemCount: favorites.length,
+                                            //         scrollDirection:
+                                            //             Axis.horizontal,
+                                            //         itemBuilder:
+                                            //             (context, index) {
+                                            //           dynamic snap =
+                                            //               favorites[index];
+
+                                            //           return GestureDetector(
+                                            //             onTap: () {
+                                            //               Navigator.push(
+                                            //                 context,
+                                            //                 MaterialPageRoute(
+                                            //                   builder: (context) =>
+                                            //                       SeePost(
+                                            //                           postId: snap[
+                                            //                               'postId']),
+                                            //                 ),
+                                            //               );
+                                            //             },
+                                            //             child: Padding(
+                                            //               padding:
+                                            //                   EdgeInsets.all(
+                                            //                       8.0),
+                                            //               child: ClipRRect(
+                                            //                 borderRadius:
+                                            //                     BorderRadius
+                                            //                         .circular(
+                                            //                             10),
+                                            //                 child: Container(
+                                            //                   width: 150,
+                                            //                   decoration:
+                                            //                       BoxDecoration(
+                                            //                     color:
+                                            //                         Colors.grey,
+                                            //                   ),
+                                            //                   child: Image(
+                                            //                     image: NetworkImage(
+                                            //                         snap['photoUrls']
+                                            //                             [0]),
+                                            //                     fit: BoxFit
+                                            //                         .cover,
+                                            //                   ),
+                                            //                 ),
+                                            //               ),
+                                            //             ),
+                                            //           );
+                                            //         },
+                                            //       ),
+                                            //     );
+                                            //   },
+                                            // ),
                                             Padding(
                                               padding: EdgeInsets.symmetric(
                                                   horizontal: 16),
                                               child: Row(
                                                 children: [
                                                   Text(
-                                                    "Favorites",
+                                                    "Cloth",
                                                     style: AppTheme.subheadline,
                                                   ),
                                                 ],
@@ -558,10 +649,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                                             ),
                                             FutureBuilder(
                                               future: FirebaseFirestore.instance
-                                                  .collection('favorites')
-                                                  .doc(widget
-                                                      .uid) // Use the user's ID as the document ID
-                                                  .collection('userFavorites')
+                                                  .collection('clothes')
+                                                  .where('uid',
+                                                      isEqualTo: widget.uid)
                                                   .get(),
                                               builder: (context, snapshot) {
                                                 if (snapshot.connectionState ==
@@ -573,20 +663,20 @@ class _ProfileScreenState extends State<ProfileScreen>
                                                 }
 
                                                 List<QueryDocumentSnapshot>
-                                                    favorites = (snapshot.data!
+                                                    cloth = (snapshot.data!
                                                             as QuerySnapshot)
                                                         .docs;
 
                                                 return SizedBox(
                                                   height: 150,
                                                   child: ListView.builder(
-                                                    itemCount: favorites.length,
+                                                    itemCount: cloth.length,
                                                     scrollDirection:
                                                         Axis.horizontal,
                                                     itemBuilder:
                                                         (context, index) {
                                                       dynamic snap =
-                                                          favorites[index];
+                                                          cloth[index];
 
                                                       return GestureDetector(
                                                         onTap: () {
@@ -596,7 +686,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                                               builder: (context) =>
                                                                   SeePost(
                                                                       postId: snap[
-                                                                          'postId']),
+                                                                          'clothId']),
                                                             ),
                                                           );
                                                         },
@@ -618,10 +708,10 @@ class _ProfileScreenState extends State<ProfileScreen>
                                                               ),
                                                               child: Image(
                                                                 image: NetworkImage(
-                                                                    snap['photoUrls']
-                                                                        [0]),
-                                                                fit: BoxFit
-                                                                    .cover,
+                                                                    snap[
+                                                                        'photoUrl']),
+                                                                fit:
+                                                                    BoxFit.fill,
                                                               ),
                                                             ),
                                                           ),
@@ -784,8 +874,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) =>
-                                              FavoritesScreen(),
+                                          builder: (context) => FavoritesScreen(
+                                            isShoppingBag: false,
+                                          ),
                                         ),
                                       );
                                     },
@@ -822,7 +913,16 @@ class _ProfileScreenState extends State<ProfileScreen>
                                       "Create a store",
                                       style: AppTheme.subheadlinewhite,
                                     ),
-                                    onTap: () {},
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => StoreScreen(
+                                              uid: FirebaseAuth
+                                                  .instance.currentUser!.uid),
+                                        ),
+                                      );
+                                    },
                                   ),
                                   Divider(),
                                   ListTile(

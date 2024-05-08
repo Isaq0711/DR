@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dressing_room/widgets/suggestion_comment_card.dart';
 import 'package:flutter/material.dart';
 import 'package:dressing_room/models/user.dart';
 import 'package:dressing_room/providers/user_provider.dart';
@@ -13,15 +14,34 @@ import 'package:provider/provider.dart';
 
 class CommentsScreen extends StatefulWidget {
   final postId;
-  const CommentsScreen({Key? key, required this.postId}) : super(key: key);
+  final category;
+  const CommentsScreen({Key? key, required this.postId, required this.category})
+      : super(key: key);
 
   @override
   _CommentsScreenState createState() => _CommentsScreenState();
 }
 
 class _CommentsScreenState extends State<CommentsScreen> {
+  late Stream<QuerySnapshot<Map<String, dynamic>>> _commentStream;
+  late Stream<QuerySnapshot<Map<String, dynamic>>> _suggestionStream;
   final TextEditingController commentEditingController =
       TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _commentStream = FirebaseFirestore.instance
+        .collection(widget.category)
+        .doc(widget.postId)
+        .collection('comments')
+        .snapshots();
+    _suggestionStream = FirebaseFirestore.instance
+        .collection(widget.category)
+        .doc(widget.postId)
+        .collection('suggestion')
+        .snapshots();
+  }
 
   void showDeleteItemDialog(BuildContext context, int index, String snapshot) {
     showDialog(
@@ -88,14 +108,16 @@ class _CommentsScreenState extends State<CommentsScreen> {
         uid,
         name,
         profilePic,
+        widget.category,
       );
 
       if (res != 'success') {
         showSnackBar(context, res);
-      } else {}
-      setState(() {
-        commentEditingController.text = '';
-      });
+      } else {
+        setState(() {
+          commentEditingController.text = '';
+        });
+      }
     } catch (err) {
       showSnackBar(context, err.toString());
     }
@@ -103,8 +125,8 @@ class _CommentsScreenState extends State<CommentsScreen> {
 
   void deleteComment(String commentId) async {
     try {
-      String res =
-          await FireStoreMethods().deleteComment(widget.postId, commentId);
+      String res = await FireStoreMethods()
+          .deleteComment(widget.postId, commentId, widget.category);
       if (res == 'success') {
         showSnackBar(context, 'Comment deleted');
       } else {
@@ -128,59 +150,76 @@ class _CommentsScreenState extends State<CommentsScreen> {
             ),
           );
         }
-
         return Scaffold(
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            leading: IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              icon: Icon(
-                Icons.arrow_back_ios,
-                color: AppTheme.nearlyBlack,
-              ),
-            ),
-            title: Text('Comments',
-                style: AppTheme.barapp.copyWith(
-                  shadows: [
-                    Shadow(
-                      blurRadius: 2.0,
-                      color: Colors.black,
-                    ),
-                  ],
-                )),
-            centerTitle: true,
-            iconTheme: IconThemeData(
-              color: AppTheme.nearlyBlack,
-            ),
-          ),
-          body: StreamBuilder(
-            stream: FirebaseFirestore.instance
-                .collection('posts')
-                .doc(widget.postId)
-                .collection('comments')
-                .snapshots(),
-            builder: (
-              context,
-              AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot,
-            ) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
+          resizeToAvoidBottomInset: false,
+          body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+            stream: _commentStream,
+            builder: (context, commentSnapshot) {
+              if (commentSnapshot.connectionState == ConnectionState.waiting) {
                 return const Center(
                   child: CircularProgressIndicator(),
                 );
               }
-              return Scrollbar(
-                  thickness: 7,
-                  thumbVisibility: true,
-                  child: ListView.builder(
-                    itemCount: snapshot.data!.docs.length,
-                    itemBuilder: (ctx, index) => CommentCard(
-                      snap: snapshot.data!.docs[index],
-                      onDelete: () => showDeleteItemDialog(
-                          context, index, snapshot.data!.docs[index].id),
-                    ),
-                  ));
+
+              List<DocumentSnapshot<Map<String, dynamic>>> comments =
+                  commentSnapshot.data!.docs;
+
+              return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                stream: _suggestionStream,
+                builder: (context, suggestionSnapshot) {
+                  if (suggestionSnapshot.connectionState ==
+                      ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+
+                  List<DocumentSnapshot<Map<String, dynamic>>> suggestion =
+                      suggestionSnapshot.data!.docs;
+
+                  List<DocumentSnapshot<Map<String, dynamic>>> allDocuments = [
+                    ...suggestion,
+                    ...comments
+                  ];
+
+                  allDocuments.sort((a, b) =>
+                      (b.data()!['datePublished'] as Timestamp)
+                          .compareTo(a.data()!['datePublished'] as Timestamp));
+
+                  return Scrollbar(
+                      thickness: 7,
+                      thumbVisibility: true,
+                      child: ListView.builder(
+                        itemCount: allDocuments.length,
+                        itemBuilder: (context, index) {
+                          final documentData = allDocuments[index].data();
+
+                          if (documentData!.containsKey('commentId')) {
+                            // Find the index of the comment in the comments list
+                            int commentIndex = comments.indexWhere((comment) =>
+                                comment.id == allDocuments[index].id);
+                            return CommentCard(
+                              snap: comments[commentIndex],
+                              onDelete: () => showDeleteItemDialog(context,
+                                  commentIndex, comments[commentIndex].id),
+                            );
+                          } else {
+                            // Find the index of the suggestion in the suggestions list
+                            int suggestionIndex = suggestion.indexWhere(
+                                (suggestion) =>
+                                    suggestion.id == allDocuments[index].id);
+                            return SuggestionCommentCard(
+                              snap: suggestion[suggestionIndex],
+                              onDelete: () => showDeleteItemDialog(
+                                  context,
+                                  suggestionIndex,
+                                  suggestion[suggestionIndex].id),
+                            );
+                          }
+                        },
+                      ));
+                },
+              );
             },
           ),
           bottomNavigationBar: SafeArea(

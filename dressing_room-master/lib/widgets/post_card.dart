@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:dressing_room/models/user.dart' as model;
 import 'package:dressing_room/providers/user_provider.dart';
 import 'package:dressing_room/resources/firestore_methods.dart';
+import 'package:dressing_room/screens/seepost.dart';
 import 'package:dressing_room/screens/comments_screen.dart';
 import 'package:dressing_room/screens/profile_screen.dart';
 import 'package:dressing_room/utils/colors.dart';
+import 'package:dressing_room/widgets/suggestion_card.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:dressing_room/utils/global_variable.dart';
 import 'package:dressing_room/utils/utils.dart';
@@ -38,6 +40,8 @@ class PostCard extends StatefulWidget {
 class _PostCardState extends State<PostCard> {
   int commentLen = 0;
   bool isLikeAnimating = false;
+  bool showPecas = false;
+  bool existemPecas = false;
   bool showinfo = true;
   int currentImageIndex = 0;
   bool isAddedOnFav = false;
@@ -52,21 +56,108 @@ class _PostCardState extends State<PostCard> {
     isOnFav(
       widget.snap['postId'],
     );
+    checkExistemPecas();
   }
 
   void _showComments(context) {
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
-      ),
-      builder: (BuildContext bc) {
-        return SizedBox(
-          height: 450.h,
-          child: CommentsScreen(postId: widget.snap['postId']),
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Container(
+            height: 650.h,
+            child: Container(
+                decoration: BoxDecoration(
+                  color: AppTheme.cinza,
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(30),
+                  ),
+                ),
+                width: double.infinity,
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                          child: Column(children: [
+                        Container(
+                          width: 40,
+                          height: 6,
+                          margin: const EdgeInsets.only(top: 16, bottom: 4),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(50),
+                            color: AppTheme.nearlyWhite,
+                          ),
+                        ),
+                        Gap(5),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 20),
+                          child: Text(
+                            'Comments',
+                            style: AppTheme.barapp.copyWith(
+                              shadows: [
+                                Shadow(
+                                  blurRadius: 2.0,
+                                  color: Colors.black,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Gap(15),
+                        Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 10),
+                            child: SizedBox(
+                                height: 570.h,
+                                child:
+                                    widget.snap['username'] != "Anonymous User"
+                                        ? CommentsScreen(
+                                            postId: widget.snap['postId'],
+                                            category: 'posts')
+                                        : CommentsScreen(
+                                            postId: widget.snap['postId'],
+                                            category: 'anonymous_posts')))
+                      ]))
+                    ])));
+      },
+    );
+  }
+
+  Future<void> checkExistemPecas() async {
+    try {
+      List<dynamic>? pecasIds = widget.snap['pecasIds'];
+      if (pecasIds != null && pecasIds.isNotEmpty) {
+        setState(() {
+          existemPecas = true;
+        });
+      } else {
+        setState(() {
+          existemPecas = false;
+        });
+      }
+    } catch (e) {
+      // Lidar com possíveis erros aqui, como exibir uma mensagem de erro ou registrar o erro
+      print('Erro ao verificar a existência de peças: $e');
+      setState(() {
+        existemPecas = false;
+      });
+    }
+  }
+
+  void _showSuggestionMenu(BuildContext context) async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Container(
+          height: 650.h,
+          child: SuggestionCard(
+            postId: widget.snap['postId'],
+          ),
         );
       },
     );
+
+    fetchCommentLen();
   }
 
   Future<void> handleFavAction(String uid) async {
@@ -113,7 +204,12 @@ class _PostCardState extends State<PostCard> {
           .doc(widget.snap['postId'])
           .collection('comments')
           .get();
-      commentLen = snap.docs.length;
+      QuerySnapshot snap2 = await FirebaseFirestore.instance
+          .collection('posts')
+          .doc(widget.snap['postId'])
+          .collection('suggestion')
+          .get();
+      commentLen = snap.docs.length + snap2.docs.length;
     } catch (err) {
       showSnackBar(
         context,
@@ -245,11 +341,11 @@ class _PostCardState extends State<PostCard> {
                     Positioned(
                       top: 5,
                       right: 10,
-                      child: Column(
-                        children: [
-                          Visibility(
-                            visible: showinfo,
-                            child: SpeedDial(
+                      child: Visibility(
+                        visible: showinfo,
+                        child: Column(
+                          children: [
+                            SpeedDial(
                               direction: SpeedDialDirection.down,
                               child: Icon(
                                 Icons.more_vert_rounded,
@@ -295,14 +391,15 @@ class _PostCardState extends State<PostCard> {
                                   },
                                 ),
                                 SpeedDialChild(
-                                  child: Icon(
-                                    CupertinoIcons.arrow_up,
-                                    color: Colors.black.withOpacity(0.6),
-                                  ),
-                                  backgroundColor: AppTheme.cinza,
-                                  labelStyle: TextStyle(fontSize: 18.0),
-                                  onTap: () => print('THIRD CHILD'),
-                                ),
+                                    child: Icon(
+                                      CupertinoIcons.arrow_up,
+                                      color: Colors.black.withOpacity(0.6),
+                                    ),
+                                    backgroundColor: AppTheme.cinza,
+                                    labelStyle: TextStyle(fontSize: 18.0),
+                                    onTap: () {
+                                      _showSuggestionMenu(context);
+                                    }),
                                 SpeedDialChild(
                                   child: Icon(
                                     CupertinoIcons.bag,
@@ -314,273 +411,330 @@ class _PostCardState extends State<PostCard> {
                                 ),
                               ],
                             ),
-                          )
-                        ],
+                            Gap(5),
+                            Visibility(
+                                visible: existemPecas,
+                                child: SizedBox(
+                                  width: 29.0,
+                                  height: 32.0,
+                                  child: FloatingActionButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        showPecas = !showPecas;
+                                      });
+                                    },
+                                    backgroundColor: AppTheme.cinza,
+                                    elevation: 8.0,
+                                    shape:
+                                        CircleBorder(), // Makes the button more circular
+                                    child: Icon(
+                                      CupertinoIcons.tag,
+                                      size: 18,
+                                      color: AppTheme.nearlyBlack,
+                                    ),
+                                  ),
+                                ))
+                          ],
+                        ),
                       ),
                     ),
-                    // Positioned(
-                    //   top: 5,
-                    //   left: 10,
-                    //   child: Row(
-                    //     children: [
-                    //       Align(
-                    //         alignment: Alignment.centerLeft,
-                    //         child: Padding(
-                    //           padding: const EdgeInsets.only(left: 4),
-                    //           child: Container(
-                    //             child: Text(
-                    //               "Average: ${widget.snap['grade']}",
-                    //               style: AppTheme.subtitlewhite.copyWith(
-                    //                 shadows: [
-                    //                   Shadow(
-                    //                     blurRadius: 3.0,
-                    //                     color: Colors.black, // Cor da sombra
-                    //                     offset: Offset(1.0,
-                    //                         1.0), // Deslocamento X e Y da sombra
-                    //                   ),
-                    //                 ],
-                    //               ),
-                    //             ),
-                    //           ),
-                    //         ),
-                    //       ),
-                    //       Gap(2),
-                    //       Icon(
-                    //         size: 13,
-                    //         Icons.star,
-                    //         color: AppTheme.vinho,
-                    //         shadows: [
-                    //           Shadow(
-                    //             color: Colors.black.withOpacity(0.3),
-                    //             offset: Offset(0, 2),
-                    //             blurRadius: 4,
-                    //           )
-                    //         ],
-                    //       ),
-                    //     ],
-                    //   ),
-                    // ),
                     Positioned(
                         bottom: 0,
                         left: 0,
                         child: Visibility(
                             visible: showinfo,
-                            child: SizedBox(
-                                width: MediaQuery.of(context).size.width,
-                                child: Container(
-                                    color: AppTheme.cinza,
-                                    width: double.infinity,
-                                    child: Column(
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical: 4.5),
-                                          child: widget.snap['photoUrls']
-                                                      .length >
-                                                  1
-                                              ? DotsIndicator(
-                                                  dotsCount: widget
-                                                      .snap['photoUrls'].length,
-                                                  position:
-                                                      currentImageIndex.toInt(),
-                                                  decorator: DotsDecorator(
-                                                    color: Colors.grey,
-                                                    activeColor: AppTheme.vinho,
-                                                    spacing: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 4.0),
-                                                    size:
-                                                        const Size.square(8.0),
-                                                    activeSize:
-                                                        const Size(16.0, 8.0),
-                                                    activeShape:
-                                                        RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              4.0),
-                                                    ),
-                                                  ),
-                                                )
-                                              : SizedBox.shrink(),
+                            child: Column(children: [
+                              existemPecas
+                                  ? Visibility(
+                                      visible: showPecas,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 2,
+                                          vertical: 5,
                                         ),
-                                        Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 10, vertical: 5),
-                                            child: Column(children: [
-                                              Row(
-                                                children: <Widget>[
-                                                  CircleAvatar(
-                                                    radius: 16,
-                                                    backgroundImage:
-                                                        NetworkImage(
-                                                      widget.snap['profImage']
-                                                          .toString(),
+                                        child: Container(
+                                          height: 76.h,
+                                          width: 340.w,
+                                          child: GridView.builder(
+                                            scrollDirection: Axis.horizontal,
+                                            itemCount: widget
+                                                .snap['pecasPhotoUrls']!.length,
+                                            gridDelegate:
+                                                SliverGridDelegateWithFixedCrossAxisCount(
+                                              crossAxisCount: 1,
+                                              mainAxisSpacing: 4,
+                                            ),
+                                            itemBuilder: (context, index) {
+                                              return GestureDetector(
+                                                onTap: () {
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          SeePost(
+                                                        postId: widget.snap[
+                                                            'pecasIds']![index],
+                                                      ),
                                                     ),
-                                                    backgroundColor: Colors
-                                                        .transparent, // Define o fundo como transparente
+                                                  );
+                                                },
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            10.0),
+                                                    color: Colors.white24,
                                                   ),
-                                                  Expanded(
+                                                  child: ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            10.0),
+                                                    child: Image.network(
+                                                      widget.snap[
+                                                              'pecasPhotoUrls']![
+                                                          index],
+                                                      fit: BoxFit.fill,
+                                                      height: 76
+                                                          .h, // Garante a altura adequada para a imagem
+                                                      width: 340.w,
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  : SizedBox.shrink(),
+                              SizedBox(
+                                  width: MediaQuery.of(context).size.width,
+                                  child: Container(
+                                      color: AppTheme.cinza,
+                                      width: double.infinity,
+                                      child: Column(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 4.5),
+                                            child: widget.snap['photoUrls']
+                                                        .length >
+                                                    1
+                                                ? DotsIndicator(
+                                                    dotsCount: widget
+                                                        .snap['photoUrls']
+                                                        .length,
+                                                    position: currentImageIndex
+                                                        .toInt(),
+                                                    decorator: DotsDecorator(
+                                                      color: Colors.grey,
+                                                      activeColor:
+                                                          AppTheme.vinho,
+                                                      spacing: const EdgeInsets
+                                                          .symmetric(
+                                                          horizontal: 4.0),
+                                                      size: const Size.square(
+                                                          8.0),
+                                                      activeSize:
+                                                          const Size(16.0, 8.0),
+                                                      activeShape:
+                                                          RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(4.0),
+                                                      ),
+                                                    ),
+                                                  )
+                                                : SizedBox.shrink(),
+                                          ),
+                                          Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 10,
+                                                      vertical: 5),
+                                              child: Column(children: [
+                                                Row(
+                                                  children: <Widget>[
+                                                    CircleAvatar(
+                                                      radius: 16,
+                                                      backgroundImage:
+                                                          NetworkImage(
+                                                        widget.snap['profImage']
+                                                            .toString(),
+                                                      ),
+                                                      backgroundColor: Colors
+                                                          .transparent, // Define o fundo como transparente
+                                                    ),
+                                                    Expanded(
+                                                      child: Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .only(
+                                                          left: 8,
+                                                        ),
+                                                        child: Column(
+                                                          mainAxisSize:
+                                                              MainAxisSize.min,
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: <Widget>[
+                                                            InkWell(
+                                                              onTap: () {
+                                                                if (widget.snap[
+                                                                        'username'] !=
+                                                                    "Anonymous User") {
+                                                                  Navigator.of(
+                                                                          context)
+                                                                      .push(
+                                                                    MaterialPageRoute(
+                                                                      builder:
+                                                                          (context) =>
+                                                                              ProfileScreen(
+                                                                        uid: widget
+                                                                            .snap['uid'],
+                                                                      ),
+                                                                    ),
+                                                                  );
+                                                                }
+                                                              },
+                                                              child: Text(
+                                                                  widget.snap[
+                                                                      'username'],
+                                                                  style: AppTheme
+                                                                      .subtitle),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                Gap(10),
+                                                Align(
+                                                    alignment:
+                                                        Alignment.topLeft,
                                                     child: Padding(
                                                       padding:
                                                           const EdgeInsets.only(
-                                                        left: 8,
-                                                      ),
-                                                      child: Column(
-                                                        mainAxisSize:
-                                                            MainAxisSize.min,
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: <Widget>[
-                                                          InkWell(
-                                                            onTap: () {
-                                                              if (widget.snap[
-                                                                      'username'] !=
-                                                                  "Anonymous User") {
-                                                                Navigator.of(
-                                                                        context)
-                                                                    .push(
-                                                                  MaterialPageRoute(
-                                                                    builder:
-                                                                        (context) =>
-                                                                            ProfileScreen(
-                                                                      uid: widget
-                                                                              .snap[
-                                                                          'uid'],
-                                                                    ),
-                                                                  ),
-                                                                );
-                                                              }
-                                                            },
-                                                            child: Text(
-                                                                widget.snap[
-                                                                    'username'],
-                                                                style: AppTheme
-                                                                    .subtitle),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              Gap(10),
-                                              Align(
-                                                  alignment: Alignment.topLeft,
-                                                  child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                            left: 4),
-                                                    child: Text(
-                                                        widget
-                                                            .snap['description']
-                                                            .toString(),
-                                                        style:
-                                                            AppTheme.subtitle),
-                                                  ))
-                                            ])),
-                                        DefaultTextStyle(
-                                          style: TextStyle(
-                                              color: AppTheme.nearlyBlack,
-                                              fontFamily: 'Quicksand',
-                                              fontWeight: FontWeight.bold),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: <Widget>[
-                                              RatingBar.builder(
-                                                initialRating: rating,
-                                                minRating: 0,
-                                                direction: Axis.horizontal,
-                                                allowHalfRating: true,
-                                                itemCount: 5,
-                                                itemPadding:
-                                                    EdgeInsets.symmetric(
-                                                        horizontal: 2.0),
-                                                itemBuilder: (context, _) =>
-                                                    Icon(
-                                                  Icons.star,
-                                                  color: AppTheme.vinho,
-                                                ),
-                                                itemSize: 30.0,
-                                                unratedColor: Colors.grey,
-                                                onRatingUpdate: (rating) async {
-                                                  String uid = user.uid;
-                                                  String postId = widget
-                                                      .snap['postId']
-                                                      .toString();
-                                                  await FireStoreMethods()
-                                                      .getUserGrade(
-                                                          postId, uid, rating);
-                                                  setState(() {});
-                                                },
-                                              ),
-                                              Stack(children: [
-                                                if (commentLen > 0)
-                                                  Positioned(
-                                                    right: 3,
-                                                    top: 2,
-                                                    child: Container(
-                                                      padding:
-                                                          EdgeInsets.all(2),
-                                                      decoration: BoxDecoration(
-                                                        color: AppTheme.vinho,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(7),
-                                                      ),
-                                                      constraints:
-                                                          BoxConstraints(
-                                                        minWidth: 17,
-                                                        minHeight: 17,
-                                                      ),
+                                                              left: 4),
                                                       child: Text(
-                                                        '$commentLen',
-                                                        style: TextStyle(
-                                                          color: Colors.white,
-                                                          fontSize: 10,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                        ),
-                                                        textAlign:
-                                                            TextAlign.center,
-                                                      ),
-                                                    ),
+                                                          widget.snap[
+                                                                  'description']
+                                                              .toString(),
+                                                          style: AppTheme
+                                                              .subtitle),
+                                                    ))
+                                              ])),
+                                          DefaultTextStyle(
+                                            style: TextStyle(
+                                                color: AppTheme.nearlyBlack,
+                                                fontFamily: 'Quicksand',
+                                                fontWeight: FontWeight.bold),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: <Widget>[
+                                                RatingBar.builder(
+                                                  initialRating: rating,
+                                                  minRating: 0,
+                                                  direction: Axis.horizontal,
+                                                  allowHalfRating: true,
+                                                  itemCount: 5,
+                                                  itemPadding:
+                                                      EdgeInsets.symmetric(
+                                                          horizontal: 2.0),
+                                                  itemBuilder: (context, _) =>
+                                                      Icon(
+                                                    Icons.star,
+                                                    color: AppTheme.vinho,
                                                   ),
-                                                IconButton(
-                                                  icon: Icon(
-                                                    Icons.comment_rounded,
-                                                    color: AppTheme.nearlyBlack,
-                                                  ),
-                                                  // onPressed: () =>
-                                                  //     Navigator.of(context)
-                                                  //         .push(
-                                                  //   MaterialPageRoute(
-                                                  //     builder: (context) =>
-                                                  //         CommentsScreen(
-                                                  //       postId: widget
-                                                  //           .snap['postId']
-                                                  //           .toString(),
-                                                  //     ),
-                                                  //   ),
-                                                  onPressed: () {
-                                                    _showComments(context);
+                                                  itemSize: 30.0,
+                                                  unratedColor: Colors.grey,
+                                                  onRatingUpdate:
+                                                      (rating) async {
+                                                    String uid = user.uid;
+                                                    String postId = widget
+                                                        .snap['postId']
+                                                        .toString();
+                                                    await FireStoreMethods()
+                                                        .getUserGrade(postId,
+                                                            uid, rating);
+                                                    setState(() {});
                                                   },
                                                 ),
-                                              ]),
-                                              Text(
-                                                DateFormat.yMMMd().format(widget
-                                                    .snap['datePublished']
-                                                    .toDate()),
-                                                style: AppTheme.caption,
-                                              ),
-                                              Gap(2),
-                                            ],
+                                                Stack(children: [
+                                                  if (commentLen > 0)
+                                                    Positioned(
+                                                      right: 3,
+                                                      top: 2,
+                                                      child: Container(
+                                                        padding:
+                                                            EdgeInsets.all(2),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color: AppTheme.vinho,
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(7),
+                                                        ),
+                                                        constraints:
+                                                            BoxConstraints(
+                                                          minWidth: 17,
+                                                          minHeight: 17,
+                                                        ),
+                                                        child: Text(
+                                                          '$commentLen',
+                                                          style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 10,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  IconButton(
+                                                    icon: Icon(
+                                                      Icons.comment_rounded,
+                                                      color:
+                                                          AppTheme.nearlyBlack,
+                                                    ),
+                                                    // onPressed: () =>
+                                                    //     Navigator.of(context)
+                                                    //         .push(
+                                                    //   MaterialPageRoute(
+                                                    //     builder: (context) =>
+                                                    //         CommentsScreen(
+                                                    //       postId: widget
+                                                    //           .snap['postId']
+                                                    //           .toString(),
+                                                    //     ),
+                                                    //   ),
+                                                    onPressed: () {
+                                                      _showComments(context);
+                                                    },
+                                                  ),
+                                                ]),
+                                                Text(
+                                                  DateFormat.yMMMd().format(
+                                                      widget
+                                                          .snap['datePublished']
+                                                          .toDate()),
+                                                  style: AppTheme.caption,
+                                                ),
+                                                Gap(2),
+                                              ],
+                                            ),
                                           ),
-                                        ),
-                                      ],
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                    ))))),
+                                        ],
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                      )))
+                            ])))
                   ],
                 ),
               ),

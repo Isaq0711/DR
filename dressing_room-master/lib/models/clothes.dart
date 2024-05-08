@@ -5,9 +5,10 @@ class Cloth {
   final String uid;
   final String clothId;
   final DateTime dateAdded;
-  final String category;
+  final String? category;
+  final bool isPublic;
   final String photoUrl;
-  final String barCode;
+  final String? barCode;
   final List<String>? marcas;
   final List<String>? tecido;
 
@@ -17,6 +18,7 @@ class Cloth {
     required this.clothId,
     required this.dateAdded,
     required this.category,
+    required this.isPublic,
     required this.photoUrl,
     required this.barCode,
     this.marcas,
@@ -34,6 +36,7 @@ class Cloth {
           ? (snapshot["dateAdded"] as Timestamp).toDate()
           : DateTime.now(),
       category: snapshot["category"] ?? '',
+      isPublic: snapshot["isPublic"] ?? false,
       photoUrl: snapshot['photoUrl'] ?? '',
       barCode: snapshot["barCode"] ?? '',
       marcas: snapshot["marcas"] as List<String>?,
@@ -48,6 +51,7 @@ class Cloth {
         "dateAdded": dateAdded,
         "photoUrl": photoUrl,
         "category": category,
+        "isPublic": isPublic,
         "barCode": barCode,
         "marcas": marcas,
         "tecido": tecido,

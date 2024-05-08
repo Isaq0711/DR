@@ -96,7 +96,7 @@ class SelectImageDialog1por1 extends StatelessWidget {
               style: TextStyle(
                 fontFamily: 'Quicksand',
                 fontWeight: FontWeight.bold,
-                fontSize: 15.sp,
+                fontSize: 15,
               ),
             ),
             style: ElevatedButton.styleFrom(primary: AppTheme.vinho),
@@ -118,7 +118,70 @@ class SelectImageDialog1por1 extends StatelessWidget {
               style: TextStyle(
                 fontFamily: 'Quicksand',
                 fontWeight: FontWeight.bold,
-                fontSize: 15.sp,
+                fontSize: 15,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(primary: AppTheme.vinho),
+            onPressed: () async {
+              Navigator.of(context).pop();
+              Uint8List? file = await pickImage1por1(ImageSource.gallery);
+              if (file != null) {
+                onImageSelected(file);
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SelectImageSuggestion extends StatelessWidget {
+  final Function(Uint8List) onImageSelected;
+
+  SelectImageSuggestion({required this.onImageSelected});
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: AppTheme.nearlyWhite,
+      title: Align(
+        alignment: Alignment.center,
+        child: Text(
+          'UPLOAD',
+          style: AppTheme.subheadline,
+        ),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          ElevatedButton(
+            child: Text(
+              'Remove BG',
+              style: TextStyle(
+                fontFamily: 'Quicksand',
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(primary: AppTheme.vinho),
+            onPressed: () async {
+              SelectImageDialog1por1(onImageSelected: onImageSelected);
+              Navigator.pop(context);
+              Uint8List? file = await pickImage1por1(ImageSource.camera);
+              if (file != null) {
+                onImageSelected(file);
+              }
+            },
+          ),
+          Gap(
+            10.h,
+          ),
+          ElevatedButton(
+            child: Text(
+              'Complete image',
+              style: TextStyle(
+                fontFamily: 'Quicksand',
+                fontWeight: FontWeight.bold,
               ),
             ),
             style: ElevatedButton.styleFrom(primary: AppTheme.vinho),

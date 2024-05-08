@@ -444,9 +444,26 @@ class _NewVotationCardState extends State<NewVotationCard> {
                             right: 10,
                             child: Column(
                               children: [
-                                ImageIcon(
-                                  AssetImage('assets/ELECTION.png'),
-                                  color: AppTheme.nearlyWhite,
+                                Gap(5),
+                                SizedBox(
+                                  width: 29.0,
+                                  height: 32.0,
+                                  child: FloatingActionButton(
+                                    onPressed: () {
+                                      setState(() {});
+                                    },
+                                    backgroundColor: AppTheme.cinza,
+                                    elevation: 8.0,
+                                    shape:
+                                        CircleBorder(), // Makes the button more circular
+                                    child: ImageIcon(
+                                      AssetImage(
+                                        'assets/ELECTION.png',
+                                      ),
+                                      size: 21,
+                                      color: AppTheme.nearlyBlack,
+                                    ),
+                                  ),
                                 ),
                                 Gap(5.h),
                                 SpeedDial(
@@ -516,6 +533,27 @@ class _NewVotationCardState extends State<NewVotationCard> {
                                     ),
                                   ],
                                 ),
+                                Gap(5),
+                                SizedBox(
+                                  width: 29.0,
+                                  height: 32.0,
+                                  child: FloatingActionButton(
+                                    onPressed: () {
+                                      setState(() {});
+                                    },
+                                    backgroundColor: AppTheme.cinza,
+                                    elevation: 8.0,
+                                    shape:
+                                        CircleBorder(), // Makes the button more circular
+                                    child: ImageIcon(
+                                      AssetImage(
+                                        'assets/CABIDE.png',
+                                      ),
+                                      size: 21,
+                                      color: AppTheme.nearlyBlack,
+                                    ),
+                                  ),
+                                )
                               ],
                             )),
                         Positioned(

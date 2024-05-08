@@ -40,6 +40,9 @@ dependencies:
   icons_launcher: ^2.1.7
   flutter_background_service: ^2.4.6
   receive_sharing_intent: ^1.6.7
+  flutter_card_swiper: ^7.0.0
+  geolocator: ^11.0.0
+  geocoding: ^3.0.0
 
 dev_dependencies:
   flutter_test:

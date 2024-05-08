@@ -40,6 +40,8 @@ class _NewPostCardState extends State<NewPostCard> {
   bool showreactions = false;
   int currentImageIndex = 0;
   bool isFavorite = false;
+  bool showPecas = false;
+  bool existemPecas = false;
 
   double rating = 0;
 
@@ -51,6 +53,7 @@ class _NewPostCardState extends State<NewPostCard> {
     isOnFav(
       widget.snap['postId'],
     );
+    checkExistemPecas();
   }
 
   Future<bool> isOnFav(String postId) async {
@@ -131,6 +134,27 @@ class _NewPostCardState extends State<NewPostCard> {
         context,
         err.toString(),
       );
+    }
+  }
+
+  Future<void> checkExistemPecas() async {
+    try {
+      List<dynamic>? pecasIds = widget.snap['pecasIds'];
+      if (pecasIds != null && pecasIds.isNotEmpty) {
+        setState(() {
+          existemPecas = true;
+        });
+      } else {
+        setState(() {
+          existemPecas = false;
+        });
+      }
+    } catch (e) {
+      // Lidar com possíveis erros aqui, como exibir uma mensagem de erro ou registrar o erro
+      print('Erro ao verificar a existência de peças: $e');
+      setState(() {
+        existemPecas = false;
+      });
     }
   }
 
@@ -256,7 +280,7 @@ class _NewPostCardState extends State<NewPostCard> {
                                                     child: Image.network(
                                                       widget.snap['photoUrls']
                                                           [index],
-                                                      fit: BoxFit.cover,
+                                                      fit: BoxFit.fill,
                                                     ),
                                                   );
                                                 },
@@ -383,21 +407,6 @@ class _NewPostCardState extends State<NewPostCard> {
                       right: 10,
                       child: Column(
                         children: [
-                          Visibility(
-                            visible:
-                                widget.snap['username'] == "Anonymous User",
-                            child: Icon(
-                              shadows: <Shadow>[
-                                Shadow(
-                                  color: AppTheme.nearlyBlack,
-                                  blurRadius: 5.0,
-                                ),
-                              ],
-                              Icons.person,
-                              color: AppTheme.vinho,
-                            ),
-                          ),
-                          Gap(5.h),
                           SpeedDial(
                             direction: SpeedDialDirection.down,
                             child: Icon(
@@ -444,58 +453,13 @@ class _NewPostCardState extends State<NewPostCard> {
                                 },
                               ),
                               SpeedDialChild(
-                                child: Icon(
-                                  CupertinoIcons.arrow_up,
-                                  color: Colors.black.withOpacity(0.6),
-                                ),
-                                backgroundColor: AppTheme.cinza,
-                                labelStyle: TextStyle(fontSize: 18.0),
-                                onTap: () async {
-                                  if (widget.snap['photoUrls'] != null) {
-                                    String imageUrl = widget.snap['photoUrls']
-                                        [currentImageIndex];
-                                    try {
-                                      Uint8List? imageBytes =
-                                          await downloadFile(imageUrl);
-                                      if (imageBytes != null) {
-                                        File tempFile =
-                                            await saveBytesToFile(imageBytes);
-                                        Uint8List? processedImage =
-                                            await removeBg(tempFile.path);
-
-                                        if (processedImage != null) {
-                                          String processedImageUrl =
-                                              await StorageMethods()
-                                                  .uploadImageToStorage('posts',
-                                                      processedImage, true);
-
-                                          List<String> photoUrls = List.from(
-                                              widget.snap['photoUrls']);
-
-                                          photoUrls[currentImageIndex] =
-                                              processedImageUrl;
-
-                                          // Atualiza a lista no Firestore
-                                          await FirebaseFirestore.instance
-                                              .collection('posts')
-                                              .doc(widget.snap['postId'])
-                                              .update({
-                                            'photoUrls': photoUrls,
-                                          });
-
-                                          await tempFile.delete();
-                                        }
-                                      }
-                                    } catch (e) {
-                                      showSnackBar(context,
-                                          'Erro ao processar a imagem: $e');
-                                    }
-                                  } else {
-                                    showSnackBar(
-                                        context, 'Nenhuma imagem selecionada');
-                                  }
-                                },
-                              ),
+                                  child: Icon(
+                                    CupertinoIcons.arrow_up,
+                                    color: Colors.black.withOpacity(0.6),
+                                  ),
+                                  backgroundColor: AppTheme.cinza,
+                                  labelStyle: TextStyle(fontSize: 18.0),
+                                  onTap: () => print('THIRD CHILD')),
                               SpeedDialChild(
                                 child: Icon(
                                   CupertinoIcons.bag,
@@ -507,6 +471,27 @@ class _NewPostCardState extends State<NewPostCard> {
                               ),
                             ],
                           ),
+                          Gap(5),
+                          Visibility(
+                              visible: existemPecas,
+                              child: SizedBox(
+                                width: 29.0,
+                                height: 32.0,
+                                child: FloatingActionButton(
+                                  onPressed: () {
+                                    setState(() {});
+                                  },
+                                  backgroundColor: AppTheme.cinza,
+                                  elevation: 8.0,
+                                  shape:
+                                      CircleBorder(), // Makes the button more circular
+                                  child: Icon(
+                                    CupertinoIcons.tag,
+                                    size: 18,
+                                    color: AppTheme.nearlyBlack,
+                                  ),
+                                ),
+                              ))
                         ],
                       ),
                     ),

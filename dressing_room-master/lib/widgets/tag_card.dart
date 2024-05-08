@@ -78,7 +78,6 @@ class _TagCardState extends State<TagCard> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: MediaQuery.of(context).size.height * 0.6,
       width: double.infinity,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -114,8 +113,6 @@ class _TagCardState extends State<TagCard> {
                               widget.category,
                               style: AppTheme.title,
                             )),
-
-                        // Adiciona um espaço flexível para empurrar o ícone para o final
                         IconButton(
                           onPressed: () {
                             results.isEmpty

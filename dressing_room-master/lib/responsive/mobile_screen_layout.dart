@@ -49,7 +49,8 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
 
   @override
   Widget build(BuildContext context) {
-    bool isBottomVisible = context.watch<BottonNavController>().isBottonVisible;
+    // bool isBottomVisible = context.watch<BottonNavController>().isBottonVisible;
+    bool isBottomVisible = true;
     return Scaffold(
         body: PageView(
           children: homeScreenItems,
@@ -90,9 +91,7 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
                   ),
                   BottomNavigationBarItem(
                     icon: Icon(
-                      (_page == 1)
-                          ? Icons.chat_bubble
-                          : Icons.chat_bubble_outline,
+                      (_page == 1) ? Icons.chat_rounded : Icons.chat_outlined,
                       color: AppTheme.vinho,
                       size: 24.h,
                     ),

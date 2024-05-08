@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'package:dressing_room/responsive/mobile_screen_layout.dart';
 import 'package:dressing_room/responsive/responsive_layout.dart';
-import 'package:dressing_room/responsive/web_screen_layout.dart';
+import 'seepost.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
@@ -15,6 +15,7 @@ import 'package:dressing_room/widgets/tag_card.dart';
 import 'package:dressing_room/widgets/friends_list.dart';
 import 'package:dressing_room/models/user.dart';
 import 'package:provider/provider.dart';
+import 'my_wardrobe.dart';
 
 class AddPostScreen extends StatefulWidget {
   final Uint8List? image;
@@ -34,6 +35,8 @@ class _AddPostScreenState extends State<AddPostScreen> {
   String categoria2 = 'Tecido da roupa';
   String categoria3 = 'Locais ou ocasião';
   String? categoriaSelecionada;
+  List<String>? pecasID;
+  List<String>? pecasPhotoUrls;
   List<String>? marcas;
   List<String>? tecido;
   List<String>? where;
@@ -58,6 +61,36 @@ class _AddPostScreenState extends State<AddPostScreen> {
     } else {
       _files!.add(widget.image!);
     }
+  }
+
+  void _showSuggestionMenu(BuildContext context) async {
+    var wardrobeResult = await showModalBottomSheet(
+      backgroundColor: AppTheme.cinza,
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Container(
+          height: 650.h,
+          child: Wardrobe(
+            isDialog: true,
+          ),
+        );
+      },
+    );
+    setState(() {
+      Set<String> uniqueIdResults =
+          Set.from(wardrobeResult['wardroberesultsID']);
+      pecasID != null && pecasID!.isNotEmpty
+          ? pecasID!.addAll(uniqueIdResults.difference(pecasID!.toSet()))
+          : pecasID = wardrobeResult['wardroberesultsID'];
+
+      Set<String> uniquePhotoResults =
+          Set.from(wardrobeResult['wardroberesultsPhotos']);
+      pecasPhotoUrls != null && pecasPhotoUrls!.isNotEmpty
+          ? pecasPhotoUrls!
+              .addAll(uniquePhotoResults.difference(pecasPhotoUrls!.toSet()))
+          : pecasPhotoUrls = wardrobeResult['wardroberesultsPhotos'];
+    });
   }
 
   void exibirTagCard(
@@ -147,6 +180,8 @@ class _AddPostScreenState extends State<AddPostScreen> {
         String res = await FireStoreMethods().uploadAnonymousPost(
           _descriptionController.text,
           _files!,
+          pecasID,
+          pecasPhotoUrls,
           uid,
         );
         if (res == "success") {
@@ -160,7 +195,14 @@ class _AddPostScreenState extends State<AddPostScreen> {
         }
       } else {
         String res = await FireStoreMethods().uploadPost(
-            _descriptionController.text, _files!, uid, username, profImage, 0);
+            _descriptionController.text,
+            _files!,
+            pecasID,
+            pecasPhotoUrls,
+            uid,
+            username,
+            profImage,
+            0);
         if (res == "success") {
           showSnackBar(
             context,
@@ -250,6 +292,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
             body: Container(),
           )
         : Scaffold(
+            resizeToAvoidBottomInset: false,
             appBar: AppBar(
                 backgroundColor: AppTheme.nearlyWhite,
                 leading: IconButton(
@@ -265,7 +308,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                       user.photoUrl,
                     ),
                     child: const Text(
-                      "Post",
+                      "POST",
                       style: TextStyle(
                         color: Colors.blueAccent,
                         fontWeight: FontWeight.bold,
@@ -279,137 +322,315 @@ class _AddPostScreenState extends State<AddPostScreen> {
                 fill: Fill.fillBack,
                 direction: FlipDirection.HORIZONTAL,
                 side: CardSide.FRONT,
-                front: ListView(children: <Widget>[
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppTheme.nearlyWhite,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                            height: 600.h,
-                            child: Align(
-                                alignment: Alignment.center,
-                                child: AspectRatio(
-                                  aspectRatio: 9 / 16,
-                                  child: Stack(
-                                    children: [
-                                      PageView.builder(
-                                        controller: _pageController,
-                                        itemCount: _files!.length,
-                                        onPageChanged: (int index) {
-                                          setState(() {
-                                            _currentPageIndex = index;
-                                          });
-                                        },
-                                        itemBuilder: (context, pageIndex) {
-                                          return ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(10.0),
-                                            child: Image.memory(
-                                              _files![pageIndex],
-                                              fit: BoxFit.cover,
-                                              height: double.infinity,
-                                              width: double.infinity,
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ))),
-                        GestureDetector(
-                          onTap: () => _selectImage(context),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
+                front: isLoading
+                    ? LinearProgressIndicator()
+                    : ListView(children: <Widget>[
+                        Container(
+                          decoration: BoxDecoration(
+                            color: AppTheme.nearlyWhite,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Icon(
-                                Icons.add,
-                                color: Colors.black,
-                              ),
-                              const SizedBox(width: 4),
-                              const Text(
-                                'Add More',
-                                style: TextStyle(
-                                  fontFamily: 'Quicksand',
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
+                              SizedBox(
+                                height: 600.h,
+                                child: Stack(
+                                  children: [
+                                    Align(
+                                      alignment: Alignment.center,
+                                      child: AspectRatio(
+                                        aspectRatio: 9 / 16,
+                                        child: Stack(
+                                          children: [
+                                            PageView.builder(
+                                              controller: _pageController,
+                                              itemCount: _files!.length,
+                                              onPageChanged: (int index) {
+                                                setState(() {
+                                                  _currentPageIndex = index;
+                                                });
+                                              },
+                                              itemBuilder:
+                                                  (context, pageIndex) {
+                                                return ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          10.0),
+                                                  child: Image.memory(
+                                                    _files![pageIndex],
+                                                    fit: BoxFit.cover,
+                                                    height: double.infinity,
+                                                    width: double.infinity,
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                            Positioned(
+                                              top: 0,
+                                              right: 5,
+                                              child: Padding(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                    vertical: 5,
+                                                  ),
+                                                  child: GestureDetector(
+                                                      onTap: () {
+                                                        setState(() {
+                                                          _files!.removeAt(
+                                                              _currentPageIndex);
+                                                        });
+                                                      },
+                                                      child: Container(
+                                                        width: 35.0,
+                                                        height: 35.0,
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color: AppTheme.vinho,
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                  16.0), // Borda arredondada com metade da altura para criar um círculo
+                                                        ),
+                                                        child: Icon(
+                                                          Icons.delete,
+                                                          color: AppTheme
+                                                              .nearlyWhite,
+                                                          size: 24.0,
+                                                        ),
+                                                      ))),
+                                            ),
+                                            Positioned(
+                                              bottom: 0,
+                                              child: pecasPhotoUrls != null
+                                                  ? Padding(
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                        horizontal: 10,
+                                                        vertical: 5,
+                                                      ),
+                                                      child: Container(
+                                                        height: 76.h,
+                                                        width: 300.w,
+                                                        child: GridView.builder(
+                                                          scrollDirection:
+                                                              Axis.horizontal,
+                                                          itemCount:
+                                                              pecasPhotoUrls!
+                                                                  .length,
+                                                          gridDelegate:
+                                                              SliverGridDelegateWithFixedCrossAxisCount(
+                                                            crossAxisCount: 1,
+                                                            mainAxisSpacing: 4,
+                                                          ),
+                                                          itemBuilder:
+                                                              (context, index) {
+                                                            return GestureDetector(
+                                                              onTap: () {
+                                                                Navigator.push(
+                                                                  context,
+                                                                  MaterialPageRoute(
+                                                                    builder:
+                                                                        (context) =>
+                                                                            SeePost(
+                                                                      postId: pecasID![
+                                                                          index],
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              },
+                                                              child: Container(
+                                                                  decoration: BoxDecoration(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              10.0),
+                                                                      color: Colors
+                                                                          .white24),
+                                                                  child: Stack(
+                                                                      children: [
+                                                                        ClipRRect(
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(10.0),
+                                                                          child:
+                                                                              Image.network(
+                                                                            pecasPhotoUrls![index],
+                                                                            fit:
+                                                                                BoxFit.fill,
+                                                                            height:
+                                                                                76.h, // Garante a altura adequada para a imagem
+                                                                            width:
+                                                                                300.w,
+                                                                          ),
+                                                                        ),
+                                                                        Positioned(
+                                                                            child:
+                                                                                Positioned(
+                                                                          child: InkWell(
+                                                                              onTap: () {
+                                                                                setState(() {
+                                                                                  pecasPhotoUrls!.removeAt(index);
+                                                                                  pecasID!.removeAt(index);
+                                                                                });
+                                                                              },
+                                                                              child: Padding(
+                                                                                padding: const EdgeInsets.symmetric(
+                                                                                  horizontal: 3,
+                                                                                  vertical: 3,
+                                                                                ),
+                                                                                child: Container(
+                                                                                  decoration: BoxDecoration(
+                                                                                    color: AppTheme.vinho,
+                                                                                    borderRadius: BorderRadius.circular(10),
+                                                                                  ),
+                                                                                  child: Icon(Icons.delete, size: 17),
+                                                                                ),
+                                                                              )),
+                                                                        ))
+                                                                      ])),
+                                                            );
+                                                          },
+                                                        ),
+                                                      ))
+                                                  : SizedBox.shrink(),
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              Gap(20),
+                              Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Container(
+                                      margin: EdgeInsets.all(10),
+                                      child: ElevatedButton(
+                                        style: ButtonStyle(
+                                          backgroundColor: MaterialStateProperty
+                                              .all<Color>(AppTheme
+                                                  .vinho), // Cor de fundo do botão
+                                        ),
+                                        onPressed: () {
+                                          _selectImage(context);
+                                        },
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.add_circle,
+                                              size: 23,
+                                              color: AppTheme.cinza,
+                                            ), // Exemplo de um ícone
+                                            Gap(8), // Espaçamento entre o ícone e o texto
+                                            Text(
+                                              'Add more',
+                                              style: AppTheme.subtitlewhite,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      margin: EdgeInsets.all(10),
+                                      child: ElevatedButton(
+                                        style: ButtonStyle(
+                                          backgroundColor: MaterialStateProperty
+                                              .all<Color>(AppTheme
+                                                  .vinho), // Cor de fundo do botão
+                                        ),
+                                        onPressed: () {
+                                          _showSuggestionMenu(context);
+                                        },
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            ImageIcon(
+                                              AssetImage(
+                                                'assets/CABIDE.png',
+                                              ),
+                                              size: 23,
+                                              color: AppTheme.cinza,
+                                            ), // Exemplo de um ícone
+                                            Gap(8), // Espaçamento entre o ícone e o texto
+                                            Text(
+                                              'Clothes',
+                                              style: AppTheme.subtitlewhite,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ]),
+                              _files!.length > 1
+                                  ? Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                      ),
+                                      child: SizedBox(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                0.1,
+                                        child: GridView.builder(
+                                          scrollDirection: Axis.horizontal,
+                                          itemCount: _files!.length,
+                                          gridDelegate:
+                                              SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: 1,
+                                            crossAxisSpacing: 8.0,
+                                          ),
+                                          itemBuilder: (context, index) {
+                                            return GestureDetector(
+                                                onTap: () {
+                                                  setState(() {
+                                                    _currentPageIndex = index;
+                                                    _pageController
+                                                        .animateToPage(
+                                                      index,
+                                                      duration: const Duration(
+                                                          milliseconds: 300),
+                                                      curve: Curves.ease,
+                                                    );
+                                                  });
+                                                },
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                    border: Border.all(
+                                                      color:
+                                                          _currentPageIndex ==
+                                                                  index
+                                                              ? AppTheme.vinho
+                                                              : Colors
+                                                                  .transparent,
+                                                      width: 3.0,
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            10.0),
+                                                  ),
+                                                  child: ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            10.0),
+                                                    child: Image.memory(
+                                                      _files![index],
+                                                      fit: BoxFit.fill,
+                                                    ),
+                                                  ),
+                                                ));
+                                          },
+                                        ),
+                                      ))
+                                  : Gap(
+                                      MediaQuery.of(context).size.height * 0.1)
                             ],
                           ),
                         ),
-                        _files!.length > 1
-                            ? Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                ),
-                                child: SizedBox(
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.1,
-                                  child: GridView.builder(
-                                    scrollDirection: Axis.horizontal,
-                                    itemCount: _files!.length,
-                                    gridDelegate:
-                                        SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 1,
-                                      crossAxisSpacing: 8.0,
-                                    ),
-                                    itemBuilder: (context, index) {
-                                      return GestureDetector(
-                                          onTap: () {
-                                            setState(() {
-                                              _currentPageIndex = index;
-                                              _pageController.animateToPage(
-                                                index,
-                                                duration: const Duration(
-                                                    milliseconds: 300),
-                                                curve: Curves.ease,
-                                              );
-                                            });
-                                          },
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              border: Border.all(
-                                                color:
-                                                    _currentPageIndex == index
-                                                        ? AppTheme.vinho
-                                                        : Colors.transparent,
-                                                width: 3.0,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(10.0),
-                                            ),
-                                            child: ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(10.0),
-                                              child: Image.memory(
-                                                _files![index],
-                                                fit: BoxFit.fill,
-                                              ),
-                                            ),
-                                          ));
-                                    },
-                                  ),
-                                ))
-                            : Gap(MediaQuery.of(context).size.height * 0.1)
-                      ],
-                    ),
-                  ),
-                ]),
-                back: Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Container(
+                      ]),
+                back: isLoading
+                    ? LinearProgressIndicator()
+                    : Container(
                         decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Colors.grey,
-                          ),
                           color: AppTheme.nearlyWhite,
-                          borderRadius: BorderRadius.circular(10),
                         ),
                         child: Column(
                           children: [
@@ -432,7 +653,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                             ),
                             Gap(20),
                             Divider(
-                              color: AppTheme.cinza,
+                              color: Colors.grey,
                             ),
                             Text(
                               "Category of the post",
@@ -533,7 +754,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                             ),
                             Gap(MediaQuery.of(context).size.height * 0.003),
                             Divider(
-                              color: AppTheme.cinza,
+                              color: Colors.grey,
                             ),
                             Text(
                               "Post information",
@@ -953,6 +1174,6 @@ class _AddPostScreenState extends State<AddPostScreen> {
                               ),
                             ),
                           ],
-                        )))));
+                        ))));
   }
 }
