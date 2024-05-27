@@ -1,29 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+
 import 'package:dressing_room/utils/colors.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_card_swiper/flutter_card_swiper.dart';
+
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:dressing_room/screens/favorites_screen.dart';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gap/gap.dart';
 import 'package:dressing_room/utils/utils.dart';
 
-class CalendarScreen extends StatefulWidget {
+class CalendarWidget extends StatefulWidget {
   final String title;
   final DateTime Dataaa;
-  CalendarScreen({Key? key, required this.title, required this.Dataaa})
+  final bool isWidget;
+  CalendarWidget(
+      {Key? key,
+      required this.title,
+      required this.Dataaa,
+      required this.isWidget})
       : super(key: key);
   @override
-  _CalendarScreenState createState() => _CalendarScreenState();
+  _CalendarWidgetState createState() => _CalendarWidgetState();
 }
 
-class _CalendarScreenState extends State<CalendarScreen> {
+class _CalendarWidgetState extends State<CalendarWidget> {
   late DateTime _displayedMonth = DateTime.now();
   late DateTime data = DateTime.now();
   bool isLoading = false;
+
   List<Map<String, dynamic>> calendarItems = [];
 
   void _previousMonth() {
@@ -52,10 +59,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
     });
 
     try {
-      var currentUserUid = FirebaseAuth.instance.currentUser!.uid;
       var querySnapshot = await FirebaseFirestore.instance
           .collection('calendar')
-          .where('uid', isEqualTo: currentUserUid)
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .collection('looks')
           .get();
 
       calendarItems = querySnapshot.docs.map((doc) {
@@ -83,6 +90,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   void initState() {
     super.initState();
+    initializeDateFormatting('pt_BR', null);
     getData();
     _displayedMonth = widget.Dataaa;
     data = widget.Dataaa;
@@ -94,13 +102,28 @@ class _CalendarScreenState extends State<CalendarScreen> {
         ? Center(
             child: CircularProgressIndicator(),
           )
-        : Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        : Scaffold(
+            body:
+                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 25),
+              padding: widget.isWidget
+                  ? EdgeInsets.symmetric(horizontal: 25)
+                  : EdgeInsets.symmetric(vertical: 1),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Gap(40),
+                  Visibility(
+                      visible: !widget.isWidget,
+                      child: IconButton(
+                        icon: Icon(Icons.arrow_back_ios, color: Colors.black),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                      )),
+                  Visibility(
+                    visible: widget.isWidget,
+                    child: Gap(40),
+                  ),
                   Expanded(
                       child: Center(
                           child: Text(
@@ -114,18 +137,24 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       ],
                     ),
                   ))),
-                  IconButton(
-                    icon: Icon(Icons.check, color: Colors.black),
-                    onPressed: () {
-                      Navigator.pop(context, data);
-                    },
+                  Visibility(
+                    visible: !widget.isWidget,
+                    child: Gap(40),
                   ),
+                  Visibility(
+                      visible: widget.isWidget,
+                      child: IconButton(
+                        icon: Icon(Icons.check, color: Colors.black),
+                        onPressed: () {
+                          Navigator.pop(context, data);
+                        },
+                      ))
                 ],
               ),
             ),
             Gap(15),
             SizedBox(
-                height: 600.h,
+                height: widget.isWidget ? 600.h : 700.h,
                 child: Theme(
                     data: ThemeData(
                       highlightColor: Colors.grey[770],
@@ -133,9 +162,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     child: Scrollbar(
                         thickness: 5,
                         thumbVisibility: true,
-                        child: buildCalendar(_displayedMonth, _previousMonth,
-                            _nextMonth, data, _selectDate, calendarItems))))
-          ]);
+                        child: buildCalendar(
+                            _displayedMonth,
+                            _previousMonth,
+                            _nextMonth,
+                            data,
+                            widget.isWidget,
+                            _selectDate,
+                            calendarItems))))
+          ]));
   }
 }
 
@@ -144,9 +179,15 @@ Widget buildCalendar(
     VoidCallback previousMonth,
     VoidCallback nextMonth,
     DateTime data,
+    bool isWidget,
     Function(DateTime) onDateSelected,
     List<Map<String, dynamic>> calendarItems) {
   int daysInMonth = DateTime(month.year, month.month + 1, 0).day;
+  bool _isSameDay(DateTime date1, DateTime date2) {
+    return date1.year == date2.year &&
+        date1.month == date2.month &&
+        date1.day == date2.day;
+  }
 
   return Column(
     children: [
@@ -181,8 +222,9 @@ Widget buildCalendar(
 
                 Map<String, dynamic>? calendarItem;
                 try {
-                  calendarItem = calendarItems
-                      .firstWhere((item) => item['data'].isSameDay(date));
+                  calendarItem = calendarItems.firstWhere(
+                    (item) => _isSameDay(item['data'].toDate(), date),
+                  );
                 } catch (e) {
                   calendarItem = null;
                 }
@@ -192,8 +234,19 @@ Widget buildCalendar(
 
                 return InkWell(
                   onTap: () {
-                    onDateSelected(date);
-                    print(calendarItems);
+                    if (isWidget) {
+                      if (date.isBefore(DateTime.now())) {
+                        // Handle the case where the date is before the current date
+                      } else {
+                        onDateSelected(date);
+                        String formattedDate = DateFormat('yyyy-MM-dd')
+                            .format(calendarItems[0]['data']);
+                        // Use the formatted date as needed, for example:
+                        print(formattedDate); // Example usage
+                      }
+                    } else {
+                      //go to see look page
+                    }
                   },
                   child: Container(
                     decoration: selecionada

@@ -11,18 +11,12 @@ import 'package:dressing_room/screens/profile_screen.dart';
 import 'package:dressing_room/utils/colors.dart';
 import 'package:dressing_room/widgets/suggestion_card.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:dressing_room/utils/global_variable.dart';
 import 'package:dressing_room/utils/utils.dart';
-import 'package:dressing_room/widgets/like_animation.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:dots_indicator/dots_indicator.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:gap/gap.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'dart:typed_data';
-import 'dart:io';
-import 'package:dressing_room/resources/storage_methods.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 
 class PostCard extends StatefulWidget {
@@ -41,6 +35,9 @@ class _PostCardState extends State<PostCard> {
   int commentLen = 0;
   bool isLikeAnimating = false;
   bool showPecas = false;
+  final events = [];
+  late TransformationController _transformationController;
+  bool canScroll = true;
   bool existemPecas = false;
   bool showinfo = true;
   int currentImageIndex = 0;
@@ -53,10 +50,15 @@ class _PostCardState extends State<PostCard> {
     super.initState();
     fetchCommentLen();
     getInitialRating();
+    _transformationController = TransformationController();
     isOnFav(
       widget.snap['postId'],
     );
     checkExistemPecas();
+  }
+
+  void _zoomToMin() {
+    _transformationController.value = Matrix4.identity()..scale(1.0);
   }
 
   void _showComments(context) {
@@ -151,8 +153,9 @@ class _PostCardState extends State<PostCard> {
         return Container(
           height: 650.h,
           child: SuggestionCard(
-            postId: widget.snap['postId'],
-          ),
+              postId: widget.snap['postId'],
+              uid: widget.snap['uid'],
+              category: 'posts'),
         );
       },
     );
@@ -310,34 +313,59 @@ class _PostCardState extends State<PostCard> {
                   alignment: Alignment.center,
                   children: [
                     SizedBox(
-                        height: 670.h,
-                        child: AspectRatio(
-                          aspectRatio: 9 / 16,
-                          child: InteractiveViewer(
-                            panEnabled: true,
-                            minScale: 0.1,
-                            maxScale: 4,
-                            child: PageView.builder(
-                              itemCount: widget.snap['photoUrls'].length,
-                              controller: PageController(
-                                  initialPage: currentImageIndex),
-                              onPageChanged: (index) {
-                                setState(() {
-                                  currentImageIndex = index;
-                                });
-                              },
-                              itemBuilder: (context, index) {
-                                return ClipRRect(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                  child: Image.network(
-                                    widget.snap['photoUrls'][index],
-                                    fit: BoxFit.cover,
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        )),
+                      height: 690.h,
+                      child: AspectRatio(
+                        aspectRatio: 9 / 16,
+                        child: PageView.builder(
+                          itemCount: widget.snap['photoUrls'].length,
+                          controller:
+                              PageController(initialPage: currentImageIndex),
+                          physics: events.length >= 2
+                              ? const NeverScrollableScrollPhysics()
+                              : null,
+                          onPageChanged: (index) {
+                            setState(() {
+                              currentImageIndex = index;
+                            });
+                          },
+                          itemBuilder: (context, index) {
+                            return Listener(
+                                onPointerDown: (event) {
+                                  events.add(event.pointer);
+                                  print("event add");
+                                },
+                                onPointerUp: (event) {
+                                  events.clear();
+                                  print("events cleared");
+                                  setState(() {
+                                    canScroll = true;
+                                    _zoomToMin();
+                                  });
+                                },
+                                onPointerMove: (event) {
+                                  if (events.length > 1) {
+                                    setState(() {
+                                      canScroll = false;
+                                    });
+                                  }
+                                },
+                                child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    child: InteractiveViewer(
+                                      transformationController:
+                                          _transformationController,
+                                      clipBehavior: Clip.none,
+                                      minScale: 1,
+                                      maxScale: 16,
+                                      child: Image.network(
+                                        widget.snap['photoUrls'][index],
+                                        fit: BoxFit.cover,
+                                      ),
+                                    )));
+                          },
+                        ),
+                      ),
+                    ),
                     Positioned(
                       top: 5,
                       right: 10,

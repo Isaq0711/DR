@@ -47,7 +47,7 @@ class _VotationCardState extends State<VotationCard> {
       widget.snap['votationId'],
     );
     extractDescriptions();
-    checkExistemPecas();
+    //checkExistemPecas();
   }
 
   fetchCommentLen() async {
@@ -80,6 +80,41 @@ class _VotationCardState extends State<VotationCard> {
     } catch (err) {}
   }
 
+  // Future<void> checkExistemPecas() async {
+  //   try {
+  //     // Verifique se 'options' e 'pecasIds' existem no widget.snap
+  //     if (widget.snap['options'] != null &&
+  //         widget.snap['options']['pecasIds'] != null) {
+  //       List<List<dynamic>?> pecasIds = widget.snap['options']['pecasIds'];
+
+  //       // Verifique se o índice atual é válido
+  //       if (currentImageIndex < pecasIds.length &&
+  //           pecasIds[currentImageIndex] != null) {
+  //         List<dynamic>? pecasForCurrentIndex = pecasIds[currentImageIndex];
+
+  //         // Verifique se a lista não está vazia
+  //         if (pecasForCurrentIndex != null && pecasForCurrentIndex.isNotEmpty) {
+  //           setState(() {
+  //             existemPecas = true;
+  //           });
+  //           return;
+  //         }
+  //       }
+  //     }
+
+  //     // Se qualquer uma das verificações falhar, definir 'existemPecas' como false
+  //     setState(() {
+  //       existemPecas = false;
+  //     });
+  //   } catch (e) {
+  //     // Lidar com possíveis erros aqui, como exibir uma mensagem de erro ou registrar o erro
+  //     print('Erro ao verificar a existência de peças: $e');
+  //     setState(() {
+  //       existemPecas = false;
+  //     });
+  //   }
+  // }
+
   Future<void> handleFavAction(String uid) async {
     setState(() {});
 
@@ -90,30 +125,6 @@ class _VotationCardState extends State<VotationCard> {
     }
 
     setState(() {});
-  }
-
-  Future<void> checkExistemPecas() async {
-    try {
-      List<dynamic>? options = widget.snap['options'];
-
-      if (options != null &&
-          options.isNotEmpty &&
-          currentImageIndex < options.length) {
-        List<dynamic>? pecasIds = options[currentImageIndex]['pecasID'];
-        if (pecasIds != null && pecasIds.isNotEmpty) {
-          setState(() {
-            existemPecas = true;
-          });
-        } else {
-          existemPecas = false;
-        }
-      }
-    } catch (e) {
-      print('Erro ao verificar a existência de peças: $e');
-      setState(() {
-        existemPecas = false;
-      });
-    }
   }
 
   Future<bool> isOnFav(String postId) async {
@@ -240,7 +251,7 @@ class _VotationCardState extends State<VotationCard> {
                 alignment: Alignment.center,
                 children: [
                   SizedBox(
-                    height: 690.h,
+                    height: 720.h,
                     child: AspectRatio(
                         aspectRatio: 9 / 16,
                         child: ClipRRect(
@@ -252,7 +263,6 @@ class _VotationCardState extends State<VotationCard> {
                             onPageChanged: (index) {
                               setState(() {
                                 currentImageIndex = index;
-                                checkExistemPecas();
                               });
                             },
                             itemBuilder: (context, index) {
@@ -326,7 +336,9 @@ class _VotationCardState extends State<VotationCard> {
                                   ),
                                   backgroundColor: AppTheme.cinza,
                                   labelStyle: TextStyle(fontSize: 18.0),
-                                  onTap: () {}),
+                                  onTap: () {
+                                    //   checkExistemPecas();
+                                  }),
                               SpeedDialChild(
                                 child: Icon(
                                   CupertinoIcons.bag,

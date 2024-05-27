@@ -185,13 +185,6 @@ class _NewPostCardState extends State<NewPostCard> {
     }
   }
 
-  Future<File> saveBytesToFile(Uint8List bytes) async {
-    Directory tempDir = await getTemporaryDirectory();
-    File tempFile = File('${tempDir.path}/temp_image.png');
-    await tempFile.writeAsBytes(bytes);
-    return tempFile;
-  }
-
   double getLikePercentage() {
     int totalReactions =
         widget.snap['likes'].length + widget.snap['dislikes'].length;
@@ -246,117 +239,104 @@ class _NewPostCardState extends State<NewPostCard> {
                             builder:
                                 (BuildContext context, StateSetter setState) {
                               return Padding(
-                                  padding: EdgeInsets.all(8),
-                                  child: ListView(
-                                    children: [
-                                      Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          SizedBox(
-                                            height: MediaQuery.of(context)
-                                                    .size
-                                                    .height *
-                                                0.7,
-                                            width: double.infinity,
-                                            child: ClipRRect(
+                                padding: EdgeInsets.all(8),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SizedBox(
+                                      height:
+                                          MediaQuery.of(context).size.height *
+                                              0.7,
+                                      width: double.infinity,
+                                      child: ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(10.0),
+                                        child: PageView.builder(
+                                          itemCount:
+                                              widget.snap['photoUrls'].length,
+                                          controller: PageController(
+                                              initialPage: currentImageIndex),
+                                          onPageChanged: (index) {
+                                            setState(() {
+                                              position = index;
+                                            });
+                                          },
+                                          itemBuilder: (context, index) {
+                                            return ClipRRect(
                                               borderRadius:
-                                                  BorderRadius.circular(10.0),
-                                              child: PageView.builder(
-                                                itemCount: widget
-                                                    .snap['photoUrls'].length,
-                                                controller: PageController(
-                                                    initialPage:
-                                                        currentImageIndex),
-                                                onPageChanged: (index) {
-                                                  setState(() {
-                                                    position = index;
-                                                  });
-                                                },
-                                                itemBuilder: (context, index) {
-                                                  return ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            25.0),
-                                                    child: Image.network(
-                                                      widget.snap['photoUrls']
-                                                          [index],
-                                                      fit: BoxFit.fill,
-                                                    ),
-                                                  );
-                                                },
+                                                  BorderRadius.circular(25.0),
+                                              child: Image.network(
+                                                widget.snap['photoUrls'][index],
+                                                fit: BoxFit.fill,
                                               ),
-                                            ),
-                                          ),
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                vertical: 4.5),
-                                            child: widget.snap['photoUrls']
-                                                        .length >
-                                                    1
-                                                ? DotsIndicator(
-                                                    dotsCount: widget
-                                                        .snap['photoUrls']
-                                                        .length,
-                                                    position: position,
-                                                    decorator: DotsDecorator(
-                                                      color: Colors.grey,
-                                                      activeColor:
-                                                          AppTheme.vinho,
-                                                      spacing: const EdgeInsets
-                                                          .symmetric(
-                                                          horizontal: 4.0),
-                                                      size: const Size.square(
-                                                          8.0),
-                                                      activeSize:
-                                                          const Size(16.0, 8.0),
-                                                      activeShape:
-                                                          RoundedRectangleBorder(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(4.0),
-                                                      ),
-                                                    ),
-                                                  )
-                                                : SizedBox.shrink(),
-                                          ),
-                                          Text("Rate this post:",
-                                              style: AppTheme.subheadline),
-                                          Gap(5.sp),
-                                          RatingBar.builder(
-                                            initialRating: rating,
-                                            minRating: 0,
-                                            direction: Axis.horizontal,
-                                            allowHalfRating: true,
-                                            itemCount: 5,
-                                            itemPadding: EdgeInsets.symmetric(
-                                                horizontal: 2.0),
-                                            itemBuilder: (context, _) => Icon(
-                                              shadows: <Shadow>[
-                                                Shadow(
-                                                    color: AppTheme.nearlyBlack,
-                                                    blurRadius: 10.0)
-                                              ],
-                                              Icons.star,
-                                              color: AppTheme.vinho,
-                                            ),
-                                            itemSize: 30.0,
-                                            unratedColor: Colors.grey,
-                                            onRatingUpdate: (rating) async {
-                                              print("Rating: $rating");
-                                              String uid = user.uid;
-                                              String postId = widget
-                                                  .snap['postId']
-                                                  .toString();
-                                              await FireStoreMethods()
-                                                  .getUserGrade(
-                                                      postId, uid, rating);
-                                              setState(() {});
-                                            },
-                                          ),
-                                        ],
+                                            );
+                                          },
+                                        ),
                                       ),
-                                    ],
-                                  ));
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 4.5),
+                                      child: widget.snap['photoUrls'].length > 1
+                                          ? DotsIndicator(
+                                              dotsCount: widget
+                                                  .snap['photoUrls'].length,
+                                              position: position,
+                                              decorator: DotsDecorator(
+                                                color: Colors.grey,
+                                                activeColor: AppTheme.vinho,
+                                                spacing:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 4.0),
+                                                size: const Size.square(8.0),
+                                                activeSize:
+                                                    const Size(16.0, 8.0),
+                                                activeShape:
+                                                    RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          4.0),
+                                                ),
+                                              ),
+                                            )
+                                          : SizedBox.shrink(),
+                                    ),
+                                    Gap(5),
+                                    Text("Rate this post:",
+                                        style: AppTheme.subheadline),
+                                    Gap(5.sp),
+                                    RatingBar.builder(
+                                      initialRating: rating,
+                                      minRating: 0,
+                                      direction: Axis.horizontal,
+                                      allowHalfRating: true,
+                                      itemCount: 5,
+                                      itemPadding:
+                                          EdgeInsets.symmetric(horizontal: 2.0),
+                                      itemBuilder: (context, _) => Icon(
+                                        shadows: <Shadow>[
+                                          Shadow(
+                                              color: AppTheme.nearlyBlack,
+                                              blurRadius: 10.0)
+                                        ],
+                                        Icons.star,
+                                        color: AppTheme.vinho,
+                                      ),
+                                      itemSize: 30.0,
+                                      unratedColor: Colors.grey,
+                                      onRatingUpdate: (rating) async {
+                                        print("Rating: $rating");
+                                        String uid = user.uid;
+                                        String postId =
+                                            widget.snap['postId'].toString();
+                                        await FireStoreMethods()
+                                            .getUserGrade(postId, uid, rating);
+                                        setState(() {});
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              );
                             },
                           ),
                         );

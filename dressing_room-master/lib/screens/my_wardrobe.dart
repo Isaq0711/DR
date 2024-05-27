@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:dressing_room/utils/colors.dart';
-import 'add_cloth_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dressing_room/utils/utils.dart';
 import 'seepost.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -82,7 +80,9 @@ final Map<String, List<String>> clothingItems = {
 
 class Wardrobe extends StatefulWidget {
   final bool isDialog;
-  Wardrobe({Key? key, required this.isDialog}) : super(key: key);
+  final String uid;
+  Wardrobe({Key? key, required this.isDialog, required this.uid})
+      : super(key: key);
   @override
   _WardrobeState createState() => _WardrobeState();
 }
@@ -142,7 +142,7 @@ class _WardrobeState extends State<Wardrobe>
     try {
       var clothesSnap = await FirebaseFirestore.instance
           .collection('wardrobe')
-          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .doc(widget.uid)
           .collection('clothes')
           .get();
 

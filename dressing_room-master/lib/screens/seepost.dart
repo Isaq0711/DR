@@ -110,13 +110,7 @@ class _SeePostState extends State<SeePost> {
                   return Container(); // handle the case where data does not exist
                 }
                 final products = snapshot.data!.docs;
-                return ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: products.length,
-                  itemBuilder: (context, index) {
-                    return ProductCard(snap: products[index].data());
-                  },
-                );
+                return ProductCard(snap: products[0].data());
               },
             ),
             StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
@@ -136,13 +130,8 @@ class _SeePostState extends State<SeePost> {
                   return Container(); // handle the case where data does not exist
                 }
                 final votations = snapshot.data!.docs;
-                return ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: votations.length,
-                  itemBuilder: (context, index) {
-                    return VotationCard(snap: votations[index].data());
-                  },
-                );
+
+                return VotationCard(snap: votations[0].data());
               },
             ),
             StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
@@ -152,13 +141,7 @@ class _SeePostState extends State<SeePost> {
                   return Container(); // handle the case where data does not exist
                 }
                 final cloth = snapshot.data!.docs;
-                return ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: cloth.length,
-                  itemBuilder: (context, index) {
-                    return ClothCard(snap: cloth[index].data());
-                  },
-                );
+                return ClothCard(snap: cloth[0].data());
               },
             ),
           ],

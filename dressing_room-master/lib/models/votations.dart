@@ -4,6 +4,7 @@ class Votation {
   final String uid;
   final String username;
   final votes;
+
   final String votationId;
   final DateTime datePublished;
   final List<VotationOption> options;
@@ -28,8 +29,8 @@ class Votation {
       votes: snapshot["votes"],
       votationId: snapshot["votationId"],
       datePublished: snapshot["datePublished"].toDate(),
-      options: List<VotationOption>.from(snapshot['options']
-          .map((option) => VotationOption.fromMap(option))),
+      options: List<VotationOption>.from(
+          snapshot['options'].map((option) => VotationOption.fromMap(option))),
       profImage: snapshot['profImage'],
     );
   }
@@ -48,16 +49,22 @@ class Votation {
 class VotationOption {
   final String description;
   final String photoUrl;
+  final List<String>? pecasID;
+  final List<String>? pecasPhotoUrls;
 
   const VotationOption({
     required this.description,
     required this.photoUrl,
+    required this.pecasID,
+    required this.pecasPhotoUrls,
   });
 
   factory VotationOption.fromMap(Map<String, dynamic> map) {
     return VotationOption(
       description: map['description'],
       photoUrl: map['photoUrl'],
+      pecasID: map['pecasID'],
+      pecasPhotoUrls: map['pecasPhotoUrls'],
     );
   }
 
@@ -65,6 +72,8 @@ class VotationOption {
     return {
       'description': description,
       'photoUrl': photoUrl,
+      'pecasID': pecasID,
+      'pecasPhotoUrls': pecasPhotoUrls
     };
   }
 }

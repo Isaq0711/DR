@@ -7,22 +7,30 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:dressing_room/utils/colors.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
-import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:dressing_room/screens/favorites_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:dressing_room/screens/calendar.dart';
+import 'package:dressing_room/widgets/calendar.dart';
+import 'my_wardrobe.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
 import 'package:dressing_room/utils/utils.dart';
 
 class OutfitScreen extends StatefulWidget {
   final String uid;
   final DateTime DATA;
+  final List<String>? TroncoList;
+  final List<String>? PernasList;
+  final List<String>? PesList;
+  final List<String>? TroncoIds;
+  final List<String>? PernasIds;
+  final List<String>? PesIds;
+  final List<int>? conditions;
+  final List<String>? forecast;
+  final String? cityName;
+
   final int? troncoIndex;
   final int? pernasIndex;
   final int? pesIndex;
@@ -31,6 +39,15 @@ class OutfitScreen extends StatefulWidget {
       {Key? key,
       required this.uid,
       required this.DATA,
+      required this.TroncoList,
+      required this.PernasList,
+      required this.PesList,
+      required this.TroncoIds,
+      required this.PernasIds,
+      required this.PesIds,
+      required this.conditions,
+      required this.forecast,
+      required this.cityName,
       required this.pernasIndex,
       required this.pesIndex,
       required this.troncoIndex})
@@ -48,10 +65,124 @@ class _OutfitScreenState extends State<OutfitScreen> {
     );
   }
 
-  void goToMenu() {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => WardrobeMenu()),
-      (route) => false,
+  void _showWardrobe(BuildContext context, List<String>? images,
+      PageController controller, int initialIndex) async {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return Container(
+              height: 650.h,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppTheme.cinza,
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(30),
+                  ),
+                ),
+                width: double.infinity,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 6,
+                            margin: const EdgeInsets.only(top: 16, bottom: 4),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(50),
+                              color: AppTheme.nearlyWhite,
+                            ),
+                          ),
+                          Gap(5),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 20),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Expanded(
+                                  child: Center(
+                                    child: Text(
+                                      'WARDROBE',
+                                      style: AppTheme.barapp.copyWith(
+                                        shadows: [
+                                          Shadow(
+                                            blurRadius: 2.0,
+                                            color: Colors.black,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                  icon: Icon(
+                                    Icons.check,
+                                    color: AppTheme.nearlyBlack,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Gap(15),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 10),
+                            child: GridView.builder(
+                              shrinkWrap: true,
+                              itemCount: images!.length,
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 3,
+                                mainAxisSpacing: 10.0,
+                              ),
+                              itemBuilder: (context, index) {
+                                bool isIndex = index == initialIndex;
+                                return ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: isIndex
+                                            ? AppTheme.vinho
+                                            : Colors.transparent,
+                                        width: 4.0,
+                                      ),
+                                      borderRadius: BorderRadius.circular(10.0),
+                                    ),
+                                    child: InkWell(
+                                      child: Image.network(
+                                        images![index],
+                                        fit: BoxFit.fill,
+                                      ),
+                                      onTap: () {
+                                        setState(() {
+                                          controller.jumpToPage(index);
+                                          initialIndex = index;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          )
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -60,6 +191,8 @@ class _OutfitScreenState extends State<OutfitScreen> {
   final TextEditingController _usernameController = TextEditingController();
 
   bool isLoading = false;
+  List<String>? pecasID;
+  List<String>? pecasPhotoUrls;
   final Map<String, List<String>> clothingItems = {
     "Top (cabeça)": [
       "chapéu",
@@ -139,62 +272,6 @@ class _OutfitScreenState extends State<OutfitScreen> {
   List<String> ids = [];
 
   List<String> clothItens = [];
-  Future<Map<String, List<String>>> getCategoryItems(
-      List<String> clothItens, List<String> photoUrls) async {
-    Map<String, List<String>> categoryItems = {};
-
-    for (int i = 0; i < clothItens.length; i++) {
-      String clothId = clothItens[i];
-      String photoUrl = photoUrls[i];
-
-      var clothDataSnap = await FirebaseFirestore.instance
-          .collection('clothes')
-          .doc(clothId)
-          .get();
-
-      String tipo = clothDataSnap['category'];
-
-      clothingItems.forEach((category, types) {
-        if (types.contains(tipo)) {
-          if (categoryItems.containsKey(category)) {
-            categoryItems[category]!.add(photoUrl);
-          } else {
-            categoryItems[category] = [photoUrl];
-          }
-        }
-      });
-    }
-
-    return categoryItems;
-  }
-
-  Future<Map<String, List<String>>> getCategoryIds(
-      List<String> clothItens) async {
-    Map<String, List<String>> categoryIds = {};
-
-    for (int i = 0; i < clothItens.length; i++) {
-      String clothId = clothItens[i];
-
-      var clothDataSnap = await FirebaseFirestore.instance
-          .collection('clothes')
-          .doc(clothId)
-          .get();
-
-      String tipo = clothDataSnap['category'];
-
-      clothingItems.forEach((category, types) {
-        if (types.contains(tipo)) {
-          if (categoryIds.containsKey(category)) {
-            categoryIds[category]!.add(clothId);
-          } else {
-            categoryIds[category] = [clothId];
-          }
-        }
-      });
-    }
-
-    return categoryIds;
-  }
 
   List<String> correspondingCategories = [];
   List<String> photoUrls = [];
@@ -203,20 +280,17 @@ class _OutfitScreenState extends State<OutfitScreen> {
   PageController _shirtController = PageController();
   PageController _pantsController = PageController();
   PageController _shoesController = PageController();
-  Future<WeatherModel>? gettempo;
+
   @override
   void initState() {
     super.initState();
-    setState(() {
-      gettempo = getWheather(true, "");
-    });
+    setState(() {});
     indexTempo = (calculateIndexFromDate(widget.DATA));
     dataEscolhida = widget.DATA;
     initializeDateFormatting('pt_BR', null);
     _shirtController = PageController(initialPage: widget.troncoIndex ?? 0);
     _pantsController = PageController(initialPage: widget.pernasIndex ?? 0);
     _shoesController = PageController(initialPage: widget.pesIndex ?? 0);
-    getData();
   }
 
   Future<Uint8List> takeScreenshot() async {
@@ -277,7 +351,11 @@ class _OutfitScreenState extends State<OutfitScreen> {
         builder: (BuildContext context) {
           return Dialog(
             backgroundColor: AppTheme.cinza,
-            child: CalendarScreen(title: "Choose Date", Dataaa: dataEscolhida!),
+            child: CalendarWidget(
+              title: "Choose Date",
+              Dataaa: dataEscolhida!,
+              isWidget: true,
+            ),
           );
         });
 
@@ -295,61 +373,6 @@ class _OutfitScreenState extends State<OutfitScreen> {
     int differenceInDays = chosenDate.difference(currentDate).inDays;
 
     return differenceInDays;
-  }
-
-  getData() async {
-    setState(() {
-      isLoading = true;
-    });
-
-    try {
-      var userSnap = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.uid)
-          .get();
-
-      userData = userSnap.data()!;
-
-      var clothesSnap = await FirebaseFirestore.instance
-          .collection('wardrobe')
-          .doc(widget.uid)
-          .collection('clothes')
-          .get();
-
-      clothItens.clear();
-      photoUrls.clear();
-
-      await Future.forEach(clothesSnap.docs, (doc) async {
-        String clothId = doc['clothId'];
-
-        clothItens.add(clothId);
-        var clothDataSnap = await FirebaseFirestore.instance
-            .collection('clothes')
-            .doc(clothId)
-            .get();
-
-        String photoUrl = clothDataSnap['photoUrl'];
-
-        photoUrls.add(photoUrl);
-      });
-
-      Map<String, List<String>> fetchedCategoryItems =
-          await getCategoryItems(clothItens, photoUrls);
-      Map<String, List<String>> fetchedCategoryIds =
-          await getCategoryIds(clothItens);
-
-      setState(() {
-        categoryItems = fetchedCategoryItems;
-        categoryIds = fetchedCategoryIds;
-      });
-    } catch (e) {
-      showSnackBar(context, e.toString());
-      print(e);
-    }
-
-    setState(() {
-      isLoading = false;
-    });
   }
 
   Widget buildImageList(
@@ -396,18 +419,20 @@ class _OutfitScreenState extends State<OutfitScreen> {
                   right: 70,
                   top: 4,
                   child: Visibility(
-                    visible: notPrinting,
-                    child: IconButton(
-                      icon: ImageIcon(
-                        AssetImage(
-                          'assets/CABIDE.png',
+                      visible: notPrinting,
+                      child: IconButton(
+                        icon: ImageIcon(
+                          AssetImage(
+                            'assets/CABIDE.png',
+                          ),
+                          color: AppTheme.nearlyBlack,
+                          size: 30,
                         ),
-                        color: AppTheme.nearlyBlack,
-                        size: 30,
-                      ),
-                      onPressed: () {},
-                    ),
-                  )),
+                        onPressed: () {
+                          _showWardrobe(context, images, controller,
+                              controller.page!.round());
+                        },
+                      ))),
               Positioned(
                   right: 45,
                   child: Visibility(
@@ -494,11 +519,9 @@ class _OutfitScreenState extends State<OutfitScreen> {
                           capturedImage,
                           widget.uid,
                           dataEscolhida!,
-                          categoryIds['Tronco']![
-                              _shirtController.page!.round()],
-                          categoryIds['Pernas']![
-                              _pantsController.page!.round()],
-                          categoryIds['Pés']![_shoesController.page!.round()]);
+                          widget.TroncoIds![_shirtController.page!.round()],
+                          widget.PernasIds![_pantsController.page!.round()],
+                          widget.PesIds![_shoesController.page!.round()]);
 
                       setState(() {
                         notPrinting = true;
@@ -548,65 +571,35 @@ class _OutfitScreenState extends State<OutfitScreen> {
                           children: [
                             indexTempo >= 40
                                 ? SizedBox.shrink()
-                                : FutureBuilder<WeatherModel>(
-                                    future: gettempo,
-                                    builder: (ctx, snapshot) {
-                                      if (snapshot.connectionState ==
-                                          ConnectionState.done) {
-                                        if (snapshot.hasData) {
-                                          final tempo =
-                                              snapshot.data as WeatherModel;
-                                          return Row(
-                                            children: [
-                                              Column(
-                                                children: [
-                                                  Text(
-                                                    tempo.cityName[0],
-                                                    style: TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: Colors.black,
-                                                    ),
-                                                  ),
-                                                  Text(
-                                                    '${double.parse(tempo.temp[indexTempo]).round()}°C',
-                                                    style: TextStyle(
-                                                      fontSize: 16,
-                                                      color: Colors.black,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              Gap(8),
-                                              Text(
-                                                getIcon(tempo
-                                                    .condition[indexTempo]),
-                                                style: TextStyle(fontSize: 25),
-                                              ),
-                                            ],
-                                          );
-                                        } else if (snapshot.connectionState ==
-                                            ConnectionState.waiting) {
-                                          return Center(
-                                            child: CircularProgressIndicator(),
-                                          );
-                                        } else {
-                                          return Center(
-                                            child: Text(
-                                                "${snapshot.connectionState} occurred",
-                                                style: AppTheme.barapp),
-                                          );
-                                        }
-                                      } else {
-                                        return Center(
-                                          child: Text(
-                                            "Server timed out!",
-                                            style: AppTheme.barapp,
+                                : Row(
+                                    children: [
+                                      Column(
+                                        children: [
+                                          Text(
+                                            widget.cityName!,
+                                            style: GoogleFonts.bebasNeue(
+                                              fontSize: 16,
+                                              letterSpacing: 1.7,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black,
+                                            ),
                                           ),
-                                        );
-                                      }
-                                    },
+                                          Text(
+                                            '${double.parse(widget.forecast![indexTempo]).round()}°C',
+                                            style: GoogleFonts.quicksand(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Gap(8),
+                                      Text(
+                                        getIcon(widget.conditions![indexTempo]),
+                                        style: TextStyle(fontSize: 25),
+                                      ),
+                                    ],
                                   ),
                             Gap(35),
                             FloatingActionButton.extended(
@@ -663,11 +656,11 @@ class _OutfitScreenState extends State<OutfitScreen> {
                             key: _globalKey,
                             child: Column(
                               children: [
-                                buildImageList(categoryItems['Tronco'] ?? [],
+                                buildImageList(widget.TroncoList ?? [],
                                     _shirtController, widget.troncoIndex!),
-                                buildImageList(categoryItems['Pernas'] ?? [],
+                                buildImageList(widget.PernasList ?? [],
                                     _pantsController, widget.pernasIndex!),
-                                buildImageList(categoryItems['Pés'] ?? [],
+                                buildImageList(widget.PesList ?? [],
                                     _shoesController, widget.pesIndex!),
                                 Gap(20),
                               ],

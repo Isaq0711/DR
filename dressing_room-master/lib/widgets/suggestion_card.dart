@@ -18,10 +18,16 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
 class SuggestionCard extends StatefulWidget {
-  const SuggestionCard({Key? key, required this.postId}) : super(key: key);
+  const SuggestionCard(
+      {Key? key,
+      required this.postId,
+      required this.category,
+      required this.uid})
+      : super(key: key);
 
   final String? postId;
-
+  final String category;
+  final String? uid;
   @override
   _SuggestionCardState createState() => _SuggestionCardState();
 }
@@ -253,14 +259,14 @@ class _SuggestionCardState extends State<SuggestionCard>
     });
   }
 
-  getData() async {
+  getData(String selectedID) async {
     setState(() {
       isLoading = true;
     });
     try {
       var clothesSnap = await FirebaseFirestore.instance
           .collection('wardrobe')
-          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .doc(selectedID)
           .collection('clothes')
           .get();
 
@@ -305,8 +311,6 @@ class _SuggestionCardState extends State<SuggestionCard>
   @override
   void initState() {
     super.initState();
-
-    getData();
   }
 
   @override
@@ -581,7 +585,7 @@ class _SuggestionCardState extends State<SuggestionCard>
     );
   }
 
-  Widget exibir_wardrobe(String uid) {
+  Widget exibir_wardrobe() {
     final List<String> categories = clothingItems.keys.toList();
     late TabController _tabController;
     _tabController = TabController(length: 2, vsync: this);
@@ -595,7 +599,7 @@ class _SuggestionCardState extends State<SuggestionCard>
               child: IconButton(
                 onPressed: () {
                   setState(() {
-                    selected = null;
+                    selected = "wardrobe";
                   });
                 },
                 icon: Icon(
@@ -914,7 +918,7 @@ class _SuggestionCardState extends State<SuggestionCard>
                                       FirebaseAuth.instance.currentUser!.uid,
                                       photoUrls,
                                       postIds,
-                                      "posts");
+                                      widget.category);
 
                                   setState(() {
                                     isLoading = false;
@@ -1021,7 +1025,7 @@ class _SuggestionCardState extends State<SuggestionCard>
                       padding: EdgeInsets.symmetric(horizontal: 10),
                       child: SingleChildScrollView(
                           child: SizedBox(
-                        height: photoUrls.isEmpty ? 400.h : 350.h,
+                        height: photoUrls.isEmpty ? 450.h : 350.h,
                         child: selected == null
                             ? ListView(
                                 children: [
@@ -1035,6 +1039,7 @@ class _SuggestionCardState extends State<SuggestionCard>
                                         onPressed: () {
                                           setState(() {
                                             selected = "wardrobe";
+                                            print(widget.uid!);
                                           });
                                         },
                                         style: ElevatedButton.styleFrom(
@@ -1151,21 +1156,106 @@ class _SuggestionCardState extends State<SuggestionCard>
                                 ],
                               )
                             : selected == 'wardrobe'
-                                ? exibir_wardrobe(
-                                    FirebaseAuth.instance.currentUser!.uid)
-                                : selected == 'search'
-                                    ? Container() // replace `container` with the actual widget you want to display
-                                    : selected == 'products'
-                                        ? SingleChildScrollView(
-                                            // Wrap with SingleChildScrollView
-                                            child: SizedBox(
-                                              height: 450.h,
-                                              child: exibir_products(
-                                                  FirebaseAuth.instance
-                                                      .currentUser!.uid),
-                                            ),
-                                          )
-                                        : Container(), // You might want to handle other cases
+                                ? ListView(
+                                    children: [
+                                      Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: IconButton(
+                                          onPressed: () {
+                                            setState(() {
+                                              selected = null;
+                                            });
+                                          },
+                                          icon: Icon(
+                                            Icons.arrow_back_ios,
+                                            color: AppTheme.nearlyBlack,
+                                          ),
+                                        ),
+                                      ),
+                                      GridView.builder(
+                                        shrinkWrap: true,
+                                        physics: NeverScrollableScrollPhysics(),
+                                        itemCount: 2,
+                                        gridDelegate:
+                                            SliverGridDelegateWithFixedCrossAxisCount(
+                                                crossAxisCount:
+                                                    1, // Alterado para uma coluna
+                                                crossAxisSpacing: 60.0,
+                                                mainAxisSpacing: 30.0,
+                                                childAspectRatio:
+                                                    photoUrls.isEmpty
+                                                        ? 10 / 5
+                                                        : 9 / 3),
+                                        itemBuilder: (context, index) {
+                                          return Padding(
+                                              padding: EdgeInsets.symmetric(
+                                                  horizontal: 40),
+                                              child: ElevatedButton(
+                                                onPressed: () {
+                                                  setState(() {
+                                                    if (index == 0) {
+                                                      selected = "my_wardrobe";
+                                                      clothItens.clear();
+                                                      wardrobephotoUrls.clear();
+                                                      categoryItems.clear();
+                                                      category = null;
+                                                      getData(FirebaseAuth
+                                                          .instance
+                                                          .currentUser!
+                                                          .uid);
+                                                    } else {
+                                                      selected =
+                                                          "users_wardrobe";
+                                                      clothItens
+                                                          .clear(); // Limpa a lista de itens de roupa
+                                                      wardrobephotoUrls.clear();
+                                                      categoryItems.clear();
+                                                      category = null;
+                                                      getData(widget.uid!);
+                                                    }
+                                                  });
+                                                },
+                                                style: ElevatedButton.styleFrom(
+                                                  padding: EdgeInsets.all(20.0),
+                                                  backgroundColor:
+                                                      AppTheme.vinho,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            10.0),
+                                                  ),
+                                                ),
+                                                child: Text(
+                                                  index == 0
+                                                      ? "My Wardrobe"
+                                                      : "User's Wardrobe",
+                                                  style:
+                                                      AppTheme.subheadlinewhite,
+                                                ),
+                                              ));
+                                        },
+                                      )
+                                    ],
+                                  )
+                                : selected == 'my_wardrobe'
+                                    ? exibir_wardrobe()
+                                    : selected == 'users_wardrobe'
+                                        ? exibir_wardrobe()
+                                        : selected == 'search'
+                                            ? Container()
+                                            : selected == 'products'
+                                                ? SingleChildScrollView(
+                                                    // Wrap with SingleChildScrollView
+                                                    child: SizedBox(
+                                                      height: 450.h,
+                                                      child: exibir_products(
+                                                          FirebaseAuth
+                                                              .instance
+                                                              .currentUser!
+                                                              .uid),
+                                                    ),
+                                                  )
+                                                : Container(), // You might want to handle other cases
                       )),
                     )
                   ],

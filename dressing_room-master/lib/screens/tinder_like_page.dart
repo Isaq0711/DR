@@ -1,9 +1,10 @@
 import 'dart:math';
-import 'package:dressing_room/screens/calendar.dart';
+import 'package:dressing_room/widgets/calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:dressing_room/utils/colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:dressing_room/screens/outfit_screen.dart';
@@ -24,6 +25,13 @@ class TinderScreen extends StatefulWidget {
 }
 
 class _TinderScreenState extends State<TinderScreen> {
+  Future<WeatherModel> getWheather(bool isCurrentCity, String cityName) async {
+    return await CallToWeatherApi().callWeatherAPi(
+      isCurrentCity,
+      cityName,
+    );
+  }
+
   var userData = {};
   List<Map<String, dynamic>>? clothData;
   final TextEditingController _usernameController = TextEditingController();
@@ -101,6 +109,7 @@ class _TinderScreenState extends State<TinderScreen> {
   };
   String? category;
   List<String> ids = [];
+  Map<String, List<String>> categoryIds = {};
   List<String> fotosUrls = [];
   List<String> clothItens = [];
 
@@ -133,11 +142,13 @@ class _TinderScreenState extends State<TinderScreen> {
     return categoryItems;
   }
 
+  Future<WeatherModel>? gettempo;
+  WeatherModel? tempo;
   List<String> correspondingCategories = [];
   DateTime? dataEscolhida;
   List<String> photoUrls = [];
   Map<String, List<String>> categoryItems = {};
-
+  int indexTempo = 0;
   List<int> troncoIndexes = [];
   List<int> pernasIndexes = [];
   List<int> pesIndexes = [];
@@ -148,9 +159,31 @@ class _TinderScreenState extends State<TinderScreen> {
   @override
   void initState() {
     super.initState();
+    setState(() {
+      gettempo = getWheather(true, "");
+    });
+    indexTempo = (calculateIndexFromDate(DateTime.now()));
     dataEscolhida = DateTime.now();
     initializeDateFormatting('pt_BR', null);
+
     getData();
+  }
+
+  int calculateIndexFromDate(DateTime chosenDate) {
+    DateTime currentDate = DateTime.now();
+
+    int differenceInDays = chosenDate.difference(currentDate).inDays;
+
+    return differenceInDays;
+  }
+
+  void getWeatherData() async {
+    try {
+      tempo = await getWheather(true, "");
+    } catch (e) {
+      print(e);
+      // Handle the error appropriately here
+    }
   }
 
   void showCalendar(context) async {
@@ -158,14 +191,19 @@ class _TinderScreenState extends State<TinderScreen> {
         context: context,
         builder: (BuildContext context) {
           return Dialog(
-              backgroundColor: AppTheme.cinza,
-              child:
-                  CalendarScreen(title: "Choose Date", Dataaa: dataEscolhida!));
+            backgroundColor: AppTheme.cinza,
+            child: CalendarWidget(
+              title: "Choose Date",
+              Dataaa: dataEscolhida!,
+              isWidget: true,
+            ),
+          );
         });
 
     if (data != null) {
       setState(() {
         dataEscolhida = data;
+        indexTempo = calculateIndexFromDate(data);
       });
     }
   }
@@ -213,6 +251,34 @@ class _TinderScreenState extends State<TinderScreen> {
     );
   }
 
+  Future<Map<String, List<String>>> getCategoryIds(
+      List<String> clothItens) async {
+    Map<String, List<String>> categoryIds = {};
+
+    for (int i = 0; i < clothItens.length; i++) {
+      String clothId = clothItens[i];
+
+      var clothDataSnap = await FirebaseFirestore.instance
+          .collection('clothes')
+          .doc(clothId)
+          .get();
+
+      String tipo = clothDataSnap['category'];
+
+      clothingItems.forEach((category, types) {
+        if (types.contains(tipo)) {
+          if (categoryIds.containsKey(category)) {
+            categoryIds[category]!.add(clothId);
+          } else {
+            categoryIds[category] = [clothId];
+          }
+        }
+      });
+    }
+
+    return categoryIds;
+  }
+
   getData() async {
     setState(() {
       isLoading = true;
@@ -248,13 +314,16 @@ class _TinderScreenState extends State<TinderScreen> {
 
         photoUrls.add(photoUrl);
       });
+      getWeatherData();
 
       Map<String, List<String>> fetchedCategoryItems =
           await getCategoryItems(clothItens, photoUrls);
+      Map<String, List<String>> fetchedCategoryIds =
+          await getCategoryIds(clothItens);
 
       setState(() {
         categoryItems = fetchedCategoryItems;
-
+        categoryIds = fetchedCategoryIds;
         troncoIndex = Random().nextInt(categoryItems['Tronco']!.length);
         pernaIndex = Random().nextInt(categoryItems['Pernas']!.length);
         pesIndex = Random().nextInt(categoryItems['Pés']!.length);
@@ -290,6 +359,26 @@ class _TinderScreenState extends State<TinderScreen> {
 
   @override
   Widget build(BuildContext context) {
+    String getIcon(int condition) {
+      if (condition < 300) {
+        return '🌩';
+      } else if (condition < 400) {
+        return '🌧';
+      } else if (condition < 600) {
+        return '☔️';
+      } else if (condition < 700) {
+        return '☃️';
+      } else if (condition < 800) {
+        return '🌫';
+      } else if (condition == 800) {
+        return '☀️';
+      } else if (condition <= 804) {
+        return '☁️';
+      } else {
+        return '🤷‍';
+      }
+    }
+
     return isLoading
         ? const Center(
             child: CircularProgressIndicator(),
@@ -327,35 +416,63 @@ class _TinderScreenState extends State<TinderScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          backgroundColor: AppTheme.vinho,
-                          child: Icon(Icons.wb_sunny, color: Colors.white),
-                        ),
-                        Gap(8),
-                        Column(
-                          children: [
-                            Text(
-                              'Sunny',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
+                    indexTempo >= 40
+                        ? SizedBox.shrink()
+                        : tempo != null
+                            ? Row(
+                                children: [
+                                  Column(
+                                    children: [
+                                      Text(
+                                        tempo!.cityName[0],
+                                        style: GoogleFonts.bebasNeue(
+                                          fontSize: 16,
+                                          letterSpacing: 1.7,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${double.parse(tempo!.temp[indexTempo]).round()}°C',
+                                        style: GoogleFonts.quicksand(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Gap(8),
+                                  Text(
+                                    getIcon(tempo!.condition[indexTempo]),
+                                    style: TextStyle(fontSize: 25),
+                                  ),
+                                ],
+                              )
+                            : Center(
+                                child: Text(
+                                  "Failed to load weather data!",
+                                  style: AppTheme.barapp,
+                                ),
                               ),
-                            ),
-                            Text(
-                              '30°C',
-                              style:
-                                  TextStyle(fontSize: 16, color: Colors.black),
-                            ),
-                          ],
-                        ),
-                      ],
+                    Gap(35),
+                    FloatingActionButton.extended(
+                      onPressed: () {
+                        setState(() {});
+                      },
+                      backgroundColor: AppTheme.vinho,
+                      elevation: 2.0,
+                      label: Text("CANVAS", style: AppTheme.subtitlewhite),
+                      icon: Icon(Icons.draw_outlined, color: Colors.white),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        side: BorderSide(color: AppTheme.darkerText),
+                      ),
                     ),
                   ],
                 ),
               ),
+              Gap(15),
               Padding(
                   padding: EdgeInsets.symmetric(horizontal: 12),
                   child: Row(
@@ -437,6 +554,19 @@ class _TinderScreenState extends State<TinderScreen> {
                                       context,
                                       MaterialPageRoute(
                                           builder: (context) => OutfitScreen(
+                                                TroncoList:
+                                                    categoryItems['Tronco']!,
+                                                PernasList:
+                                                    categoryItems['Pernas']!,
+                                                PesList: categoryItems['Pés']!,
+                                                TroncoIds:
+                                                    categoryIds['Tronco']!,
+                                                PernasIds:
+                                                    categoryIds['Pernas']!,
+                                                PesIds: categoryIds['Pés']!,
+                                                conditions: tempo!.condition,
+                                                forecast: tempo!.temp,
+                                                cityName: tempo!.cityName[0],
                                                 DATA: dataEscolhida!,
                                                 uid: FirebaseAuth
                                                     .instance.currentUser!.uid,

@@ -49,7 +49,6 @@ class _AddPostScreenState extends State<AddPostScreen> {
   int _currentPageIndex = 0;
 
   @override
-  @override
   void initState() {
     super.initState();
     _files = [];
@@ -63,7 +62,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
     }
   }
 
-  void _showSuggestionMenu(BuildContext context) async {
+  void _showWardrobe(BuildContext context, String uid) async {
     var wardrobeResult = await showModalBottomSheet(
       backgroundColor: AppTheme.cinza,
       context: context,
@@ -72,6 +71,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
         return Container(
           height: 650.h,
           child: Wardrobe(
+            uid: uid,
             isDialog: true,
           ),
         );
@@ -539,7 +539,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                                                   .vinho), // Cor de fundo do botão
                                         ),
                                         onPressed: () {
-                                          _showSuggestionMenu(context);
+                                          _showWardrobe(context, user.uid);
                                         },
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,

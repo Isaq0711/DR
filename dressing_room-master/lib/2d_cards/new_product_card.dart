@@ -248,121 +248,107 @@ class _NewProductCardState extends State<NewProductCard> {
                             builder:
                                 (BuildContext context, StateSetter setState) {
                               return Padding(
-                                  padding: EdgeInsets.all(8),
-                                  child: ListView(
-                                    children: [
-                                      Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          SizedBox(
-                                            height: MediaQuery.of(context)
-                                                    .size
-                                                    .height *
-                                                0.5,
-                                            width: double.infinity,
-                                            child: ClipRRect(
+                                padding: EdgeInsets.all(8),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SizedBox(
+                                      height:
+                                          MediaQuery.of(context).size.height *
+                                              0.7,
+                                      width: double.infinity,
+                                      child: ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(10.0),
+                                        child: PageView.builder(
+                                          itemCount:
+                                              widget.snap['variations'].length,
+                                          controller: PageController(
+                                              initialPage: currentImageIndex),
+                                          onPageChanged: (index) {
+                                            setState(() {
+                                              position = index;
+                                            });
+                                          },
+                                          itemBuilder: (context, index) {
+                                            return ClipRRect(
                                               borderRadius:
-                                                  BorderRadius.circular(10.0),
-                                              child: PageView.builder(
-                                                itemCount: widget
-                                                    .snap['variations'].length,
-                                                controller: PageController(
-                                                    initialPage:
-                                                        currentImageIndex),
-                                                onPageChanged: (index) {
-                                                  setState(() {
-                                                    position = index;
-                                                  });
-                                                },
-                                                itemBuilder: (context, index) {
-                                                  return ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            25.0),
-                                                    child: Image.network(
-                                                      widget.snap['variations']
-                                                              [index]
-                                                          ['photoUrls'][0],
-                                                      fit: BoxFit.cover,
-                                                    ),
-                                                  );
-                                                },
+                                                  BorderRadius.circular(25.0),
+                                              child: Image.network(
+                                                widget.snap['variations'][index]
+                                                    ['photoUrls'][0],
+                                                fit: BoxFit.cover,
                                               ),
-                                            ),
-                                          ),
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                vertical: 4.5),
-                                            child: widget.snap['variations']
-                                                        .length >
-                                                    1
-                                                ? DotsIndicator(
-                                                    dotsCount: widget
-                                                        .snap['variations']
-                                                        .length,
-                                                    position: position,
-                                                    decorator: DotsDecorator(
-                                                      color: Colors.grey,
-                                                      activeColor:
-                                                          AppTheme.vinho,
-                                                      spacing: const EdgeInsets
-                                                          .symmetric(
-                                                          horizontal: 4.0),
-                                                      size: const Size.square(
-                                                          8.0),
-                                                      activeSize:
-                                                          const Size(16.0, 8.0),
-                                                      activeShape:
-                                                          RoundedRectangleBorder(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(4.0),
-                                                      ),
-                                                    ),
-                                                  )
-                                                : SizedBox.shrink(),
-                                          ),
-                                          Padding(
-                                            padding: const EdgeInsets.all(10.0),
-                                            child: Center(
-                                              child: ElevatedButton(
-                                                onPressed: () {},
-                                                child: Padding(
-                                                  padding: const EdgeInsets.all(
-                                                      12.0),
-                                                  child: Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      Text(
-                                                        'Add to Cart',
-                                                        style: TextStyle(
-                                                            fontSize: 16),
-                                                      ),
-                                                      Gap(8),
-                                                      Icon(
-                                                        Icons.shopping_cart,
-                                                        size: 20,
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                                style: ElevatedButton.styleFrom(
-                                                  primary: AppTheme.vinho,
-                                                  onPrimary: Colors.white,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            16),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          )
-                                        ],
+                                            );
+                                          },
+                                        ),
                                       ),
-                                    ],
-                                  ));
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 4.5),
+                                      child: widget.snap['variations'].length >
+                                              1
+                                          ? DotsIndicator(
+                                              dotsCount: widget
+                                                  .snap['variations'].length,
+                                              position: position,
+                                              decorator: DotsDecorator(
+                                                color: Colors.grey,
+                                                activeColor: AppTheme.vinho,
+                                                spacing:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 4.0),
+                                                size: const Size.square(8.0),
+                                                activeSize:
+                                                    const Size(16.0, 8.0),
+                                                activeShape:
+                                                    RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          4.0),
+                                                ),
+                                              ),
+                                            )
+                                          : SizedBox.shrink(),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(10.0),
+                                      child: Center(
+                                        child: ElevatedButton(
+                                          onPressed: () {},
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(12.0),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  'Add to Cart',
+                                                  style:
+                                                      TextStyle(fontSize: 16),
+                                                ),
+                                                Gap(8),
+                                                Icon(
+                                                  Icons.shopping_cart,
+                                                  size: 20,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          style: ElevatedButton.styleFrom(
+                                            primary: AppTheme.vinho,
+                                            onPrimary: Colors.white,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              );
                             },
                           ),
                         );

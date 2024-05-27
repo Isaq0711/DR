@@ -4,6 +4,7 @@ import 'package:dressing_room/providers/bottton_nav_controller.dart';
 import 'package:dressing_room/providers/isshop_provider.dart';
 import 'package:dressing_room/responsive/mobile_screen_layout.dart';
 import 'package:dressing_room/responsive/responsive_layout.dart';
+import 'package:dressing_room/screens/forum_screen.dart';
 import 'package:dressing_room/screens/shopping_cart.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -127,7 +128,9 @@ class _FeedScreenState extends State<FeedScreen> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => ChatPage()),
+                            // MaterialPageRoute(builder: (context) => ChatPage()),
+                            MaterialPageRoute(
+                                builder: (context) => ForumPage()),
                           );
                         },
                       ),

@@ -11,6 +11,8 @@ class AppTheme {
   static Color cinza = Color(0xFFF1F1F1);
   static Color vinho = Color(0xFF6D123F);
   static Color vinhoescuro = Color(0xFF53191F);
+  static Color vinhoroxeado = Color(0xFF503743);
+
   static Color darkerText = Color(0xFF17262A);
   static Color lightText = Color(0xFF4A6572);
   static Color chipBackground = Color(0xFFEEF1F3);

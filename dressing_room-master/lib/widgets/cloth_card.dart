@@ -40,6 +40,15 @@ class _ClothCardState extends State<ClothCard> {
   String? profilePhoto;
   double rating = 0;
 
+  List<String> exemplodeimagens = [
+    'https://img.irroba.com.br/fit-in/600x600/filters:fill(fff):quality(80)/arieiaou/catalog/camisetas/img-3202.jpg',
+    'https://51117.cdn.simplo7.net/static/51117/sku/9e4ecc1f981a86f67bfbdae42b8cb91d.jpg',
+    'https://images.tcdn.com.br/img/img_prod/761391/camiseta_feminina_curtlo_active_fresh_azul_royal_1561_1_924d87ad859e83e0da96b3c7b14cdd5c.jpg',
+    'https://lojabbbasico.vteximg.com.br/arquivos/ids/209835-1000-1300/288_1.jpg?v=637717305968900000'
+        'https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcSKMKym0pqcXQoiJASv2HUe7fJ5MLpFJmisdbXFFGsdAXab-YE_2HK6FVil78whQUgLcVcem6nuD_Uyp3aBUHAFLxJwdaayaU2yVu66gKm3Jg-wQUiuIvmavA&usqp=CAE',
+    'https://img.ltwebstatic.com/images3_pi/2024/04/03/aa/1712127352889193a6c9c3d25558408b3035494023_thumbnail_900x.webp'
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -209,261 +218,380 @@ class _ClothCardState extends State<ClothCard> {
           return Container();
         }
 
-        return Container(
-          child: Column(
-            children: [
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    showinfo = !showinfo;
-                  });
-                },
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    SizedBox(
-                        height: 670.h,
-                        child: AspectRatio(
-                            aspectRatio: 9 / 16,
-                            child: InteractiveViewer(
-                                panEnabled: true,
-                                minScale: 0.1,
-                                maxScale: 4,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                  child: Image.network(
-                                    widget.snap['photoUrl'],
-                                    fit: BoxFit.cover,
-                                  ),
-                                )))),
-                    Positioned(
-                      top: 5,
-                      right: 10,
-                      child: Column(
-                        children: [
-                          Visibility(
-                            visible: showinfo,
-                            child: SpeedDial(
-                              direction: SpeedDialDirection.down,
-                              child: Icon(
-                                Icons.more_vert_rounded,
-                                size: 28,
-                              ),
-                              buttonSize: Size(1.0, 29.0),
-                              closeManually: false,
-                              curve: Curves.bounceIn,
-                              overlayColor: Colors.black,
-                              overlayOpacity: 0.5,
-                              backgroundColor: AppTheme.cinza,
-                              foregroundColor: Colors.black,
-                              elevation: 8.0,
-                              shape: CircleBorder(),
-                              children: [
-                                SpeedDialChild(
-                                  child: isOnMyWardrobe
-                                      ? ImageIcon(
-                                          AssetImage(
-                                            'assets/CLOSET-FILL.png',
-                                          ),
-                                          color: Colors.black.withOpacity(0.6),
-                                        )
-                                      : ImageIcon(
-                                          AssetImage(
-                                            'assets/CLOSET.png',
-                                          ),
-                                          color: Colors.black.withOpacity(0.6),
-                                        ),
-                                  backgroundColor: AppTheme.cinza,
-                                  onTap: () {
-                                    setState(() {
-                                      isOnMyWardrobe = !isOnMyWardrobe;
-                                      Future.delayed(
-                                          Duration(milliseconds: 500), () {
-                                        isOnMyWardrobe
-                                            ? showSnackBar(
-                                                context, 'Added to Wardrobe')
-                                            : showSnackBar(context,
-                                                'Removed from Wardrobe');
-                                      });
-                                    });
-                                    Future.microtask(() {
-                                      handleWardrobeAction(FirebaseAuth
-                                          .instance.currentUser!.uid);
-                                    });
-                                  },
+        return Column(
+          children: [
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  showinfo = !showinfo;
+                });
+              },
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  SizedBox(
+                      height: 690.h,
+                      child: AspectRatio(
+                          aspectRatio: 9 / 16,
+                          child: InteractiveViewer(
+                              panEnabled: true,
+                              minScale: 0.1,
+                              maxScale: 4,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10.0),
+                                child: Image.network(
+                                  widget.snap['photoUrl'],
+                                  fit: BoxFit.cover,
                                 ),
-                                SpeedDialChild(
-                                  child: Icon(
-                                    Icons.info_outline,
-                                    color: Colors.black.withOpacity(0.6),
-                                  ),
-                                  backgroundColor: AppTheme.cinza,
-                                  labelStyle: TextStyle(fontSize: 18.0),
-                                  onTap: () => print('THIRD CHILD'),
-                                ),
-                              ],
+                              )))),
+                  Positioned(
+                    top: 5,
+                    right: 10,
+                    child: Column(
+                      children: [
+                        Visibility(
+                          visible: showinfo,
+                          child: SpeedDial(
+                            direction: SpeedDialDirection.down,
+                            child: Icon(
+                              Icons.more_vert_rounded,
+                              size: 28,
                             ),
-                          )
-                        ],
-                      ),
+                            buttonSize: Size(1.0, 29.0),
+                            closeManually: false,
+                            curve: Curves.bounceIn,
+                            overlayColor: Colors.black,
+                            overlayOpacity: 0.5,
+                            backgroundColor: AppTheme.cinza,
+                            foregroundColor: Colors.black,
+                            elevation: 8.0,
+                            shape: CircleBorder(),
+                            children: [
+                              SpeedDialChild(
+                                child: isOnMyWardrobe
+                                    ? ImageIcon(
+                                        AssetImage(
+                                          'assets/CLOSET-FILL.png',
+                                        ),
+                                        color: Colors.black.withOpacity(0.6),
+                                      )
+                                    : ImageIcon(
+                                        AssetImage(
+                                          'assets/CLOSET.png',
+                                        ),
+                                        color: Colors.black.withOpacity(0.6),
+                                      ),
+                                backgroundColor: AppTheme.cinza,
+                                onTap: () {
+                                  setState(() {
+                                    isOnMyWardrobe = !isOnMyWardrobe;
+                                    Future.delayed(Duration(milliseconds: 500),
+                                        () {
+                                      isOnMyWardrobe
+                                          ? showSnackBar(
+                                              context, 'Added to Wardrobe')
+                                          : showSnackBar(
+                                              context, 'Removed from Wardrobe');
+                                    });
+                                  });
+                                  Future.microtask(() {
+                                    handleWardrobeAction(
+                                        FirebaseAuth.instance.currentUser!.uid);
+                                  });
+                                },
+                              ),
+                              SpeedDialChild(
+                                child: Icon(
+                                  Icons.info_outline,
+                                  color: Colors.black.withOpacity(0.6),
+                                ),
+                                backgroundColor: AppTheme.cinza,
+                                labelStyle: TextStyle(fontSize: 18.0),
+                                onTap: () => print('THIRD CHILD'),
+                              ),
+                            ],
+                          ),
+                        )
+                      ],
                     ),
-                    Positioned(
-                        bottom: 0,
-                        left: 0,
-                        child: Visibility(
-                            visible: showinfo,
-                            child: SizedBox(
-                                width: MediaQuery.of(context).size.width,
-                                child: Container(
-                                    color: AppTheme.cinza,
-                                    width: double.infinity,
-                                    child: Column(
-                                      children: [
-                                        Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 10, vertical: 5),
-                                            child: Column(children: [
-                                              Row(
-                                                children: <Widget>[
-                                                  CircleAvatar(
-                                                    radius: 16,
-                                                    backgroundImage:
-                                                        NetworkImage(
-                                                      profilePhoto.toString(),
-                                                    ),
-                                                    backgroundColor: Colors
-                                                        .transparent, // Define o fundo como transparente
+                  ),
+                  Positioned(
+                      bottom: 0,
+                      left: 0,
+                      child: Visibility(
+                          visible: showinfo,
+                          child: SizedBox(
+                              width: MediaQuery.of(context).size.width,
+                              child: Container(
+                                  color: AppTheme.cinza,
+                                  width: double.infinity,
+                                  child: Column(
+                                    children: [
+                                      Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 10, vertical: 5),
+                                          child: Column(children: [
+                                            Row(
+                                              children: <Widget>[
+                                                CircleAvatar(
+                                                  radius: 16,
+                                                  backgroundImage: NetworkImage(
+                                                    profilePhoto.toString(),
                                                   ),
-                                                  Expanded(
-                                                    child: Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                        left: 8,
-                                                      ),
-                                                      child: Column(
-                                                        mainAxisSize:
-                                                            MainAxisSize.min,
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: <Widget>[
-                                                          InkWell(
-                                                            onTap: () {
-                                                              Navigator.of(
-                                                                      context)
-                                                                  .push(
-                                                                MaterialPageRoute(
-                                                                  builder:
-                                                                      (context) =>
-                                                                          ProfileScreen(
-                                                                    uid: widget
-                                                                            .snap[
-                                                                        'uid'],
-                                                                  ),
-                                                                ),
-                                                              );
-                                                            },
-                                                            child: Text(
-                                                                username
-                                                                    .toString(),
-                                                                style: AppTheme
-                                                                    .subtitle),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              Gap(10),
-                                              Align(
-                                                  alignment: Alignment.topLeft,
+                                                  backgroundColor: Colors
+                                                      .transparent, // Define o fundo como transparente
+                                                ),
+                                                Expanded(
                                                   child: Padding(
                                                     padding:
                                                         const EdgeInsets.only(
-                                                            left: 4),
+                                                      left: 8,
+                                                    ),
+                                                    child: Column(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: <Widget>[
+                                                        InkWell(
+                                                          onTap: () {
+                                                            Navigator.of(
+                                                                    context)
+                                                                .push(
+                                                              MaterialPageRoute(
+                                                                builder:
+                                                                    (context) =>
+                                                                        ProfileScreen(
+                                                                  uid: widget
+                                                                          .snap[
+                                                                      'uid'],
+                                                                ),
+                                                              ),
+                                                            );
+                                                          },
+                                                          child: Text(
+                                                              username
+                                                                  .toString(),
+                                                              style: AppTheme
+                                                                  .subtitle),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            Gap(10),
+                                            Align(
+                                                alignment: Alignment.topLeft,
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          left: 4),
+                                                  child: Text(
+                                                      widget.snap['description']
+                                                          .toString(),
+                                                      style: AppTheme.subtitle),
+                                                ))
+                                          ])),
+                                      DefaultTextStyle(
+                                        style: TextStyle(
+                                            color: AppTheme.nearlyBlack,
+                                            fontFamily: 'Quicksand',
+                                            fontWeight: FontWeight.bold),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: <Widget>[
+                                            Gap(4),
+                                            Text(
+                                                "Categoria: " +
+                                                    widget.snap['category'],
+                                                style: AppTheme.dividerfont),
+                                            Stack(children: [
+                                              if (commentLen > 0)
+                                                Positioned(
+                                                  right: 3,
+                                                  top: 2,
+                                                  child: Container(
+                                                    padding: EdgeInsets.all(2),
+                                                    decoration: BoxDecoration(
+                                                      color: AppTheme.vinho,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              7),
+                                                    ),
+                                                    constraints: BoxConstraints(
+                                                      minWidth: 17,
+                                                      minHeight: 17,
+                                                    ),
                                                     child: Text(
-                                                        widget
-                                                            .snap['description']
-                                                            .toString(),
-                                                        style:
-                                                            AppTheme.subtitle),
-                                                  ))
-                                            ])),
-                                        DefaultTextStyle(
-                                          style: TextStyle(
-                                              color: AppTheme.nearlyBlack,
-                                              fontFamily: 'Quicksand',
-                                              fontWeight: FontWeight.bold),
+                                                      '$commentLen',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 10,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                    ),
+                                                  ),
+                                                ),
+                                              IconButton(
+                                                icon: Icon(
+                                                  Icons.comment_rounded,
+                                                  color: AppTheme.nearlyBlack,
+                                                ),
+                                                onPressed: () {
+                                                  _showComments(context);
+                                                },
+                                              ),
+                                            ]),
+                                            Text(
+                                              DateFormat.yMMMd().format(widget
+                                                  .snap['dateAdded']
+                                                  .toDate()),
+                                              style: AppTheme.caption,
+                                            ),
+                                            Gap(2),
+                                          ],
+                                        ),
+                                      ),
+                                      Gap(10),
+                                      Padding(
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 24),
                                           child: Row(
                                             mainAxisAlignment:
                                                 MainAxisAlignment.spaceBetween,
-                                            children: <Widget>[
-                                              Gap(4),
-                                              Text(
-                                                  "Categoria: " +
-                                                      widget.snap['category'],
-                                                  style: AppTheme.dividerfont),
-                                              Stack(children: [
-                                                if (commentLen > 0)
-                                                  Positioned(
-                                                    right: 3,
-                                                    top: 2,
-                                                    child: Container(
-                                                      padding:
-                                                          EdgeInsets.all(2),
-                                                      decoration: BoxDecoration(
-                                                        color: AppTheme.vinho,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(7),
-                                                      ),
-                                                      constraints:
-                                                          BoxConstraints(
-                                                        minWidth: 17,
-                                                        minHeight: 17,
-                                                      ),
-                                                      child: Text(
-                                                        '$commentLen',
-                                                        style: TextStyle(
-                                                          color: Colors.white,
-                                                          fontSize: 10,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                        ),
-                                                        textAlign:
-                                                            TextAlign.center,
-                                                      ),
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Text("106",
+                                                      style: AppTheme.caption),
+                                                  Gap(3),
+                                                  ImageIcon(
+                                                    AssetImage(
+                                                      'assets/CABIDE.png',
                                                     ),
+                                                    color: AppTheme.vinhoescuro,
                                                   ),
-                                                IconButton(
-                                                  icon: Icon(
-                                                    Icons.comment_rounded,
-                                                    color: AppTheme.nearlyBlack,
-                                                  ),
-                                                  onPressed: () {
-                                                    _showComments(context);
-                                                  },
-                                                ),
-                                              ]),
-                                              Text(
-                                                DateFormat.yMMMd().format(widget
-                                                    .snap['dateAdded']
-                                                    .toDate()),
-                                                style: AppTheme.caption,
+                                                ],
                                               ),
-                                              Gap(2),
+                                              Row(
+                                                children: [
+                                                  Text("35",
+                                                      style: AppTheme.caption),
+                                                  Gap(3),
+                                                  ImageIcon(
+                                                    AssetImage(
+                                                      'assets/CLOSET.png',
+                                                    ),
+                                                    color: AppTheme.vinhoescuro,
+                                                  ),
+                                                ],
+                                              ),
+                                              Row(
+                                                children: [
+                                                  Text("2.7",
+                                                      style: AppTheme.caption),
+                                                  Gap(3),
+                                                  Icon(
+                                                    Icons.star_border,
+                                                    color: AppTheme.vinhoescuro,
+                                                  ),
+                                                ],
+                                              )
                                             ],
-                                          ),
-                                        ),
-                                      ],
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                    ))))),
-                  ],
-                ),
+                                          )),
+                                      Gap(3),
+                                    ],
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                  ))))),
+                ],
               ),
-            ],
-          ),
+            ),
+            Gap(15),
+            Padding(
+                padding: EdgeInsets.symmetric(horizontal: 9),
+                child: Visibility(
+                    visible: showinfo,
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "  Peça geralmente usada com: ",
+                            style: AppTheme.dividerfont,
+                          ),
+                          Gap(2),
+                          SizedBox(
+                            height: 100.h,
+                            child: ListView.builder(
+                              itemCount: exemplodeimagens.length,
+                              scrollDirection: Axis.horizontal,
+                              itemBuilder: (context, index) {
+                                return GestureDetector(
+                                  onTap: () {},
+                                  child: Padding(
+                                    padding: EdgeInsets.all(3.0),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: Container(
+                                        width: 80,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey,
+                                        ),
+                                        child: Image(
+                                          image: NetworkImage(
+                                              exemplodeimagens[index]),
+                                          fit: BoxFit.fill,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          Gap(15),
+                          Text(
+                            "  Peças parecidas: ",
+                            style: AppTheme.dividerfont,
+                          ),
+                          Gap(2),
+                          SizedBox(
+                            height: 100.h,
+                            child: ListView.builder(
+                              itemCount: exemplodeimagens.length,
+                              scrollDirection: Axis.horizontal,
+                              itemBuilder: (context, index) {
+                                return GestureDetector(
+                                  onTap: () {},
+                                  child: Padding(
+                                    padding: EdgeInsets.all(3.0),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: Container(
+                                        width: 80,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey,
+                                        ),
+                                        child: Image(
+                                          image: NetworkImage(
+                                              exemplodeimagens[index]),
+                                          fit: BoxFit.fill,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          )
+                        ])))
+          ],
         );
       },
     );

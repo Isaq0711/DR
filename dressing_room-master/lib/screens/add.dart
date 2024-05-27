@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:dressing_room/utils/colors.dart';
 import 'add_post_screen.dart';
 import 'add_votations_screen.dart';
+import 'add_forum_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'test_api_screen.dart';
 import 'package:gap/gap.dart';
+
 import 'add_product_screen.dart';
 
 class AddPage extends StatelessWidget {
@@ -125,7 +127,7 @@ class AddPage extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => TestAPIScreen()),
+                              builder: (context) => AddForumScreen()),
                         );
                       },
                       style: ElevatedButton.styleFrom(
@@ -138,12 +140,12 @@ class AddPage extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
-                            CupertinoIcons.info_circle,
+                            Icons.chat_rounded,
                             size: 40,
                             color: AppTheme.nearlyWhite,
                           ),
                           Gap(10),
-                          Text('I.A.R.A', style: AppTheme.subheadlinewhite),
+                          Text('Fórum', style: AppTheme.subheadlinewhite),
                         ],
                       ),
                     ),

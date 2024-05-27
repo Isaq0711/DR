@@ -6,6 +6,7 @@ import 'package:dressing_room/models/votations.dart';
 import 'package:dressing_room/widgets/friends_list.dart';
 import 'package:flutter/material.dart';
 import 'package:dressing_room/widgets/tag_card.dart';
+import 'package:dressing_room/screens/forum_screen.dart';
 import 'package:dressing_room/resources/storage_methods.dart';
 import 'package:provider/provider.dart';
 import 'package:dressing_room/providers/bottton_nav_controller.dart';
@@ -122,9 +123,10 @@ class FireStoreMethods {
         String photoUrl = await StorageMethods()
             .uploadImageToStorage('votations', file, true);
         VotationOption option = VotationOption(
-          description: optionData['description'],
-          photoUrl: photoUrl,
-        );
+            description: optionData['description'],
+            photoUrl: photoUrl,
+            pecasID: optionData['pecasID'],
+            pecasPhotoUrls: optionData['pecasPhotoUrls']);
 
         options.add(option);
       }
@@ -191,6 +193,47 @@ class FireStoreMethods {
     } catch (err) {
       return err.toString();
     }
+  }
+
+  Future<String> uploadForum(
+    String description,
+    List<Uint8List> files,
+    List<String>? pecasIds,
+    List<String>? pecasPhotoUrls,
+    String uid,
+    String username,
+    String profImage,
+  ) async {
+    String res = "Some error occurred";
+    try {
+      List<String> photoUrls = [];
+
+      for (Uint8List file in files) {
+        String photoUrl =
+            await StorageMethods().uploadImageToStorage('forum', file, true);
+
+        photoUrls.add(photoUrl);
+      }
+
+      String forumId = const Uuid().v1();
+      Forum forum = Forum(
+        description: description,
+        uid: uid,
+        username: username,
+        forumId: forumId,
+        datePublished: DateTime.now(),
+        photoUrls: photoUrls,
+        pecasIds: pecasIds,
+        pecasPhotoUrls: pecasPhotoUrls,
+        profImage: profImage,
+      );
+
+      _firestore.collection('forum').doc(forumId).set(forum.toJson());
+      res = "success";
+    } catch (err) {
+      res = err.toString();
+    }
+    return res;
   }
 
   Future<String> createOrUpdateTabViewCollection(
@@ -941,14 +984,10 @@ class FireStoreMethods {
       String photoUrl = await StorageMethods()
           .uploadImageToStorage('looksdodia', photo, true);
 
-      String collectionName = '${data.day}-${data.month}-${data.year}';
       CollectionReference collectionRef =
-          _firestore.collection('calendar').doc(uid).collection(collectionName);
+          _firestore.collection('calendar').doc(uid).collection('looks');
 
-      String documentId =
-          Uuid().v4(); // You may need to import the uuid package
-
-      await collectionRef.doc(documentId).set({
+      await collectionRef.add({
         'data': data,
         'look': photoUrl,
         'uid': uid,

@@ -1,12 +1,10 @@
-import 'package:dressing_room/screens/handle_outside_media.dart';
+import 'package:dressing_room/widgets/calendar.dart';
 import 'package:dressing_room/screens/tinder_like_page.dart';
 import 'package:flutter/material.dart';
 import 'package:dressing_room/utils/colors.dart';
 import 'add_cloth_screen.dart';
 import 'package:gap/gap.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:dressing_room/screens/outfit_screen.dart';
 import 'package:dressing_room/screens/my_wardrobe.dart';
 
 class WardrobeMenu extends StatelessWidget {
@@ -48,7 +46,10 @@ class WardrobeMenu extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => Wardrobe(isDialog: false)),
+                              builder: (context) => Wardrobe(
+                                    isDialog: false,
+                                    uid: FirebaseAuth.instance.currentUser!.uid,
+                                  )),
                         );
                       },
                       style: ElevatedButton.styleFrom(
@@ -141,7 +142,11 @@ class WardrobeMenu extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => HandleOutsideMedia()),
+                              builder: (context) => CalendarWidget(
+                                    title: "Calendário",
+                                    Dataaa: DateTime.now(),
+                                    isWidget: false,
+                                  )),
                         );
                       },
                       style: ElevatedButton.styleFrom(

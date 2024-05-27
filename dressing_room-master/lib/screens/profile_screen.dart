@@ -101,8 +101,6 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   @override
   Widget build(BuildContext context) {
-    bool showAll =
-        FirebaseAuth.instance.currentUser!.uid == widget.uid ? true : false;
     return isLoading
         ? Center(
             child: CircularProgressIndicator(),
@@ -149,6 +147,28 @@ class _ProfileScreenState extends State<ProfileScreen>
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           InkWell(
+                            onTap: () {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return Dialog(
+                                    backgroundColor: Colors.transparent,
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        CircleAvatar(
+                                          backgroundColor: Colors.grey,
+                                          backgroundImage: NetworkImage(
+                                            userData['photoUrl'],
+                                          ),
+                                          radius: 119,
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              );
+                            },
                             child: CircleAvatar(
                               backgroundColor: Colors.grey,
                               backgroundImage: NetworkImage(
@@ -156,9 +176,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                               ),
                               radius: 45,
                             ),
-                            onTap: () {
-                              print(widget.uid);
-                            },
                           ),
                           Gap(16.h),
                           Text(
@@ -170,9 +187,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                             mainAxisSize: MainAxisSize.max,
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              buildStatColumn(postLen, "publications"),
-                              buildStatColumn(followers, "followers"),
-                              buildStatColumn(following, "following"),
+                              buildStatColumn(postLen, "lojas"),
+                              buildStatColumn(followers, "seguidores"),
+                              buildStatColumn(following, "seguindo"),
                             ],
                           ),
                           Gap(16.h),
@@ -216,7 +233,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                               },
                             ),
                           DefaultTabController(
-                              length: userData['tabviews'].length + 2,
+                              length: 4,
                               initialIndex: 0,
                               child: Column(children: [
                                 Container(
@@ -230,9 +247,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                                           ScrollbarOrientation.top,
                                       child: TabBar(
                                         tabAlignment: TabAlignment.center,
-                                        dividerColor: Colors.transparent,
+                                        dividerColor: AppTheme.nearlyWhite,
                                         isScrollable: true,
-                                        indicatorColor: Colors.transparent,
+                                        indicatorColor: AppTheme.vinhoroxeado,
                                         labelColor: AppTheme.vinho,
                                         labelStyle: AppTheme.caption.copyWith(
                                           shadows: [
@@ -245,15 +262,32 @@ class _ProfileScreenState extends State<ProfileScreen>
                                         unselectedLabelColor:
                                             AppTheme.nearlyWhite,
                                         tabs: [
-                                          Tab(text: 'Public'),
-                                          if (FirebaseAuth
-                                                  .instance.currentUser!.uid ==
-                                              widget.uid)
-                                            Tab(text: 'Private'),
-                                          if (showAll)
-                                            for (Map<String, dynamic> tabText
-                                                in userData['tabviews'])
-                                              Tab(text: tabText.keys.first),
+                                          Tab(
+                                            icon: Icon(
+                                              Icons.public,
+                                            ),
+                                          ),
+
+                                          Tab(
+                                            icon: ImageIcon(
+                                              AssetImage('assets/ELECTION.png'),
+                                            ),
+                                          ),
+                                          Tab(
+                                            icon: ImageIcon(
+                                              AssetImage(
+                                                  'assets/CLOSET-FILL.png'),
+                                            ),
+                                          ),
+                                          Tab(
+                                            icon: Icon(
+                                              CupertinoIcons.heart_fill,
+                                            ),
+                                          ),
+                                          // if (showAll)
+                                          //   for (Map<String, dynamic> tabText
+                                          //       in userData['tabviews'])
+                                          //     Tab(text: tabText.keys.first),
                                         ],
                                       ),
                                     )),
@@ -265,210 +299,21 @@ class _ProfileScreenState extends State<ProfileScreen>
                                         children: [
                                           Padding(
                                             padding: EdgeInsets.symmetric(
-                                                horizontal: 16),
-                                            child: Row(
-                                              children: [
-                                                Text(
-                                                  FirebaseAuth
-                                                              .instance
-                                                              .currentUser!
-                                                              .uid ==
-                                                          widget.uid
-                                                      ? "My Looks"
-                                                      : "Looks",
-                                                  style: AppTheme.subheadline,
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          FutureBuilder(
-                                            future: FirebaseFirestore.instance
-                                                .collection('posts')
-                                                .where('uid',
-                                                    isEqualTo: widget.uid)
-                                                .get(),
-                                            builder: (context, snapshot) {
-                                              if (snapshot.connectionState ==
-                                                  ConnectionState.waiting) {
-                                                return Center(
-                                                  child:
-                                                      CircularProgressIndicator(),
-                                                );
-                                              }
-
-                                              return SizedBox(
-                                                height: 150,
-                                                child: ListView.builder(
-                                                  itemCount: (snapshot.data!
-                                                          as QuerySnapshot)
-                                                      .docs
-                                                      .length,
-                                                  scrollDirection:
-                                                      Axis.horizontal,
-                                                  itemBuilder:
-                                                      (context, index) {
-                                                    DocumentSnapshot snap =
-                                                        (snapshot.data!
-                                                                as QuerySnapshot)
-                                                            .docs[index];
-
-                                                    return GestureDetector(
-                                                      onTap: () {
-                                                        Navigator.push(
-                                                          context,
-                                                          MaterialPageRoute(
-                                                            builder: (context) =>
-                                                                SeePost(
-                                                                    postId: snap[
-                                                                        'postId']),
-                                                          ),
-                                                        );
-                                                      },
-                                                      child: Padding(
-                                                        padding:
-                                                            EdgeInsets.all(8.0),
-                                                        child: ClipRRect(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(10),
-                                                          child: Container(
-                                                            width: 150,
-                                                            decoration:
-                                                                BoxDecoration(
-                                                              color:
-                                                                  Colors.grey,
-                                                            ),
-                                                            child: Image(
-                                                              image: NetworkImage(
-                                                                  snap['photoUrls']
-                                                                      [0]),
-                                                              fit: BoxFit.fill,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    );
-                                                  },
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                          Padding(
-                                            padding: EdgeInsets.symmetric(
-                                                horizontal: 16),
-                                            child: Row(
-                                              children: [
-                                                Text(
-                                                  FirebaseAuth
-                                                              .instance
-                                                              .currentUser!
-                                                              .uid ==
-                                                          widget.uid
-                                                      ? "My Votations"
-                                                      : "Votations",
-                                                  style: AppTheme.subheadline,
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          FutureBuilder(
-                                            future: FirebaseFirestore.instance
-                                                .collection('votations')
-                                                .where('uid',
-                                                    isEqualTo: widget.uid)
-                                                .get(),
-                                            builder: (context, snapshot) {
-                                              if (snapshot.connectionState ==
-                                                  ConnectionState.waiting) {
-                                                return Center(
-                                                  child:
-                                                      CircularProgressIndicator(),
-                                                );
-                                              }
-
-                                              return SizedBox(
-                                                height: 150,
-                                                child: ListView.builder(
-                                                  itemCount: (snapshot.data!
-                                                          as QuerySnapshot)
-                                                      .docs
-                                                      .length,
-                                                  scrollDirection:
-                                                      Axis.horizontal,
-                                                  itemBuilder:
-                                                      (context, index) {
-                                                    DocumentSnapshot snap =
-                                                        (snapshot.data!
-                                                                as QuerySnapshot)
-                                                            .docs[index];
-
-                                                    return GestureDetector(
-                                                      onTap: () {
-                                                        Navigator.push(
-                                                          context,
-                                                          MaterialPageRoute(
-                                                            builder: (context) =>
-                                                                SeePost(
-                                                                    postId: snap[
-                                                                        'votationId']),
-                                                          ),
-                                                        );
-                                                      },
-                                                      child: Padding(
-                                                        padding:
-                                                            EdgeInsets.all(8.0),
-                                                        child: ClipRRect(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(10),
-                                                          child: Container(
-                                                            width: 150,
-                                                            decoration:
-                                                                BoxDecoration(
-                                                              color:
-                                                                  Colors.grey,
-                                                            ),
-                                                            child: Image(
-                                                              image: NetworkImage(
-                                                                  snap['options']
-                                                                          [0][
-                                                                      'photoUrl']),
-                                                              fit: BoxFit.fill,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    );
-                                                  },
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                      if (FirebaseAuth
-                                              .instance.currentUser!.uid ==
-                                          widget.uid)
-                                        Column(
-                                          children: [
-                                            Padding(
-                                              padding: EdgeInsets.symmetric(
-                                                  horizontal: 16),
-                                              child: Row(
-                                                children: [
-                                                  Text(
-                                                    "Anonymous Posts",
-                                                    style: AppTheme.subheadline,
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            FutureBuilder(
-                                              future: FirebaseFirestore.instance
-                                                  .collection('anonymous_posts')
-                                                  .where('uid',
-                                                      isEqualTo: widget.uid)
-                                                  .get(),
+                                                horizontal: 3),
+                                            child: FutureBuilder(
+                                              future: Future.wait([
+                                                FirebaseFirestore.instance
+                                                    .collection('posts')
+                                                    .where('uid',
+                                                        isEqualTo: widget.uid)
+                                                    .get(),
+                                                FirebaseFirestore.instance
+                                                    .collection(
+                                                        'anonymous_posts')
+                                                    .where('uid',
+                                                        isEqualTo: widget.uid)
+                                                    .get(),
+                                              ]),
                                               builder: (context, snapshot) {
                                                 if (snapshot.connectionState ==
                                                     ConnectionState.waiting) {
@@ -478,21 +323,44 @@ class _ProfileScreenState extends State<ProfileScreen>
                                                   );
                                                 }
 
-                                                return SizedBox(
-                                                  height: 150,
-                                                  child: ListView.builder(
-                                                    itemCount: (snapshot.data!
+                                                var posts = (snapshot.data![0]
+                                                        as QuerySnapshot)
+                                                    .docs;
+                                                var anonymousPosts =
+                                                    (snapshot.data![1]
                                                             as QuerySnapshot)
-                                                        .docs
-                                                        .length,
-                                                    scrollDirection:
-                                                        Axis.horizontal,
+                                                        .docs;
+
+                                                var allPosts;
+
+                                                if (FirebaseAuth.instance
+                                                        .currentUser!.uid ==
+                                                    widget.uid) {
+                                                  allPosts = [
+                                                    ...posts,
+                                                    ...anonymousPosts
+                                                  ];
+                                                } else {
+                                                  allPosts = [...posts];
+                                                }
+
+                                                return SizedBox(
+                                                  height: 300.h,
+                                                  child: GridView.builder(
+                                                    gridDelegate:
+                                                        SliverGridDelegateWithFixedCrossAxisCount(
+                                                      crossAxisCount: 3,
+                                                      mainAxisSpacing: 3.h,
+                                                      crossAxisSpacing: 6.h,
+                                                    ),
+                                                    itemCount: allPosts.length,
                                                     itemBuilder:
                                                         (context, index) {
                                                       DocumentSnapshot snap =
-                                                          (snapshot.data!
-                                                                  as QuerySnapshot)
-                                                              .docs[index];
+                                                          allPosts[index];
+                                                      bool isAnonymousPost =
+                                                          anonymousPosts
+                                                              .contains(snap);
 
                                                       return GestureDetector(
                                                         onTap: () {
@@ -506,38 +374,51 @@ class _ProfileScreenState extends State<ProfileScreen>
                                                             ),
                                                           );
                                                         },
-                                                        child: Padding(
-                                                          padding:
-                                                              EdgeInsets.all(
-                                                                  8.0),
-                                                          child: ClipRRect(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        10),
-                                                            child: Container(
-                                                              width: 150,
-                                                              decoration:
-                                                                  BoxDecoration(
-                                                                color:
-                                                                    Colors.grey,
-                                                              ),
-                                                              child: Container(
-                                                                width: 150,
-                                                                decoration:
-                                                                    BoxDecoration(
-                                                                  color: Colors
-                                                                      .grey,
-                                                                ),
-                                                                child: Image(
-                                                                  image: NetworkImage(
-                                                                      snap['photoUrls']
-                                                                          [0]),
-                                                                  fit: BoxFit
-                                                                      .fill,
-                                                                ),
-                                                              ),
+                                                        child: ClipRRect(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(10),
+                                                          child: Container(
+                                                            decoration:
+                                                                BoxDecoration(
+                                                              color:
+                                                                  Colors.grey,
                                                             ),
+                                                            child:
+                                                                isAnonymousPost
+                                                                    ? Stack(
+                                                                        children: [
+                                                                          Image(
+                                                                            image:
+                                                                                NetworkImage(snap['photoUrls'][0]),
+                                                                            fit:
+                                                                                BoxFit.fill,
+                                                                            width:
+                                                                                double.infinity,
+                                                                            // image: NetworkImage('https://cdn-icons-png.flaticon.com/512/4123/4123763.png'),
+                                                                          ),
+                                                                          Positioned(
+                                                                            top:
+                                                                                2,
+                                                                            right:
+                                                                                2,
+                                                                            child:
+                                                                                SizedBox(
+                                                                              height: 25,
+                                                                              child: Image(
+                                                                                image: NetworkImage('https://cdn-icons-png.flaticon.com/512/4123/4123763.png'),
+                                                                              ),
+                                                                            ),
+                                                                          ),
+                                                                        ],
+                                                                      )
+                                                                    : Image(
+                                                                        image: NetworkImage(snap['photoUrls']
+                                                                            [
+                                                                            0]),
+                                                                        fit: BoxFit
+                                                                            .fill,
+                                                                      ),
                                                           ),
                                                         ),
                                                       );
@@ -546,191 +427,266 @@ class _ProfileScreenState extends State<ProfileScreen>
                                                 );
                                               },
                                             ),
-
-                                            // Padding(
-                                            //   padding: EdgeInsets.symmetric(
-                                            //       horizontal: 16),
-                                            //   child: Row(
-                                            //     children: [
-                                            //       Text(
-                                            //         "Favorites",
-                                            //         style: AppTheme.subheadline,
-                                            //       ),
-                                            //     ],
-                                            //   ),
-                                            // ),
-                                            // FutureBuilder(
-                                            //   future: FirebaseFirestore.instance
-                                            //       .collection('favorites')
-                                            //       .doc(widget
-                                            //           .uid) // Use the user's ID as the document ID
-                                            //       .collection('userFavorites')
-                                            //       .get(),
-                                            //   builder: (context, snapshot) {
-                                            //     if (snapshot.connectionState ==
-                                            //         ConnectionState.waiting) {
-                                            //       return Center(
-                                            //         child:
-                                            //             CircularProgressIndicator(),
-                                            //       );
-                                            //     }
-
-                                            //     List<QueryDocumentSnapshot>
-                                            //         favorites = (snapshot.data!
-                                            //                 as QuerySnapshot)
-                                            //             .docs;
-
-                                            //     return SizedBox(
-                                            //       height: 150,
-                                            //       child: ListView.builder(
-                                            //         itemCount: favorites.length,
-                                            //         scrollDirection:
-                                            //             Axis.horizontal,
-                                            //         itemBuilder:
-                                            //             (context, index) {
-                                            //           dynamic snap =
-                                            //               favorites[index];
-
-                                            //           return GestureDetector(
-                                            //             onTap: () {
-                                            //               Navigator.push(
-                                            //                 context,
-                                            //                 MaterialPageRoute(
-                                            //                   builder: (context) =>
-                                            //                       SeePost(
-                                            //                           postId: snap[
-                                            //                               'postId']),
-                                            //                 ),
-                                            //               );
-                                            //             },
-                                            //             child: Padding(
-                                            //               padding:
-                                            //                   EdgeInsets.all(
-                                            //                       8.0),
-                                            //               child: ClipRRect(
-                                            //                 borderRadius:
-                                            //                     BorderRadius
-                                            //                         .circular(
-                                            //                             10),
-                                            //                 child: Container(
-                                            //                   width: 150,
-                                            //                   decoration:
-                                            //                       BoxDecoration(
-                                            //                     color:
-                                            //                         Colors.grey,
-                                            //                   ),
-                                            //                   child: Image(
-                                            //                     image: NetworkImage(
-                                            //                         snap['photoUrls']
-                                            //                             [0]),
-                                            //                     fit: BoxFit
-                                            //                         .cover,
-                                            //                   ),
-                                            //                 ),
-                                            //               ),
-                                            //             ),
-                                            //           );
-                                            //         },
-                                            //       ),
-                                            //     );
-                                            //   },
-                                            // ),
-                                            Padding(
-                                              padding: EdgeInsets.symmetric(
-                                                  horizontal: 16),
-                                              child: Row(
-                                                children: [
-                                                  Text(
-                                                    "Cloth",
-                                                    style: AppTheme.subheadline,
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            FutureBuilder(
-                                              future: FirebaseFirestore.instance
-                                                  .collection('clothes')
-                                                  .where('uid',
-                                                      isEqualTo: widget.uid)
-                                                  .get(),
-                                              builder: (context, snapshot) {
-                                                if (snapshot.connectionState ==
-                                                    ConnectionState.waiting) {
-                                                  return Center(
-                                                    child:
-                                                        CircularProgressIndicator(),
-                                                  );
-                                                }
-
-                                                List<QueryDocumentSnapshot>
-                                                    cloth = (snapshot.data!
-                                                            as QuerySnapshot)
-                                                        .docs;
-
-                                                return SizedBox(
-                                                  height: 150,
-                                                  child: ListView.builder(
-                                                    itemCount: cloth.length,
-                                                    scrollDirection:
-                                                        Axis.horizontal,
-                                                    itemBuilder:
-                                                        (context, index) {
-                                                      dynamic snap =
-                                                          cloth[index];
-
-                                                      return GestureDetector(
-                                                        onTap: () {
-                                                          Navigator.push(
-                                                            context,
-                                                            MaterialPageRoute(
-                                                              builder: (context) =>
-                                                                  SeePost(
-                                                                      postId: snap[
-                                                                          'clothId']),
-                                                            ),
-                                                          );
-                                                        },
-                                                        child: Padding(
-                                                          padding:
-                                                              EdgeInsets.all(
-                                                                  8.0),
-                                                          child: ClipRRect(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        10),
-                                                            child: Container(
-                                                              width: 150,
-                                                              decoration:
-                                                                  BoxDecoration(
-                                                                color:
-                                                                    Colors.grey,
-                                                              ),
-                                                              child: Image(
-                                                                image: NetworkImage(
-                                                                    snap[
-                                                                        'photoUrl']),
-                                                                fit:
-                                                                    BoxFit.fill,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      );
-                                                    },
-                                                  ),
-                                                );
-                                              },
-                                            ),
-                                          ],
+                                          ),
+                                        ],
+                                      ),
+                                      Column(children: [
+                                        Padding(
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 3),
                                         ),
-                                      for (Map<String, dynamic> tabText
-                                          in userData['tabviews'])
-                                        for (var value in tabText.values)
-                                          if (value is List)
-                                            Column(
-                                              children: [
-                                                SizedBox(
+                                        FutureBuilder(
+                                          future: FirebaseFirestore.instance
+                                              .collection('votations')
+                                              .where('uid',
+                                                  isEqualTo: widget.uid)
+                                              .get(),
+                                          builder: (context, snapshot) {
+                                            if (snapshot.connectionState ==
+                                                ConnectionState.waiting) {
+                                              return Center(
+                                                child:
+                                                    CircularProgressIndicator(),
+                                              );
+                                            }
+                                            if (!snapshot.hasData ||
+                                                (snapshot.data as QuerySnapshot)
+                                                    .docs
+                                                    .isEmpty) {
+                                              return NoContent();
+                                            }
+
+                                            return SizedBox(
+                                              height: 300.h,
+                                              child: GridView.builder(
+                                                gridDelegate:
+                                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                                  crossAxisCount: 3,
+                                                  mainAxisSpacing: 3.h,
+                                                  crossAxisSpacing: 6.h,
+                                                ),
+                                                itemCount: (snapshot.data!
+                                                        as QuerySnapshot)
+                                                    .docs
+                                                    .length,
+                                                scrollDirection:
+                                                    Axis.horizontal,
+                                                itemBuilder: (context, index) {
+                                                  DocumentSnapshot snap =
+                                                      (snapshot.data!
+                                                              as QuerySnapshot)
+                                                          .docs[index];
+
+                                                  return GestureDetector(
+                                                    onTap: () {
+                                                      Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              SeePost(
+                                                                  postId: snap[
+                                                                      'votationId']),
+                                                        ),
+                                                      );
+                                                    },
+                                                    child: ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              10),
+                                                      child: Container(
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color: Colors.grey,
+                                                        ),
+                                                        child: Image(
+                                                          image: NetworkImage(
+                                                              snap['options'][0]
+                                                                  ['photoUrl']),
+                                                          fit: BoxFit.fill,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ]),
+                                      Column(
+                                        children: [
+                                          Padding(
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 16),
+                                          ),
+
+                                          // Padding(
+                                          //   padding: EdgeInsets.symmetric(
+                                          //       horizontal: 16),
+                                          //   child: Row(
+                                          //     children: [
+                                          //       Text(
+                                          //         "Favorites",
+                                          //         style: AppTheme.subheadline,
+                                          //       ),
+                                          //     ],
+                                          //   ),
+                                          // ),
+                                          // FutureBuilder(
+                                          //   future: FirebaseFirestore.instance
+                                          //       .collection('favorites')
+                                          //       .doc(widget
+                                          //           .uid) // Use the user's ID as the document ID
+                                          //       .collection('userFavorites')
+                                          //       .get(),
+                                          //   builder: (context, snapshot) {
+                                          //     if (snapshot.connectionState ==
+                                          //         ConnectionState.waiting) {
+                                          //       return Center(
+                                          //         child:
+                                          //             CircularProgressIndicator(),
+                                          //       );
+                                          //     }
+
+                                          //     List<QueryDocumentSnapshot>
+                                          //         favorites = (snapshot.data!
+                                          //                 as QuerySnapshot)
+                                          //             .docs;
+
+                                          //     return SizedBox(
+                                          //       height: 150,
+                                          //       child: ListView.builder(
+                                          //         itemCount: favorites.length,
+                                          //         scrollDirection:
+                                          //             Axis.horizontal,
+                                          //         itemBuilder:
+                                          //             (context, index) {
+                                          //           dynamic snap =
+                                          //               favorites[index];
+
+                                          //           return GestureDetector(
+                                          //             onTap: () {
+                                          //               Navigator.push(
+                                          //                 context,
+                                          //                 MaterialPageRoute(
+                                          //                   builder: (context) =>
+                                          //                       SeePost(
+                                          //                           postId: snap[
+                                          //                               'postId']),
+                                          //                 ),
+                                          //               );
+                                          //             },
+                                          //             child: Padding(
+                                          //               padding:
+                                          //                   EdgeInsets.all(
+                                          //                       8.0),
+                                          //               child: ClipRRect(
+                                          //                 borderRadius:
+                                          //                     BorderRadius
+                                          //                         .circular(
+                                          //                             10),
+                                          //                 child: Container(
+                                          //                   width: 150,
+                                          //                   decoration:
+                                          //                       BoxDecoration(
+                                          //                     color:
+                                          //                         Colors.grey,
+                                          //                   ),
+                                          //                   child: Image(
+                                          //                     image: NetworkImage(
+                                          //                         snap['photoUrls']
+                                          //                             [0]),
+                                          //                     fit: BoxFit
+                                          //                         .cover,
+                                          //                   ),
+                                          //                 ),
+                                          //               ),
+                                          //             ),
+                                          //           );
+                                          //         },
+                                          //       ),
+                                          //     );
+                                          //   },
+                                          // ),
+                                          Padding(
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 3),
+                                          ),
+                                          FutureBuilder(
+                                            future: FirebaseFirestore.instance
+                                                .collection('clothes')
+                                                .where('uid',
+                                                    isEqualTo: widget.uid)
+                                                .get(),
+                                            builder: (context, snapshot) {
+                                              if (snapshot.connectionState ==
+                                                  ConnectionState.waiting) {
+                                                return Center(
+                                                  child:
+                                                      CircularProgressIndicator(),
+                                                );
+                                              }
+                                              if (!snapshot.hasData ||
+                                                  (snapshot.data
+                                                          as QuerySnapshot)
+                                                      .docs
+                                                      .isEmpty) {
+                                                return NoContent();
+                                              }
+                                              List<QueryDocumentSnapshot>
+                                                  cloth = (snapshot.data!
+                                                          as QuerySnapshot)
+                                                      .docs;
+
+                                              return SizedBox(
+                                                height: 300.h,
+                                                child: GridView.builder(
+                                                  gridDelegate:
+                                                      SliverGridDelegateWithFixedCrossAxisCount(
+                                                    crossAxisCount: 3,
+                                                    mainAxisSpacing: 3.h,
+                                                    crossAxisSpacing: 6.h,
+                                                  ),
+                                                  itemCount: cloth.length,
+                                                  itemBuilder:
+                                                      (context, index) {
+                                                    dynamic snap = cloth[index];
+
+                                                    return GestureDetector(
+                                                      onTap: () {
+                                                        Navigator.push(
+                                                          context,
+                                                          MaterialPageRoute(
+                                                            builder: (context) =>
+                                                                SeePost(
+                                                                    postId: snap[
+                                                                        'clothId']),
+                                                          ),
+                                                        );
+                                                      },
+                                                      child: ClipRRect(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(10),
+                                                        child: Image(
+                                                          image: NetworkImage(
+                                                              snap['photoUrl']),
+                                                          fit: BoxFit.fill,
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                      Column(
+                                        children: [
+                                          userData['tabviews'].isEmpty
+                                              ? NoContent()
+                                              : SizedBox(
                                                   height: 450.h,
                                                   child: GridView.builder(
                                                     gridDelegate:
@@ -740,61 +696,200 @@ class _ProfileScreenState extends State<ProfileScreen>
                                                       crossAxisSpacing: 8.h,
                                                       childAspectRatio: 1.0,
                                                     ),
-                                                    itemCount: value.length,
+                                                    itemCount:
+                                                        userData['tabviews']
+                                                            .length,
                                                     itemBuilder:
                                                         (context, index) {
+                                                      Map<String, dynamic>
+                                                          tabView =
+                                                          userData['tabviews']
+                                                              [index];
+                                                      String tabName =
+                                                          tabView.keys.first;
+                                                      List<dynamic> postIds =
+                                                          tabView[tabName];
+                                                      [
+                                                        0
+                                                      ]; // Assuming postId is the identifier to fetch image URL
                                                       return FutureBuilder(
-                                                        future:
-                                                            FirebaseFirestore
-                                                                .instance
-                                                                .collection(
-                                                                    'posts')
-                                                                .doc(value[
-                                                                    index])
-                                                                .get(),
-                                                        builder: (context,
-                                                            snapshot) {
-                                                          if (snapshot
-                                                                  .connectionState ==
-                                                              ConnectionState
-                                                                  .waiting) {
-                                                            return Center(
-                                                              child:
-                                                                  CircularProgressIndicator(),
-                                                            );
-                                                          }
-
-                                                          return ClipRRect(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          10),
-                                                              child: InkWell(
-                                                                child: Image
-                                                                    .network(
+                                                          future:
+                                                              FirebaseFirestore
+                                                                  .instance
+                                                                  .collection(
+                                                                      'posts')
+                                                                  .doc(postIds[
+                                                                      0])
+                                                                  .get(),
+                                                          builder: (context,
+                                                              AsyncSnapshot<
+                                                                      DocumentSnapshot>
+                                                                  snapshot) {
+                                                            if (snapshot
+                                                                    .connectionState ==
+                                                                ConnectionState
+                                                                    .waiting) {
+                                                              return Center(
+                                                                child:
+                                                                    CircularProgressIndicator(), // Display a loading indicator while fetching data
+                                                              );
+                                                            } else if (snapshot
+                                                                .hasError) {
+                                                              return Text(
+                                                                  'Error: ${snapshot.error}');
+                                                            } else {
+                                                              String imageUrl =
                                                                   snapshot.data![
-                                                                      'photoUrls'][0],
-                                                                  fit: BoxFit
-                                                                      .fill,
-                                                                ),
-                                                                onTap: () {
-                                                                  Navigator
-                                                                      .push(
-                                                                    context,
-                                                                    MaterialPageRoute(
-                                                                        builder:
-                                                                            (context) =>
-                                                                                SeePost(postId: value[index])),
-                                                                  );
-                                                                },
-                                                              ));
-                                                        },
-                                                      );
+                                                                      'photoUrls'][0];
+
+                                                              return Stack(
+                                                                children: [
+                                                                  ClipRRect(
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
+                                                                            10),
+                                                                    child:
+                                                                        InkWell(
+                                                                      child: Image
+                                                                          .network(
+                                                                        imageUrl,
+                                                                        fit: BoxFit
+                                                                            .fill,
+                                                                        width: double
+                                                                            .infinity,
+                                                                      ),
+                                                                      onTap:
+                                                                          () {
+                                                                        showDialog(
+                                                                          context:
+                                                                              context,
+                                                                          builder:
+                                                                              (BuildContext context) {
+                                                                            return Dialog(
+                                                                              backgroundColor: AppTheme.cinza,
+                                                                              child: Column(
+                                                                                mainAxisSize: MainAxisSize.min,
+                                                                                children: [
+                                                                                  Gap(20),
+                                                                                  Text(tabName, style: AppTheme.barapp),
+                                                                                  Gap(15),
+                                                                                  SizedBox(
+                                                                                    height: 300.h,
+                                                                                    child: FutureBuilder(
+                                                                                      future: Future.wait(postIds.map((postId) {
+                                                                                        return FirebaseFirestore.instance.collection('posts').doc(postId).get();
+                                                                                      }).toList()),
+                                                                                      builder: (context, AsyncSnapshot<List<DocumentSnapshot>> snapshot) {
+                                                                                        if (snapshot.connectionState == ConnectionState.waiting) {
+                                                                                          return Center(
+                                                                                            child: CircularProgressIndicator(), // Display a loading indicator while fetching data
+                                                                                          );
+                                                                                        } else if (snapshot.hasError) {
+                                                                                          return Text('Error: ${snapshot.error}');
+                                                                                        } else {
+                                                                                          List<String> imageUrls = snapshot.data!.map((doc) => doc['photoUrls'][0] as String).toList();
+
+                                                                                          return GridView.builder(
+                                                                                            shrinkWrap: true, // Ensures the GridView takes minimal space
+                                                                                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                                                                              crossAxisCount: 3,
+                                                                                              mainAxisSpacing: 8.h,
+                                                                                              crossAxisSpacing: 8.h,
+                                                                                              childAspectRatio: 1.0,
+                                                                                            ),
+                                                                                            itemCount: imageUrls.length,
+                                                                                            itemBuilder: (context, index) {
+                                                                                              return GestureDetector(
+                                                                                                onTap: () {
+                                                                                                  Navigator.push(
+                                                                                                    context,
+                                                                                                    MaterialPageRoute(
+                                                                                                      builder: (context) => SeePost(postId: postIds[index]),
+                                                                                                    ),
+                                                                                                  );
+                                                                                                },
+                                                                                                child: ClipRRect(
+                                                                                                  borderRadius: BorderRadius.circular(10),
+                                                                                                  child: Image.network(
+                                                                                                    imageUrls[index],
+                                                                                                    fit: BoxFit.fill,
+                                                                                                  ),
+                                                                                                ),
+                                                                                              );
+                                                                                            },
+                                                                                          );
+                                                                                        }
+                                                                                      },
+                                                                                    ),
+                                                                                  ),
+                                                                                ],
+                                                                              ),
+                                                                            );
+                                                                          },
+                                                                        );
+                                                                      },
+                                                                    ),
+                                                                  ),
+                                                                  Positioned(
+                                                                      top: 0,
+                                                                      right: 3,
+                                                                      child: FirebaseAuth.instance.currentUser!.uid ==
+                                                                              widget.uid
+                                                                          ? GestureDetector(
+                                                                              onTap: () {
+                                                                                Navigator.push(
+                                                                                  context,
+                                                                                  MaterialPageRoute(builder: (context) => EditProfileScreen(uid: FirebaseAuth.instance.currentUser!.uid)),
+                                                                                );
+                                                                              },
+                                                                              child: Container(
+                                                                                  decoration: BoxDecoration(
+                                                                                    color: AppTheme.vinho,
+                                                                                    borderRadius: BorderRadius.circular(16.0), // Borda arredondada com metade da altura para criar um círculo
+                                                                                  ),
+                                                                                  child: Padding(
+                                                                                    padding: EdgeInsets.all(3),
+                                                                                    child: Icon(
+                                                                                      Icons.edit,
+                                                                                      color: AppTheme.nearlyWhite,
+                                                                                      size: 18,
+                                                                                    ),
+                                                                                  )))
+                                                                          : SizedBox.shrink()),
+                                                                  Positioned(
+                                                                    bottom: 0,
+                                                                    left: 0,
+                                                                    right: 0,
+                                                                    child:
+                                                                        Container(
+                                                                      decoration:
+                                                                          BoxDecoration(
+                                                                        color: AppTheme
+                                                                            .vinhoescuro,
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(6.0), // Defina o raio da borda
+                                                                      ),
+                                                                      child:
+                                                                          Center(
+                                                                        child:
+                                                                            Text(
+                                                                          tabName,
+                                                                          style: AppTheme
+                                                                              .dividerfont
+                                                                              .copyWith(color: Colors.white),
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              );
+                                                            }
+                                                          });
                                                     },
                                                   ),
                                                 ),
-                                              ],
-                                            )
+                                        ],
+                                      )
                                     ]))
                               ]))
                         ],
@@ -810,7 +905,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   bottom: 0,
                   width: drawerWidth,
                   child: Container(
-                    color: Color.fromARGB(255, 80, 55, 67),
+                    color: AppTheme.vinhoroxeado,
                     child: Column(
                       children: [
                         Gap(70.h),
@@ -972,6 +1067,19 @@ class _ProfileScreenState extends State<ProfileScreen>
           style: AppTheme.subtitle,
         ),
       ],
+    );
+  }
+}
+
+class NoContent extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Image.asset(
+        'assets/NO-CONTENT.png',
+        height: 400.h,
+        width: 250.w,
+      ),
     );
   }
 }

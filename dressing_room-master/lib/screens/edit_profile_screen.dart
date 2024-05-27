@@ -25,7 +25,6 @@ List<String> _createLocalCollection(
   // Adicione a nova coleção ao userData
   userData['tabviews'].add(newCollection);
 
-  // Retorne a lista atualizada de Categorias
   return Categorias;
 }
 
@@ -154,6 +153,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           )
         : Scaffold(
             appBar: AppBar(
+                leading: IconButton(
+                  icon: Icon(Icons.arrow_back_ios, color: Colors.black),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
                 title: Text(
                   'Edit Profile',
                   style: AppTheme.barapp.copyWith(shadows: [
@@ -286,50 +291,64 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   Expanded(
                       child: Scrollbar(
                     thumbVisibility: true,
-                    child: ReorderableListView(
-                        onReorder: (int oldIndex, int newIndex) {
-                          setState(() {
-                            if (oldIndex < newIndex) {
-                              newIndex -= 1;
-                            }
-                            final String item = Categorias.removeAt(oldIndex);
-                            Categorias.insert(newIndex, item);
-                          });
-                        },
-                        children: [
-                          ...Categorias.asMap()
-                              .entries
-                              .map(
-                                (MapEntry<int, String> entry) => ListTile(
-                                  key: Key(entry.value),
-                                  leading:
-                                      Icon(Icons.reorder, color: Colors.grey),
-                                  title: Text(
-                                    entry.value,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                  trailing: IconButton(
+                    child: ListView(children: [
+                      ...Categorias.asMap()
+                          .entries
+                          .map(
+                            (MapEntry<int, String> entry) => ListTile(
+                              key: Key(entry.value),
+                              title: Text(
+                                entry.value,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
                                     onPressed: () {
                                       setState(() {
                                         selectedIndex = entry.key;
                                         showMyDialog(
-                                            context,
-                                            Categorias[selectedIndex],
-                                            userData,
-                                            selectedIndex);
+                                          context,
+                                          Categorias[selectedIndex],
+                                          userData,
+                                          selectedIndex,
+                                          Categorias,
+                                          (List<String> updatedCategories) {
+                                            setState(() {
+                                              Categorias = updatedCategories;
+                                            });
+                                          },
+                                        );
                                       });
                                     },
                                     icon: Icon(Icons.edit,
                                         color: AppTheme.nearlyBlack),
                                   ),
-                                  onTap: () {},
-                                ),
-                              )
-                              .toList(),
-                        ]),
+                                  IconButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        selectedIndex = entry.key;
+                                        userData['tabviews']
+                                            .removeWhere((collection) {
+                                          return collection.keys.first ==
+                                              Categorias[selectedIndex];
+                                        });
+                                        Categorias.removeAt(entry.key);
+                                      });
+                                    },
+                                    icon: Icon(Icons.delete, color: Colors.red),
+                                  ),
+                                ],
+                              ),
+                              onTap: () {},
+                            ),
+                          )
+                          .toList(),
+                    ]),
                   )),
                 ],
               ),
@@ -338,208 +357,244 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 }
 
-Future<void> showMyDialog(BuildContext context, String categoria,
-    Map<dynamic, dynamic> userData, int selectedIndex) async {
+Future<void> showMyDialog(
+  BuildContext context,
+  String categoria,
+  Map<dynamic, dynamic> userData,
+  int selectedIndex,
+  List<String> Categorias,
+  Function(List<String>) updateCategoriesCallback,
+) async {
+  TextEditingController categoriaController =
+      TextEditingController(text: categoria);
+  bool isEditing = false;
   List<String> selectedPostIds =
       List<String>.from(userData['tabviews'][selectedIndex][categoria]);
 
   return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
-        List<dynamic> postIds =
-            userData['tabviews'][selectedIndex].values.toList();
         return Dialog(
-          backgroundColor: AppTheme.nearlyWhite,
-          child: StatefulBuilder(
-            builder: (BuildContext context, StateSetter setState) {
-              return Padding(
-                padding: EdgeInsets.all(8),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            backgroundColor: AppTheme.nearlyWhite,
+            child: SingleChildScrollView(
+              child: StatefulBuilder(
+                builder: (BuildContext context, StateSetter setState) {
+                  return Padding(
+                    padding: EdgeInsets.all(8),
+                    child: Column(
                       children: [
-                        Expanded(
-                          child: Text(
-                            categoria,
-                            style: AppTheme.headline,
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: () {
-                            // Adiciona os postIds selecionados à coleção local
-                            userData['tabviews'][selectedIndex][categoria] =
-                                selectedPostIds;
-                            Navigator.pop(context);
-                          },
-                          icon: Icon(
-                            Icons.check,
-                            color: AppTheme.nearlyBlack,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Gap(15.h),
-                    for (var value
-                        in userData['tabviews'][selectedIndex].values)
-                      if (value is List)
-                        Column(children: [
-                          SizedBox(
-                            height: 100.h,
-                            width: double.infinity,
-                            child: GridView.builder(
-                              padding: EdgeInsets.symmetric(horizontal: 10),
-                              scrollDirection: Axis.horizontal,
-                              itemCount: value.length,
-                              gridDelegate:
-                                  SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 1,
-                                childAspectRatio: 1,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: isEditing
+                                  ? TextField(
+                                      controller: categoriaController,
+                                      style: AppTheme.barapp,
+                                      textAlign: TextAlign.center,
+                                    )
+                                  : Center(
+                                      child: Row(
+                                      mainAxisAlignment: MainAxisAlignment
+                                          .center, // Adicionando mainAxisAlignment
+                                      children: [
+                                        Gap(40),
+                                        Text(
+                                          categoria,
+                                          style: AppTheme.barapp,
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        IconButton(
+                                          icon: Icon(
+                                            Icons.edit,
+                                            color: AppTheme.nearlyBlack,
+                                          ),
+                                          onPressed: () {
+                                            setState(() {
+                                              isEditing = true;
+                                            });
+                                          },
+                                        ),
+                                      ],
+                                    )),
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                userData['tabviews'][selectedIndex][categoria] =
+                                    selectedPostIds;
+
+                                Navigator.pop(context);
+                              },
+                              icon: Icon(
+                                Icons.check,
+                                color: AppTheme.nearlyBlack,
                               ),
-                              itemBuilder: (context, index) {
-                                return FutureBuilder(
-                                  future: FirebaseFirestore.instance
-                                      .collection('posts')
-                                      .doc(value[index])
-                                      .get(),
-                                  builder: (context, snapshot) {
-                                    if (!snapshot.hasData) {
-                                      return const Center(
-                                        child: CircularProgressIndicator(),
-                                      );
-                                    }
-                                    return GestureDetector(
-                                      onTap: () {
-                                        setState(() {});
+                            ),
+                          ],
+                        ),
+                        Gap(15.h),
+                        FutureBuilder(
+                          future: FirebaseFirestore.instance
+                              .collection('posts')
+                              .where('uid', isEqualTo: userData['uid'])
+                              .get(),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            }
+                            final documents =
+                                (snapshot.data! as QuerySnapshot).docs.toList();
+
+                            final documentofiltrado = documents.where(
+                                (document) => !(userData['tabviews']
+                                        [selectedIndex] as Map<String, dynamic>)
+                                    .values
+                                    .where((value) =>
+                                        value is List &&
+                                        value.contains(document['postId']))
+                                    .isNotEmpty);
+
+                            return Column(children: [
+                              SizedBox(
+                                height: 100.h,
+                                width: double.infinity,
+                                child: GridView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: selectedPostIds.length,
+                                  gridDelegate:
+                                      SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 1,
+                                  ),
+                                  itemBuilder: (context, index) {
+                                    return FutureBuilder(
+                                      future: FirebaseFirestore.instance
+                                          .collection('posts')
+                                          .doc(selectedPostIds[index])
+                                          .get(),
+                                      builder: (context, snapshot) {
+                                        if (!snapshot.hasData) {
+                                          return const Center(
+                                            child: CircularProgressIndicator(),
+                                          );
+                                        }
+                                        return Stack(
+                                          children: [
+                                            Padding(
+                                                padding: EdgeInsets.all(5),
+                                                child: ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          10.0),
+                                                  child: Image.network(
+                                                    snapshot.data!['photoUrls']
+                                                        [0],
+                                                    fit: BoxFit.fill,
+                                                    width: double.infinity,
+                                                    height: double.infinity,
+                                                  ),
+                                                )),
+                                            Positioned(
+                                              right: 2,
+                                              child: InkWell(
+                                                onTap: () {
+                                                  setState(() {
+                                                    selectedPostIds
+                                                        .removeAt(index);
+                                                  });
+                                                },
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                    color: AppTheme.vinho,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            10),
+                                                  ),
+                                                  child: Icon(Icons.delete,
+                                                      size: 20),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        );
                                       },
-                                      child: Stack(
-                                        children: [
-                                          ClipRRect(
+                                    );
+                                  },
+                                ),
+                              ),
+                              Gap(5),
+                              Divider(),
+                              Text("Add to collection",
+                                  style: AppTheme.dividerfont),
+                              Gap(10),
+                              SizedBox(
+                                  height: 350.h,
+                                  child: GridView.builder(
+                                    gridDelegate:
+                                        SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 3,
+                                      mainAxisSpacing: 8.0,
+                                      crossAxisSpacing: 8.0,
+                                      childAspectRatio: 1.0,
+                                    ),
+                                    itemCount: documents.length,
+                                    itemBuilder: (context, index) {
+                                      final document =
+                                          documents.elementAt(index);
+
+                                      return GestureDetector(
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                              color: selectedPostIds.contains(
+                                                      document['postId'])
+                                                  ? AppTheme.vinho
+                                                  : Colors.transparent,
+                                              width: 4.0,
+                                            ),
+                                            borderRadius:
+                                                BorderRadius.circular(10.0),
+                                          ),
+                                          child: ClipRRect(
                                             borderRadius:
                                                 BorderRadius.circular(10.0),
                                             child: Image.network(
-                                              snapshot.data!['photoUrls'][0],
-                                              fit: BoxFit.fill,
+                                              document['photoUrls'][0]
+                                                  .toString(),
+                                              fit: BoxFit.cover,
                                             ),
                                           ),
-                                          Positioned(
-                                            top: 0,
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                color: selectedPostIds.contains(
-                                                        snapshot
-                                                            .data!['postId'])
-                                                    ? AppTheme.vinho
-                                                    : Colors.transparent,
-                                                borderRadius:
-                                                    BorderRadius.circular(10),
-                                              ),
-                                              child:
-                                                  Icon(Icons.check, size: 15),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-                          ),
-                          Gap(5),
-                          Divider(),
-                          Text("Add to collection",
-                              style: AppTheme.dividerfont),
-                          Gap(10),
-                          SizedBox(
-                            height: 350.h,
-                            child: FutureBuilder(
-                              future: FirebaseFirestore.instance
-                                  .collection('posts')
-                                  .where('uid', isEqualTo: userData['uid'])
-                                  .get(),
-                              builder: (context, snapshot) {
-                                if (!snapshot.hasData) {
-                                  return const Center(
-                                    child: CircularProgressIndicator(),
-                                  );
-                                }
-                                final documents =
-                                    (snapshot.data! as QuerySnapshot)
-                                        .docs
-                                        .toList();
-
-                                final documentofiltrado = documents.where(
-                                    (document) => !(userData['tabviews']
-                                                [selectedIndex]
-                                            as Map<String, dynamic>)
-                                        .values
-                                        .where((value) =>
-                                            value is List &&
-                                            value.contains(document['postId']))
-                                        .isNotEmpty);
-
-                                return GridView.builder(
-                                  gridDelegate:
-                                      SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 3,
-                                    mainAxisSpacing: 8.0,
-                                    crossAxisSpacing: 8.0,
-                                    childAspectRatio: 1.0,
-                                  ),
-                                  itemCount: documentofiltrado.length,
-                                  itemBuilder: (context, index) {
-                                    final document =
-                                        documentofiltrado.elementAt(index);
-
-                                    return GestureDetector(
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          border: Border.all(
-                                            color: selectedPostIds.contains(
-                                                    document['postId'])
-                                                ? AppTheme.vinho
-                                                : Colors.transparent,
-                                            width: 4.0,
-                                          ),
-                                          borderRadius:
-                                              BorderRadius.circular(10.0),
                                         ),
-                                        child: ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(10.0),
-                                          child: Image.network(
-                                            document['photoUrls'][0].toString(),
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
-                                      ),
-                                      onTap: () {
-                                        setState(() {
-                                          String postId = document['postId'];
-                                          if (!selectedPostIds
-                                              .contains(postId)) {
-                                            selectedPostIds.add(postId);
-                                          } else {
-                                            selectedPostIds.remove(postId);
-                                          }
-                                        });
-                                      },
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-                          ),
-                        ])
-                  ],
-                ),
-              );
-            },
-          ),
-        );
-      }).then((value) {});
+                                        onTap: () {
+                                          setState(() {
+                                            String postId = document['postId'];
+                                            if (!selectedPostIds
+                                                .contains(postId)) {
+                                              selectedPostIds.add(postId);
+                                            } else {
+                                              selectedPostIds.remove(postId);
+                                            }
+                                          });
+                                        },
+                                      );
+                                    },
+                                  ))
+                            ]);
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ));
+      }).then((value) {
+    userData['tabviews'][selectedIndex].remove(categoria);
+    userData['tabviews'][selectedIndex][categoriaController.text] =
+        selectedPostIds;
+    Categorias[Categorias.indexWhere((element) => element == categoria)] =
+        categoriaController.text;
+  });
 }
 
 Future<void> createDialog(
@@ -550,156 +605,156 @@ Future<void> createDialog(
 ) async {
   final TextEditingController collectionNameController =
       TextEditingController();
-  List<String> selectedPostIds = []; // Placeholder for selectedPostIds
+  List<String> selectedPostIds = [];
 
   return showDialog<void>(
     context: context,
     builder: (BuildContext context) {
       return Dialog(
-        backgroundColor: AppTheme.nearlyWhite,
-        child: StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return Padding(
-              padding: EdgeInsets.all(8),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          backgroundColor: AppTheme.nearlyWhite,
+          child: SingleChildScrollView(
+            child: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+                return Padding(
+                  padding: EdgeInsets.all(8),
+                  child: Column(
                     children: [
-                      Expanded(
-                        child: Text(
-                          "Create a collection",
-                          style: AppTheme.subheadline,
-                          textAlign: TextAlign.center,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              "Create a collection",
+                              style: AppTheme.barapp,
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              List<String> updatedCategories =
+                                  _createLocalCollection(
+                                collectionNameController.text,
+                                selectedPostIds,
+                                Categorias,
+                                userData,
+                              );
+
+                              // Use the callback to update the state in the parent widget
+                              updateCategoriesCallback(updatedCategories);
+
+                              Navigator.pop(context, updatedCategories);
+                            },
+                            icon: Icon(
+                              Icons.check,
+                              color: AppTheme.nearlyBlack,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Gap(10.h),
+                      Text("Collection's name:", style: AppTheme.dividerfont),
+                      Gap(10),
+                      Container(
+                        width: 300.w,
+                        padding: EdgeInsets.symmetric(horizontal: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8),
+                          child: TextField(
+                            controller: collectionNameController,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.black,
+                            ),
+                            decoration: InputDecoration(
+                              border: InputBorder.none,
+                              hintText: 'Write collection name...',
+                              hintStyle: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
-                      IconButton(
-                        onPressed: () {
-                          List<String> updatedCategories =
-                              _createLocalCollection(
-                            collectionNameController.text,
-                            selectedPostIds,
-                            Categorias,
-                            userData,
-                          );
+                      Divider(),
+                      Gap(15.h),
+                      Text("Add to collection", style: AppTheme.dividerfont),
+                      Gap(10),
+                      SizedBox(
+                        height: 350.h,
+                        child: FutureBuilder(
+                          future: FirebaseFirestore.instance
+                              .collection('posts')
+                              .where('uid', isEqualTo: userData['uid'])
+                              .get(),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            }
+                            final documents =
+                                (snapshot.data! as QuerySnapshot).docs.toList();
 
-                          // Use the callback to update the state in the parent widget
-                          updateCategoriesCallback(updatedCategories);
+                            return GridView.builder(
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 3,
+                                mainAxisSpacing: 8.0,
+                                crossAxisSpacing: 8.0,
+                                childAspectRatio: 1.0,
+                              ),
+                              itemCount: documents.length,
+                              itemBuilder: (context, index) {
+                                final document = documents.elementAt(index);
 
-                          Navigator.pop(context, updatedCategories);
-                        },
-                        icon: Icon(
-                          Icons.check,
-                          color: AppTheme.nearlyBlack,
+                                return GestureDetector(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10.0),
+                                      border: Border.all(
+                                        color: selectedPostIds
+                                                .contains(document['postId'])
+                                            ? AppTheme.vinho
+                                            : Colors.transparent,
+                                        width: 4.0,
+                                      ),
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(10.0),
+                                      child: Image.network(
+                                        document['photoUrls'][0].toString(),
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  ),
+                                  onTap: () {
+                                    setState(() {
+                                      if (selectedPostIds
+                                          .contains(document['postId'])) {
+                                        selectedPostIds
+                                            .remove(document['postId']);
+                                      } else {
+                                        selectedPostIds.add(document['postId']);
+                                      }
+                                    });
+                                  },
+                                );
+                              },
+                            );
+                          },
                         ),
                       ),
                     ],
                   ),
-                  Gap(10.h),
-                  Text("Collection's name:", style: AppTheme.dividerfont),
-                  Gap(10),
-                  Container(
-                    width: 300.w,
-                    padding: EdgeInsets.symmetric(horizontal: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8),
-                      child: TextField(
-                        controller: collectionNameController,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black,
-                        ),
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                          hintText: 'Write collection name...',
-                          hintStyle: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Divider(),
-                  Gap(15.h),
-                  Text("Add to collection", style: AppTheme.dividerfont),
-                  Gap(10),
-                  SizedBox(
-                    height: 350.h,
-                    child: FutureBuilder(
-                      future: FirebaseFirestore.instance
-                          .collection('posts')
-                          .where('uid', isEqualTo: userData['uid'])
-                          .get(),
-                      builder: (context, snapshot) {
-                        if (!snapshot.hasData) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
-                        final documents =
-                            (snapshot.data! as QuerySnapshot).docs.toList();
-
-                        return GridView.builder(
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            mainAxisSpacing: 8.0,
-                            crossAxisSpacing: 8.0,
-                            childAspectRatio: 1.0,
-                          ),
-                          itemCount: documents.length,
-                          itemBuilder: (context, index) {
-                            final document = documents.elementAt(index);
-
-                            return GestureDetector(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                  border: Border.all(
-                                    color: selectedPostIds
-                                            .contains(document['postId'])
-                                        ? AppTheme.vinho
-                                        : Colors.transparent,
-                                    width: 4.0,
-                                  ),
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                  child: Image.network(
-                                    document['photoUrls'][0].toString(),
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ),
-                              onTap: () {
-                                setState(() {
-                                  if (selectedPostIds
-                                      .contains(document['postId'])) {
-                                    selectedPostIds.remove(document['postId']);
-                                  } else {
-                                    selectedPostIds.add(document['postId']);
-                                  }
-                                });
-                              },
-                            );
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      );
+                );
+              },
+            ),
+          ));
     },
-  ).then((updatedCategories) {
-    // You can handle the result if needed
-  });
+  ).then((updatedCategories) {});
 }

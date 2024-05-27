@@ -31,6 +31,8 @@ class NewVotationCard extends StatefulWidget {
 class _NewVotationCardState extends State<NewVotationCard> {
   int commentLen = 0;
   bool isLikeAnimating = false;
+  bool showPecas = false;
+  bool existemPecas = false;
   bool isAddedOnFav = false;
   int currentImageIndex = 0;
   List<String> descriptions = [];
@@ -39,7 +41,8 @@ class _NewVotationCardState extends State<NewVotationCard> {
     super.initState();
     fetchCommentLen();
     extractDescriptions();
-    isOnFav(widget.snap['votationId']); // Chame isOnFav aqui
+    isOnFav(widget.snap['votationId']);
+    checkExistemPecas();
   }
 
   Future<bool> isOnFav(String postId) async {
@@ -105,6 +108,27 @@ class _NewVotationCardState extends State<NewVotationCard> {
       return 0.0;
     }
     return (optionVotes / totalVotes) * 100;
+  }
+
+  Future<void> checkExistemPecas() async {
+    try {
+      List<dynamic>? pecasIds = widget.snap['pecasIds'];
+      if (pecasIds != null && pecasIds.isNotEmpty) {
+        setState(() {
+          existemPecas = true;
+        });
+      } else {
+        setState(() {
+          existemPecas = false;
+        });
+      }
+    } catch (e) {
+      // Lidar com possíveis erros aqui, como exibir uma mensagem de erro ou registrar o erro
+      print('Erro ao verificar a existência de peças: $e');
+      setState(() {
+        existemPecas = false;
+      });
+    }
   }
 
   deleteVotation(String votationId) async {
@@ -534,26 +558,26 @@ class _NewVotationCardState extends State<NewVotationCard> {
                                   ],
                                 ),
                                 Gap(5),
-                                SizedBox(
-                                  width: 29.0,
-                                  height: 32.0,
-                                  child: FloatingActionButton(
-                                    onPressed: () {
-                                      setState(() {});
-                                    },
-                                    backgroundColor: AppTheme.cinza,
-                                    elevation: 8.0,
-                                    shape:
-                                        CircleBorder(), // Makes the button more circular
-                                    child: ImageIcon(
-                                      AssetImage(
-                                        'assets/CABIDE.png',
+                                Visibility(
+                                    visible: existemPecas,
+                                    child: SizedBox(
+                                      width: 29.0,
+                                      height: 32.0,
+                                      child: FloatingActionButton(
+                                        onPressed: () {
+                                          setState(() {});
+                                        },
+                                        backgroundColor: AppTheme.cinza,
+                                        elevation: 8.0,
+                                        shape:
+                                            CircleBorder(), // Makes the button more circular
+                                        child: Icon(
+                                          CupertinoIcons.tag,
+                                          size: 18,
+                                          color: AppTheme.nearlyBlack,
+                                        ),
                                       ),
-                                      size: 21,
-                                      color: AppTheme.nearlyBlack,
-                                    ),
-                                  ),
-                                )
+                                    ))
                               ],
                             )),
                         Positioned(
