@@ -458,7 +458,6 @@ class FireStoreMethods {
     String category,
     bool vitrine,
     bool promotions,
-    bool x,
   ) async {
     String res = "Some error occurred";
     try {
@@ -490,7 +489,6 @@ class FireStoreMethods {
         profImage: profImage,
         vitrine: vitrine,
         promotions: promotions,
-        x: x,
       );
 
       await FirebaseFirestore.instance

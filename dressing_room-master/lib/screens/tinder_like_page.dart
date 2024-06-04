@@ -343,7 +343,7 @@ class _TinderScreenState extends State<TinderScreen> {
       return SizedBox(); // or any other appropriate fallback widget
     }
     return SizedBox(
-      height: 140.h,
+      height: 120.h,
       child: Stack(
         alignment: Alignment.center,
         children: [

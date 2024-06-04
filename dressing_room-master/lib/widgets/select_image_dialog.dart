@@ -91,40 +91,38 @@ class SelectImageDialog1por1 extends StatelessWidget {
         children: <Widget>[
           ElevatedButton.icon(
             icon: Icon(Icons.camera),
-            label: Text(
+            label: const Text(
               'Camera',
               style: TextStyle(
                 fontFamily: 'Quicksand',
                 fontWeight: FontWeight.bold,
-                fontSize: 15,
               ),
             ),
             style: ElevatedButton.styleFrom(primary: AppTheme.vinho),
             onPressed: () async {
               Navigator.pop(context);
-              Uint8List? file = await pickImage1por1(ImageSource.camera);
+              Uint8List? file = await pickImage(ImageSource.camera);
               if (file != null) {
                 onImageSelected(file);
               }
             },
           ),
-          Gap(
-            10.h,
+          SizedBox(
+            width: 10,
           ),
           ElevatedButton.icon(
             icon: Icon(Icons.photo_library),
-            label: Text(
+            label: const Text(
               'Gallery',
               style: TextStyle(
                 fontFamily: 'Quicksand',
                 fontWeight: FontWeight.bold,
-                fontSize: 15,
               ),
             ),
             style: ElevatedButton.styleFrom(primary: AppTheme.vinho),
             onPressed: () async {
               Navigator.of(context).pop();
-              Uint8List? file = await pickImage1por1(ImageSource.gallery);
+              Uint8List? file = await pickImage(ImageSource.gallery);
               if (file != null) {
                 onImageSelected(file);
               }

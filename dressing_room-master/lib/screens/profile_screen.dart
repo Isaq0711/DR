@@ -156,12 +156,17 @@ class _ProfileScreenState extends State<ProfileScreen>
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        CircleAvatar(
-                                          backgroundColor: Colors.grey,
-                                          backgroundImage: NetworkImage(
-                                            userData['photoUrl'],
+                                        InteractiveViewer(
+                                          minScale: 1,
+                                          maxScale: 15,
+                                          clipBehavior: Clip.none,
+                                          child: CircleAvatar(
+                                            backgroundColor: Colors.grey,
+                                            backgroundImage: NetworkImage(
+                                              userData['photoUrl'],
+                                            ),
+                                            radius: 119,
                                           ),
-                                          radius: 119,
                                         ),
                                       ],
                                     ),
@@ -978,11 +983,11 @@ class _ProfileScreenState extends State<ProfileScreen>
                                   ),
                                   ListTile(
                                     leading: Icon(
-                                      CupertinoIcons.bag_fill,
+                                      CupertinoIcons.cart_fill,
                                       color: AppTheme.nearlyWhite,
                                     ),
                                     title: Text(
-                                      "Shopping Bag",
+                                      "Cart",
                                       style: AppTheme.subheadlinewhite,
                                     ),
                                     onTap: () {

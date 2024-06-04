@@ -35,10 +35,9 @@ class _NewProductCardState extends State<NewProductCard> {
   bool isAddedOnFav = false;
   int selectedSize = 0;
   Map<String, List<String>> categorySizes = {
-    'TOP': ['XS', 'S', 'M', 'L', 'XL'],
-    'BOTTOM': ['34', '36', '38', '40', '42', '44'],
-    'SHOES': ['34', '35', '36', '37', '38', '39', '40', '41', '42'],
-    'COATS': ['PP', 'P', 'M', 'G', 'GG'],
+    'Tronco': ['XS', 'S', 'M', 'L', 'XL'],
+    'Pernas': ['34', '36', '38', '40', '42', '44'],
+    'Pés': ['34', '35', '36', '37', '38', '39', '40', '41', '42'],
   };
   bool showreactions = false;
   int currentImageIndex = 0;

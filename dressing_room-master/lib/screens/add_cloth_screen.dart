@@ -36,8 +36,7 @@ class _AddClothScreenState extends State<AddClothScreen> {
   bool isSelected = false;
   bool isPublic = true;
   GlobalKey _globalKey = GlobalKey();
-  List<Offset> _referencePositions = [];
-  List<Offset> _destinationPositions = [];
+
   List<List<Offset>> _paintHistory = [];
   List<double> _sliderValues = [];
   String selectedCategory = 'TOP';
@@ -339,7 +338,7 @@ class _AddClothScreenState extends State<AddClothScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       _selectImage(context);
     });
     _flipCardController = FlipCardController();
@@ -440,8 +439,9 @@ class _AddClothScreenState extends State<AddClothScreen> {
                         onPressed: _paintHistory.isNotEmpty
                             ? () {
                                 setState(() {
-                                  _sliderValues
-                                      .removeLast(); // remova até corresponder ao atual _selectedpositionsMap e seus sliders respectivos
+                                  _sliderValues.removeRange(
+                                      _paintHistory.last.length - 1,
+                                      _sliderValues.length);
                                   _paintHistory.removeLast();
                                   _selectedPositionsMap[_currentPageIndex] =
                                       List.from(_paintHistory.isNotEmpty
@@ -597,20 +597,25 @@ class _AddClothScreenState extends State<AddClothScreen> {
                                                         _paintOnImage(details
                                                             .localPosition);
                                                       } else if (!_isDraggingImage) {
-                                                        _flipCardController
-                                                            .toggleCard();
+                                                        // _flipCardController
+                                                        //     .toggleCard();
                                                       }
                                                     },
                                                     onPanUpdate: (details) {
                                                       if (_isPaintingMode) {
                                                         _paintOnImage(details
                                                             .localPosition);
+                                                        print(_sliderValues);
+                                                        print(_sliderValue);
                                                       } else if (_isDraggingImage) {
                                                         setState(() {
                                                           _draggedImagePosition +=
                                                               details.delta;
                                                         });
                                                       }
+                                                    },
+                                                    onPanEnd: (details) {
+                                                      _endPainting();
                                                     },
                                                     onTapUp: (details) {
                                                       _endPainting();
@@ -651,7 +656,6 @@ class _AddClothScreenState extends State<AddClothScreen> {
                                                                       scale:
                                                                           _scale,
                                                                     ),
-                                                                    // Sem child para o CustomPaint
                                                                   ),
                                                                 ),
                                                               ],
@@ -674,49 +678,64 @@ class _AddClothScreenState extends State<AddClothScreen> {
                                                               // Seu conteúdo aqui
                                                             ),
                                                           ),
+                                                          Positioned(
+                                                            bottom: 5,
+                                                            right: 30.w,
+                                                            child: Row(
+                                                              children: [
+                                                                InkWell(
+                                                                  child:
+                                                                      Container(
+                                                                    decoration: BoxDecoration(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(
+                                                                                10),
+                                                                        color: AppTheme
+                                                                            .vinho),
+                                                                    child: Icon(
+                                                                        Icons
+                                                                            .zoom_out,
+                                                                        size:
+                                                                            45),
+                                                                  ),
+                                                                  onTap: () {
+                                                                    setState(
+                                                                        () {
+                                                                      _scale -=
+                                                                          0.05;
+                                                                    });
+                                                                  },
+                                                                ),
+                                                                Gap(10),
+                                                                InkWell(
+                                                                  child: Container(
+                                                                      decoration: BoxDecoration(
+                                                                          borderRadius: BorderRadius.circular(
+                                                                              10),
+                                                                          color: AppTheme
+                                                                              .vinho),
+                                                                      child: Icon(
+                                                                          Icons
+                                                                              .zoom_in,
+                                                                          size:
+                                                                              45)),
+                                                                  onTap: () {
+                                                                    setState(
+                                                                        () {
+                                                                      _scale +=
+                                                                          0.05;
+                                                                    });
+                                                                  },
+                                                                )
+                                                              ],
+                                                            ),
+                                                          ),
                                                         ],
                                                       ),
                                                     ),
                                                   );
                                                 },
                                               ),
-                                              // Positioned(
-                                              //   bottom: 5,
-                                              //   right: 30.w,
-                                              //   child: Row(
-                                              //     children: [
-                                              //       InkWell(
-                                              //         child: Container(
-                                              //           decoration: BoxDecoration(
-                                              //               borderRadius:
-                                              //                   BorderRadius.circular(10),
-                                              //               color: AppTheme.vinho),
-                                              //           child: Icon(Icons.zoom_out),
-                                              //         ),
-                                              //         onTap: () {
-                                              //           setState(() {
-                                              //             _scale -= 0.05;
-                                              //           });
-                                              //         },
-                                              //       ),
-                                              //       Gap(10),
-                                              //       InkWell(
-                                              //         child: Container(
-                                              //           decoration: BoxDecoration(
-                                              //               borderRadius:
-                                              //                   BorderRadius.circular(10),
-                                              //               color: AppTheme.vinho),
-                                              //           child: Icon(Icons.zoom_in),
-                                              //         ),
-                                              //         onTap: () {
-                                              //           setState(() {
-                                              //             _scale += 0.05;
-                                              //           });
-                                              //         },
-                                              //       )
-                                              //     ],
-                                              //   ),
-                                              // ),
                                             )
                                           ]),
                                         ))),
@@ -1283,11 +1302,9 @@ class _ImagePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final image = img.decodeImage(this.image)!;
     for (int i = 0; i < selectedPositions.length; i++) {
       final position = selectedPositions[i];
-      final sliderValue =
-          sliderValues[i]; // Obtendo o valor do slider correspondente
+      final sliderValue = sliderValues[i];
       final paint = Paint()..color = AppTheme.cinza;
       final imagePosition = Offset(
         position.dx + imageOffset.dx,

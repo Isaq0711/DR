@@ -10,6 +10,7 @@ import 'package:dressing_room/screens/comments_screen.dart';
 import 'package:dressing_room/screens/profile_screen.dart';
 import 'package:dressing_room/utils/colors.dart';
 import 'package:dressing_room/widgets/suggestion_card.dart';
+import 'package:dressing_room/providers/bottton_nav_controller.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:dressing_room/utils/utils.dart';
 import 'package:intl/intl.dart';
@@ -341,12 +342,15 @@ class _PostCardState extends State<PostCard> {
                                     canScroll = true;
                                     _zoomToMin();
                                   });
+
+                                  context.read<ZoomProvider>().setZoom(false);
                                 },
                                 onPointerMove: (event) {
                                   if (events.length > 1) {
                                     setState(() {
                                       canScroll = false;
                                     });
+                                    context.read<ZoomProvider>().setZoom(true);
                                   }
                                 },
                                 child: ClipRRect(

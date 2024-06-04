@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dressing_room/widgets/cloth_card.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:dressing_room/providers/bottton_nav_controller.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:dressing_room/widgets/post_card.dart';
@@ -34,6 +36,7 @@ class _SeePostState extends State<SeePost> {
     _votationsStream = _subscribeToVotations();
     _productStream = _subscribeToProducts();
     _clothStream = _subscribeToCloth();
+    context.read<ZoomProvider>().setZoom(false);
   }
 
   void _initializeFirebase() async {
@@ -77,6 +80,7 @@ class _SeePostState extends State<SeePost> {
 
   @override
   Widget build(BuildContext context) {
+    bool isZooming = context.watch<ZoomProvider>().scroll;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -90,63 +94,65 @@ class _SeePostState extends State<SeePost> {
         ),
         backgroundColor: Colors.transparent,
       ),
-      body: ListView(children: <Widget>[
-        Column(
-          children: [
-            StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-              stream: _postStream,
-              builder: (context, snapshot) {
-                if (!snapshot.hasData || !snapshot.data!.exists) {
-                  return Container();
-                }
-                final post = snapshot.data!.data();
-                return PostCard(snap: post);
-              },
-            ),
-            StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-              stream: _productStream,
-              builder: (context, snapshot) {
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return Container(); // handle the case where data does not exist
-                }
-                final products = snapshot.data!.docs;
-                return ProductCard(snap: products[0].data());
-              },
-            ),
-            StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-              stream: _anonymousPostStream,
-              builder: (context, snapshot) {
-                if (!snapshot.hasData || !snapshot.data!.exists) {
-                  return Container();
-                }
-                final anonymousPost = snapshot.data!.data();
-                return PostCard(snap: anonymousPost);
-              },
-            ),
-            StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-              stream: _votationsStream,
-              builder: (context, snapshot) {
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return Container(); // handle the case where data does not exist
-                }
-                final votations = snapshot.data!.docs;
+      body: ListView(
+          physics: isZooming ? const NeverScrollableScrollPhysics() : null,
+          children: <Widget>[
+            Column(
+              children: [
+                StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                  stream: _postStream,
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData || !snapshot.data!.exists) {
+                      return Container();
+                    }
+                    final post = snapshot.data!.data();
+                    return PostCard(snap: post);
+                  },
+                ),
+                StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                  stream: _productStream,
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return Container(); // handle the case where data does not exist
+                    }
+                    final products = snapshot.data!.docs;
+                    return ProductCard(snap: products[0].data());
+                  },
+                ),
+                StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                  stream: _anonymousPostStream,
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData || !snapshot.data!.exists) {
+                      return Container();
+                    }
+                    final anonymousPost = snapshot.data!.data();
+                    return PostCard(snap: anonymousPost);
+                  },
+                ),
+                StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                  stream: _votationsStream,
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return Container(); // handle the case where data does not exist
+                    }
+                    final votations = snapshot.data!.docs;
 
-                return VotationCard(snap: votations[0].data());
-              },
+                    return VotationCard(snap: votations[0].data());
+                  },
+                ),
+                StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                  stream: _clothStream,
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return Container(); // handle the case where data does not exist
+                    }
+                    final cloth = snapshot.data!.docs;
+                    return ClothCard(snap: cloth[0].data());
+                  },
+                ),
+              ],
             ),
-            StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-              stream: _clothStream,
-              builder: (context, snapshot) {
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return Container(); // handle the case where data does not exist
-                }
-                final cloth = snapshot.data!.docs;
-                return ClothCard(snap: cloth[0].data());
-              },
-            ),
-          ],
-        ),
-      ]),
+          ]),
     );
   }
 }

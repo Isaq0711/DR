@@ -78,6 +78,19 @@ final Map<String, List<String>> clothingItems = {
   "Rosto": ["óculos"],
 };
 
+List<String> icons = [
+  'icons8-head-profile-100.png',
+  'icons8-pés-100.png',
+  'icons8-camisa-100.png',
+  'icons8-calças-100.png',
+  'icons8-cinto-100.png',
+  'icons8-joalheria-100.png',
+  'icons8-vista-frontal-de-relógios-100.png',
+  'icons8-toda-a-mão-100.png',
+  'icons8-tipo-de-corpo-alto-100.png',
+  'icons8-óculos-de-sol-100.png',
+];
+
 class Wardrobe extends StatefulWidget {
   final bool isDialog;
   final String uid;
@@ -326,7 +339,7 @@ Widget buildBeginning(TabController _tabController) {
                   controller: _tabController,
                   tabAlignment: TabAlignment.center,
                   dividerColor: Colors.transparent,
-                  indicatorColor: Colors.transparent,
+                  indicatorColor: AppTheme.vinhoescuro,
                   labelColor: AppTheme.vinho,
                   labelStyle: AppTheme.subheadline.copyWith(
                     shadows: [
@@ -446,9 +459,12 @@ class _BodyWidgetState extends State<BodyWidget> {
                                       borderRadius: BorderRadius.circular(10.0),
                                     ),
                                   ),
-                                  child: Text(
-                                    widget.categories[index],
-                                    style: AppTheme.subheadlinewhite,
+                                  child: ImageIcon(
+                                    AssetImage(
+                                      'assets/${icons[index]}',
+                                    ),
+                                    color: AppTheme.nearlyWhite,
+                                    size: 40,
                                   ),
                                 );
                               },

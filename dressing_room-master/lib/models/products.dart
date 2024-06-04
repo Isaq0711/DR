@@ -14,7 +14,6 @@ class Product {
   final String profImage;
   final bool vitrine;
   final bool promotions;
-  final bool x;
 
   const Product({
     required this.description,
@@ -28,7 +27,6 @@ class Product {
     required this.profImage,
     required this.vitrine,
     required this.promotions,
-    required this.x,
   });
 
   factory Product.fromSnap(DocumentSnapshot snap) {
@@ -53,7 +51,6 @@ class Product {
       variations: variationsList,
       vitrine: snapshot['vitrine'] ?? false,
       promotions: snapshot['promotions'] ?? false,
-      x: snapshot['x'] ?? false,
     );
   }
 
@@ -69,7 +66,6 @@ class Product {
         "category": category,
         'vitrine': vitrine,
         'promotions': promotions,
-        'x': x,
       };
 }
 

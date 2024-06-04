@@ -11,6 +11,15 @@ class BottonNavController extends ChangeNotifier {
   }
 }
 
+class ZoomProvider extends ChangeNotifier {
+  bool scroll = false;
+
+  void setZoom(bool value) {
+    scroll = value;
+    notifyListeners();
+  }
+}
+
 class CartCounterProvider extends ChangeNotifier {
   int cartQuantity = 0;
 

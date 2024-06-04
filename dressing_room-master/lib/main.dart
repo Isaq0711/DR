@@ -74,6 +74,7 @@ class _MyAppState extends State<MyApp> {
           create: (_) => UserProvider(),
         ),
         ChangeNotifierProvider(create: (_) => BottonNavController()),
+        ChangeNotifierProvider(create: (_) => ZoomProvider()),
         ChangeNotifierProvider(create: (_) => ShopProvider()),
         ChangeNotifierProvider(create: (_) => CartCounterProvider()),
       ],

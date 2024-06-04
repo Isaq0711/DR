@@ -32,43 +32,20 @@ class _ProductCardState extends State<ProductCard> {
   bool showinfo = true;
   bool isLoading = false;
   Map<String, List<String>> categorySizes = {
-    'TOP': ['XS', 'S', 'M', 'L', 'XL'],
-    'BOTTOM': ['34', '36', '38', '40', '42', '44'],
-    'SHOES': ['34', '35', '36', '37', '38', '39', '40', '41', '42'],
-    'COATS': ['PP', 'P', 'M', 'G', 'GG'],
+    'Tronco': ['XS', 'S', 'M', 'L', 'XL'],
+    'Pernas': ['34', '36', '38', '40', '42', '44'],
+    'Pés': ['34', '35', '36', '37', '38', '39', '40', '41', '42'],
   };
   int _currentPageIndex = 0;
   int _currentPhotoIndex = 0;
   List<String> availableSizes = [];
+  late PageController _pageController;
 
   @override
   void initState() {
     super.initState();
     generateAvailableSizes();
-  }
-
-  void goToNextImage() {
-    setState(() {
-      if (_currentPhotoIndex <
-          widget.snap['variations'][_currentPageIndex]['photoUrls'].length -
-              1) {
-        _currentPhotoIndex++;
-      } else {
-        _currentPhotoIndex = 0;
-      }
-    });
-  }
-
-  void goToPreviousImage() {
-    setState(() {
-      if (_currentPhotoIndex > 0) {
-        _currentPhotoIndex--;
-      } else {
-        _currentPhotoIndex =
-            widget.snap['variations'][_currentPageIndex]['photoUrls'].length -
-                1;
-      }
-    });
+    _pageController = PageController(initialPage: 0);
   }
 
   void addtocart(String uid) async {
@@ -152,11 +129,18 @@ class _ProductCardState extends State<ProductCard> {
                         itemCount: widget
                             .snap['variations'][_currentPageIndex]['photoUrls']
                             .length,
-                        controller:
-                            PageController(initialPage: _currentPhotoIndex),
+                        controller: _pageController,
                         onPageChanged: (index) {
                           setState(() {
-                            _currentPhotoIndex = index;
+                            if (_currentPhotoIndex != index) {
+                              setState(() {
+                                _currentPhotoIndex = index;
+                                print(_currentPhotoIndex);
+                                print(index);
+                              });
+                            } else {
+                              _pageController.jumpToPage(_currentPhotoIndex);
+                            }
                           });
                         },
                         itemBuilder: (context, index) {
@@ -174,7 +158,7 @@ class _ProductCardState extends State<ProductCard> {
                     ),
                   ),
                   Positioned(
-                      bottom: 0,
+                      bottom: -19,
                       left: 0,
                       child: Visibility(
                           visible: showinfo,
@@ -184,6 +168,7 @@ class _ProductCardState extends State<ProductCard> {
                                 color: AppTheme.cinza,
                                 width: double.infinity,
                                 child: Column(
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Center(
                                       child: Padding(
@@ -204,7 +189,7 @@ class _ProductCardState extends State<ProductCard> {
                                                     0,
                                                 position: _currentPhotoIndex,
                                                 decorator: DotsDecorator(
-                                                  color: AppTheme.cinza,
+                                                  color: AppTheme.nearlyWhite,
                                                   activeColor: AppTheme.vinho,
                                                   spacing: const EdgeInsets
                                                       .symmetric(
@@ -230,6 +215,58 @@ class _ProductCardState extends State<ProductCard> {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
+                                            Container(
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 10,
+                                              ).copyWith(right: 0),
+                                              child: Row(
+                                                children: <Widget>[
+                                                  CircleAvatar(
+                                                    radius: 16,
+                                                    backgroundImage:
+                                                        NetworkImage(
+                                                      widget.snap['profImage'],
+                                                    ),
+                                                    backgroundColor: Colors
+                                                        .transparent, // Define o fundo como transparente
+                                                  ),
+                                                  Expanded(
+                                                    child: Padding(
+                                                      padding: EdgeInsets.only(
+                                                        left: 8,
+                                                      ),
+                                                      child: Column(
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: <Widget>[
+                                                          InkWell(
+                                                            onTap: () {
+                                                              // Navigator.of(context).push(
+                                                              //   MaterialPageRoute(
+                                                              //     builder: (context) => ProfileScreen(
+                                                              //       uid: widget.widget.snap['uid'],
+                                                              //     ),
+                                                              //   ),
+                                                              // );
+                                                            },
+                                                            child: Text(
+                                                              widget.snap[
+                                                                  'username'],
+                                                              style: AppTheme
+                                                                  .subtitle,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            Gap(15),
                                             Row(
                                               mainAxisAlignment:
                                                   MainAxisAlignment
@@ -312,6 +349,9 @@ class _ProductCardState extends State<ProductCard> {
                                                                 generateAvailableSizes();
                                                                 _currentPhotoIndex =
                                                                     0;
+                                                                _pageController
+                                                                    .jumpToPage(
+                                                                        0);
                                                               });
                                                             },
                                                             child: Padding(
@@ -330,7 +370,7 @@ class _ProductCardState extends State<ProductCard> {
                                                                             .vinho
                                                                         : Colors
                                                                             .transparent,
-                                                                    width: 2,
+                                                                    width: 4,
                                                                   ),
                                                                   borderRadius:
                                                                       BorderRadius

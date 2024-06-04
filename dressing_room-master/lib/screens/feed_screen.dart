@@ -73,7 +73,7 @@ class _FeedScreenState extends State<FeedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // bool isBottomVisible = context.watch<BottonNavController>().isBottonVisible;
+    //  bool isBottomVisible = context.watch<BottonNavController>().isBottonVisible;
     bool isBottomVisible = true;
     final shopProvider = Provider.of<ShopProvider>(context, listen: false);
     final cartQuantityy = Provider.of<CartCounterProvider>(context)
