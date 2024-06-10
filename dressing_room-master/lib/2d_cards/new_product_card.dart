@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dressing_room/screens/product_screen.dart';
+
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:gap/gap.dart';
@@ -35,9 +35,16 @@ class _NewProductCardState extends State<NewProductCard> {
   bool isAddedOnFav = false;
   int selectedSize = 0;
   Map<String, List<String>> categorySizes = {
-    'Tronco': ['XS', 'S', 'M', 'L', 'XL'],
     'Pernas': ['34', '36', '38', '40', '42', '44'],
     'Pés': ['34', '35', '36', '37', '38', '39', '40', '41', '42'],
+    'Tronco': ['PP', 'P', 'M', 'G', 'GG', 'XGG'],
+    'Body (corpo inteiro)': ['PP', 'P', 'M', 'G', 'GG', 'XGG'],
+    'Top (cabeça)': ['P', 'M', 'G'],
+    "Mão": [],
+    "Pulso": [],
+    "Pescoço": [],
+    "Cintura": ['34', '36', '38', '40', '42', '44'],
+    'Rosto': [],
   };
   bool showreactions = false;
   int currentImageIndex = 0;
@@ -171,7 +178,7 @@ class _NewProductCardState extends State<NewProductCard> {
             uid,
             widget.snap['username'],
             widget.snap['productId'],
-            widget.snap['category'],
+            widget.snap['type'],
             widget.snap['variations'][0]['variationdescription'],
             availableSizes[selectedSize],
             widget.snap['variations'][0]['photoUrls'][0],
@@ -396,20 +403,6 @@ class _NewProductCardState extends State<NewProductCard> {
                       right: 10,
                       child: Column(
                         children: [
-                          // Visibility(
-                          //   visible:
-                          //       widget.snap['category'] == "COATS",
-                          //   child: Icon(
-                          //     shadows: <Shadow>[
-                          //       Shadow(
-                          //         color: AppTheme.nearlyBlack,
-                          //         blurRadius: 5.0,
-                          //       ),
-                          //     ],
-                          //     Icons.,
-                          //     color: AppTheme.vinho,
-                          //   ),
-                          // ),
                           Gap(5.h),
                           SpeedDial(
                             direction: SpeedDialDirection.down,
@@ -541,7 +534,7 @@ class _NewProductCardState extends State<NewProductCard> {
                                                 MaterialPageRoute(
                                                   builder: (context) =>
                                                       StoreScreen(
-                                                    uid: widget.snap['uid'],
+                                                    storeId: widget.snap['uid'],
                                                   ),
                                                 ),
                                               );

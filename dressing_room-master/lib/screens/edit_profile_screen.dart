@@ -187,7 +187,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       showDialog(
                         context: context,
                         builder: (BuildContext context) {
-                          return SelectImageDialog(
+                          return SelectImageRedondaDialog(
                               onImageSelected: (Uint8List file) {
                             setState(() {
                               _image = file;

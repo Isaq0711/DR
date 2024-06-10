@@ -10,16 +10,16 @@ import 'package:gap/gap.dart';
 import 'seepost.dart';
 import 'package:dressing_room/widgets/follow_button.dart';
 
-class StoreScreen extends StatefulWidget {
+class StoreScreen2 extends StatefulWidget {
   final String uid;
 
-  const StoreScreen({Key? key, required this.uid}) : super(key: key);
+  const StoreScreen2({Key? key, required this.uid}) : super(key: key);
 
   @override
-  _StoreScreenState createState() => _StoreScreenState();
+  _StoreScreen2State createState() => _StoreScreen2State();
 }
 
-class _StoreScreenState extends State<StoreScreen>
+class _StoreScreen2State extends State<StoreScreen2>
     with SingleTickerProviderStateMixin {
   var userData = {};
   int postLen = 0;

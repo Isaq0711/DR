@@ -9,9 +9,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:dressing_room/utils/colors.dart';
-import 'package:dressing_room/utils/global_variable.dart';
 import 'package:dressing_room/utils/utils.dart';
-import 'package:dressing_room/widgets/text_field_input.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -80,7 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
             width: 375.w,
             padding: EdgeInsets.symmetric(
               horizontal: 27.w,
-              vertical: 40.h,
+              vertical: 25.h,
             ),
             decoration: const BoxDecoration(
               color: Colors.white,
@@ -199,7 +197,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
 
-                //Botão de Criar Conta
                 SizedBox(
                   height: 40.h,
                   child: OutlinedButton(

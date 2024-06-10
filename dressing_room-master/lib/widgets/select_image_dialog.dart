@@ -134,6 +134,134 @@ class SelectImageDialog1por1 extends StatelessWidget {
   }
 }
 
+class SelectImageRedondaDialog extends StatelessWidget {
+  final Function(Uint8List) onImageSelected;
+
+  SelectImageRedondaDialog({required this.onImageSelected});
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: AppTheme.nearlyWhite,
+      title: Align(
+        alignment: Alignment.center,
+        child: Text(
+          'UPLOAD',
+          style: AppTheme.subheadline,
+        ),
+      ),
+      content: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          ElevatedButton.icon(
+            icon: Icon(Icons.camera),
+            label: const Text(
+              'Camera',
+              style: TextStyle(
+                fontFamily: 'Quicksand',
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(primary: AppTheme.vinho),
+            onPressed: () async {
+              Navigator.pop(context);
+              Uint8List? file = await pickImageRedonda(ImageSource.camera);
+              if (file != null) {
+                onImageSelected(file);
+              }
+            },
+          ),
+          SizedBox(
+            width: 10,
+          ),
+          ElevatedButton.icon(
+            icon: Icon(Icons.photo_library),
+            label: const Text(
+              'Gallery',
+              style: TextStyle(
+                fontFamily: 'Quicksand',
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(primary: AppTheme.vinho),
+            onPressed: () async {
+              Navigator.of(context).pop();
+              Uint8List? file = await pickImageRedonda(ImageSource.gallery);
+              if (file != null) {
+                onImageSelected(file);
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SelectImageCapaDialog extends StatelessWidget {
+  final Function(Uint8List) onImageSelected;
+
+  SelectImageCapaDialog({required this.onImageSelected});
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: AppTheme.nearlyWhite,
+      title: Align(
+        alignment: Alignment.center,
+        child: Text(
+          'UPLOAD',
+          style: AppTheme.subheadline,
+        ),
+      ),
+      content: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          ElevatedButton.icon(
+            icon: Icon(Icons.camera),
+            label: const Text(
+              'Camera',
+              style: TextStyle(
+                fontFamily: 'Quicksand',
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(primary: AppTheme.vinho),
+            onPressed: () async {
+              Navigator.pop(context);
+              Uint8List? file = await pickImagedeCapa(ImageSource.camera);
+              if (file != null) {
+                onImageSelected(file);
+              }
+            },
+          ),
+          SizedBox(
+            width: 10,
+          ),
+          ElevatedButton.icon(
+            icon: Icon(Icons.photo_library),
+            label: const Text(
+              'Gallery',
+              style: TextStyle(
+                fontFamily: 'Quicksand',
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(primary: AppTheme.vinho),
+            onPressed: () async {
+              Navigator.of(context).pop();
+              Uint8List? file = await pickImagedeCapa(ImageSource.gallery);
+              if (file != null) {
+                onImageSelected(file);
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class SelectImageSuggestion extends StatelessWidget {
   final Function(Uint8List) onImageSelected;
 

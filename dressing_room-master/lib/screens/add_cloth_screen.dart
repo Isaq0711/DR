@@ -255,6 +255,7 @@ class _AddClothScreenState extends State<AddClothScreen> {
                 processedImage2!,
                 uid,
                 selectedClothType,
+                selectedCategory,
                 isPublic,
                 _barCodeController.text,
                 marcas,
@@ -320,7 +321,7 @@ class _AddClothScreenState extends State<AddClothScreen> {
         if (_isDraggingImage) {
           _draggedImagePosition += position;
         } else {
-          Offset adjustedPosition = position - _draggedImagePosition;
+          Offset adjustedPosition = (position - _draggedImagePosition);
           _selectedPositionsMap[_currentPageIndex]!.add(adjustedPosition);
           _sliderValues.add(_sliderValue);
         }

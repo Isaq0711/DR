@@ -1,12 +1,11 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:dressing_room/widgets/select_image_dialog.dart';
 import 'package:dressing_room/resources/auth_methods.dart';
 import 'package:dressing_room/responsive/mobile_screen_layout.dart';
 import 'package:dressing_room/responsive/responsive_layout.dart';
 import 'package:dressing_room/screens/login_screen.dart';
 import 'package:dressing_room/utils/colors.dart';
-import 'package:image_cropper/image_cropper.dart';
 import 'package:dressing_room/utils/utils.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -37,19 +36,30 @@ class _SignupScreenState extends State<SignupScreen> {
       _isLoading = true;
     });
 
-    // signup user using our authmethods
-    String res = await AuthMethods().signUpUser(
+    String res;
+    if (_image != null) {
+      res = await AuthMethods().signUpUser(
         email: _emailController.text,
         password: _passwordController.text,
         username: _usernameController.text,
         bio: _bioController.text,
-        file: _image!);
-    // if string returned is success, user has been created
+        file: _image,
+      );
+    } else {
+      // Se a imagem for nula, chame signUpUser sem passar a imagem
+      res = await AuthMethods().signUpUser(
+        email: _emailController.text,
+        password: _passwordController.text,
+        username: _usernameController.text,
+        bio: _bioController.text,
+      );
+    }
+
     if (res == "success") {
       setState(() {
         _isLoading = false;
       });
-      // navigate to the home screen
+
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (context) => ResponsiveLayout(
@@ -61,32 +71,8 @@ class _SignupScreenState extends State<SignupScreen> {
       setState(() {
         _isLoading = false;
       });
-      // show the error
+      // mostrar o erro
       showSnackBar(context, res);
-    }
-  }
-
-  selectImage() async {
-    final pickedImage =
-        await ImagePicker().getImage(source: ImageSource.gallery);
-    if (pickedImage != null) {
-      final croppedImage = await ImageCropper().cropImage(
-        sourcePath: pickedImage.path,
-        aspectRatio: CropAspectRatio(ratioX: 1, ratioY: 1),
-        compressQuality: 70,
-        compressFormat: ImageCompressFormat.jpg,
-        androidUiSettings: AndroidUiSettings(
-          toolbarColor: Colors.white,
-          toolbarTitle: "Crop Image",
-          statusBarColor: Colors.black,
-          backgroundColor: Colors.white,
-        ),
-      );
-      if (croppedImage != null) {
-        setState(() {
-          _image = croppedImage.readAsBytesSync();
-        });
-      }
     }
   }
 
@@ -102,9 +88,6 @@ class _SignupScreenState extends State<SignupScreen> {
             data: Theme.of(context).copyWith(
               textSelectionTheme: TextSelectionThemeData(
                 cursorColor: Colors.black,
-              ),
-              textTheme: TextTheme(
-                subtitle1: TextStyle(color: Colors.black),
               ),
               inputDecorationTheme: InputDecorationTheme(
                 border: OutlineInputBorder(
@@ -122,31 +105,47 @@ class _SignupScreenState extends State<SignupScreen> {
                   child: Container(),
                   flex: 2,
                 ),
-                Stack(
-                  children: [
-                    _image != null
-                        ? CircleAvatar(
-                            radius: 64,
-                            backgroundImage: MemoryImage(_image!),
-                            backgroundColor: Colors.red,
-                          )
-                        : CircleAvatar(
-                            radius: 64,
-                            backgroundImage: NetworkImage(
-                                'https://static.vecteezy.com/system/resources/thumbnails/007/033/146/small/profile-icon-login-head-icon-vector.jpg'),
-                            backgroundColor: Colors.red,
+                InkWell(
+                    onTap: () {
+                      print(_image);
+                    },
+                    child: Stack(
+                      children: [
+                        _image != null
+                            ? CircleAvatar(
+                                radius: 64,
+                                backgroundImage: MemoryImage(_image!),
+                                backgroundColor: Colors.red,
+                              )
+                            : CircleAvatar(
+                                radius: 64,
+                                backgroundImage: NetworkImage(
+                                    'https://static.vecteezy.com/system/resources/thumbnails/007/033/146/small/profile-icon-login-head-icon-vector.jpg'),
+                                backgroundColor: Colors.red,
+                              ),
+                        Positioned(
+                          bottom: -10,
+                          left: 80,
+                          child: IconButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return SelectImageRedondaDialog(
+                                      onImageSelected: (Uint8List file) {
+                                    setState(() {
+                                      _image = file;
+                                    });
+                                  });
+                                },
+                              );
+                            },
+                            icon: Icon(Icons.add_a_photo),
+                            color: Colors.grey,
                           ),
-                    Positioned(
-                      bottom: -10,
-                      left: 80,
-                      child: IconButton(
-                        onPressed: selectImage,
-                        icon: Icon(Icons.add_a_photo),
-                        color: Colors.grey,
-                      ),
-                    )
-                  ],
-                ),
+                        )
+                      ],
+                    )),
                 SizedBox(
                   height: 24,
                 ),
@@ -155,6 +154,8 @@ class _SignupScreenState extends State<SignupScreen> {
                   decoration: InputDecoration(
                     labelText: 'Enter your username',
                   ),
+                  style: AppTheme.dividerfont,
+                  keyboardType: TextInputType.multiline,
                 ),
                 SizedBox(
                   height: 24,
@@ -164,6 +165,8 @@ class _SignupScreenState extends State<SignupScreen> {
                   decoration: InputDecoration(
                     labelText: 'Enter your email',
                   ),
+                  style: AppTheme.dividerfont,
+                  keyboardType: TextInputType.multiline,
                 ),
                 SizedBox(
                   height: 24,
@@ -173,6 +176,8 @@ class _SignupScreenState extends State<SignupScreen> {
                   decoration: InputDecoration(
                     labelText: 'Enter your password',
                   ),
+                  style: AppTheme.dividerfont,
+                  keyboardType: TextInputType.multiline,
                   obscureText: true,
                 ),
                 SizedBox(

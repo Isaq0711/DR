@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dressing_room/models/post.dart';
 import 'package:dressing_room/models/products.dart';
 import 'package:dressing_room/models/votations.dart';
+import 'package:dressing_room/models/store.dart';
 import 'package:dressing_room/widgets/friends_list.dart';
 import 'package:flutter/material.dart';
 import 'package:dressing_room/widgets/tag_card.dart';
@@ -11,6 +12,7 @@ import 'package:dressing_room/resources/storage_methods.dart';
 import 'package:provider/provider.dart';
 import 'package:dressing_room/providers/bottton_nav_controller.dart';
 import 'package:uuid/uuid.dart';
+import 'dart:math';
 import 'package:dressing_room/models/cart.dart';
 import 'package:dressing_room/models/clothes.dart';
 
@@ -155,6 +157,7 @@ class FireStoreMethods {
     Uint8List file,
     String uid,
     String? category,
+    String? type,
     bool isPublic,
     String? barCode,
     List<String>? marcas,
@@ -175,6 +178,7 @@ class FireStoreMethods {
         clothId: clothId,
         photoUrl: photoUrl,
         dateAdded: DateTime.now(),
+        type: type,
         category: category,
         isPublic: isPublic,
         barCode: barCode,
@@ -234,6 +238,44 @@ class FireStoreMethods {
       res = err.toString();
     }
     return res;
+  }
+
+  Future<String> createStore(String storename, Uint8List file, String uid,
+      Uint8List capa, String bio) async {
+    String res = "Some error occurred";
+    try {
+      String photoUrl =
+          await StorageMethods().uploadImageToStorage('storeFotos', file, true);
+      String fotodecapa =
+          await StorageMethods().uploadImageToStorage('storeFotos', capa, true);
+
+      String storeId = _generateStoreId();
+      Store store = Store(
+          storeId: storeId,
+          storename: storename,
+          photoUrl: photoUrl,
+          fotodecapa: fotodecapa,
+          followers: [],
+          following: [],
+          patrocinados: [],
+          bio: bio,
+          adms: [uid]);
+
+      _firestore.collection('store').doc(storeId).set(store.toJson());
+      res = "success";
+    } catch (err) {
+      res = err.toString();
+    }
+    return res;
+  }
+
+  String _generateStoreId() {
+    const length = 28;
+    const chars =
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    final rand = Random();
+    return List.generate(length, (index) => chars[rand.nextInt(chars.length)])
+        .join();
   }
 
   Future<String> createOrUpdateTabViewCollection(
@@ -456,6 +498,7 @@ class FireStoreMethods {
     String profImage,
     List<Map<String, dynamic>> variations,
     String category,
+    String type,
     bool vitrine,
     bool promotions,
   ) async {
@@ -485,6 +528,7 @@ class FireStoreMethods {
         productId: productId,
         datePublished: DateTime.now(),
         category: category,
+        type: type,
         variations: variationsList,
         profImage: profImage,
         vitrine: vitrine,

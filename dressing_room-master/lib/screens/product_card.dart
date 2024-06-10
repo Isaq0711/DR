@@ -1,15 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dressing_room/screens/store_screen.dart';
 import 'package:gap/gap.dart';
 import 'package:flutter/material.dart';
 import 'package:dressing_room/models/user.dart' as model;
 import 'package:dressing_room/providers/user_provider.dart';
 import 'package:dressing_room/resources/firestore_methods.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:dressing_room/screens/comments_screen.dart';
-import 'package:dressing_room/screens/profile_screen.dart';
 import 'package:dressing_room/utils/colors.dart';
 import 'package:dressing_room/utils/utils.dart';
-import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:dressing_room/screens/shopping_cart.dart';
@@ -32,9 +29,16 @@ class _ProductCardState extends State<ProductCard> {
   bool showinfo = true;
   bool isLoading = false;
   Map<String, List<String>> categorySizes = {
-    'Tronco': ['XS', 'S', 'M', 'L', 'XL'],
     'Pernas': ['34', '36', '38', '40', '42', '44'],
     'Pés': ['34', '35', '36', '37', '38', '39', '40', '41', '42'],
+    'Tronco': ['PP', 'P', 'M', 'G', 'GG', 'XGG'],
+    'Body (corpo inteiro)': ['PP', 'P', 'M', 'G', 'GG', 'XGG'],
+    'Top (cabeça)': ['P', 'M', 'G'],
+    "Mão": [],
+    "Pulso": [],
+    "Pescoço": [],
+    "Cintura": ['34', '36', '38', '40', '42', '44'],
+    'Rosto': [],
   };
   int _currentPageIndex = 0;
   int _currentPhotoIndex = 0;
@@ -59,7 +63,7 @@ class _ProductCardState extends State<ProductCard> {
           uid,
           widget.snap['username'],
           widget.snap['productId'],
-          widget.snap['category'],
+          widget.snap['type'],
           widget.snap['variations'][_currentPageIndex]['variationdescription'],
           availableSizes[selectedSize],
           widget.snap['variations'][_currentPageIndex]['photoUrls'][0],
@@ -244,13 +248,19 @@ class _ProductCardState extends State<ProductCard> {
                                                         children: <Widget>[
                                                           InkWell(
                                                             onTap: () {
-                                                              // Navigator.of(context).push(
-                                                              //   MaterialPageRoute(
-                                                              //     builder: (context) => ProfileScreen(
-                                                              //       uid: widget.widget.snap['uid'],
-                                                              //     ),
-                                                              //   ),
-                                                              // );
+                                                              Navigator.of(
+                                                                      context)
+                                                                  .push(
+                                                                MaterialPageRoute(
+                                                                  builder:
+                                                                      (context) =>
+                                                                          StoreScreen(
+                                                                    storeId: widget
+                                                                            .snap[
+                                                                        'uid'],
+                                                                  ),
+                                                                ),
+                                                              );
                                                             },
                                                             child: Text(
                                                               widget.snap[

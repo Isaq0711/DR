@@ -26,6 +26,7 @@ class AddProductScreen extends StatefulWidget {
 enum SwitchOption { optionA, optionB }
 
 class _AddPostScreenState extends State<AddProductScreen> {
+  final ScrollController _scrollController = ScrollController();
   int lastSelectedSize = -1;
   String selectedCategory = 'Tronco';
   String? selectedClothType;
@@ -111,7 +112,14 @@ class _AddPostScreenState extends State<AddProductScreen> {
   Map<String, List<String>> categorySizes = {
     'Pernas': ['34', '36', '38', '40', '42', '44'],
     'Pés': ['34', '35', '36', '37', '38', '39', '40', '41', '42'],
-    'Tronco': ['PP', 'P', 'M', 'G', 'GG'],
+    'Tronco': ['PP', 'P', 'M', 'G', 'GG', 'XGG'],
+    'Body (corpo inteiro)': ['PP', 'P', 'M', 'G', 'GG', 'XGG'],
+    'Top (cabeça)': ['P', 'M', 'G'],
+    "Mão": [],
+    "Pulso": [],
+    "Pescoço": [],
+    "Cintura": ['34', '36', '38', '40', '42', '44'],
+    'Rosto': [],
   };
 
   Map<int, VariationInfo> variation = {};
@@ -121,6 +129,7 @@ class _AddPostScreenState extends State<AddProductScreen> {
   @override
   void initState() {
     super.initState();
+
     WidgetsBinding.instance?.addPostFrameCallback((_) {
       _selectImage(context, 0);
     });
@@ -172,6 +181,14 @@ class _AddPostScreenState extends State<AddProductScreen> {
           },
         );
       },
+    );
+  }
+
+  void _scrollDown() {
+    _scrollController.animateTo(
+      _scrollController.position.maxScrollExtent,
+      duration: Duration(seconds: 1),
+      curve: Curves.fastOutSlowIn,
     );
   }
 
@@ -306,6 +323,7 @@ class _AddPostScreenState extends State<AddProductScreen> {
         profImage,
         variations,
         selectedCategory,
+        selectedClothType!,
         false,
         true,
       );
@@ -322,6 +340,13 @@ class _AddPostScreenState extends State<AddProductScreen> {
 
     setState(() {
       isLoading = false;
+    });
+  }
+
+  void _onClothTypeSelected(String clothType) {
+    setState(() {
+      selectedClothType = clothType;
+      selectedCategory = categorySizes[clothType] as String? ?? 'Outros';
     });
   }
 
@@ -475,7 +500,8 @@ class _AddPostScreenState extends State<AddProductScreen> {
                 fill: Fill.fillBack,
                 direction: FlipDirection.HORIZONTAL,
                 side: CardSide.FRONT,
-                front: ListView(children: <Widget>[
+                front:
+                    ListView(controller: _scrollController, children: <Widget>[
                   isLoading
                       ? const LinearProgressIndicator()
                       : const SizedBox(height: 0.0),
@@ -570,262 +596,298 @@ class _AddPostScreenState extends State<AddProductScreen> {
                       SizedBox(
                         width: size.width,
                         child: Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                            padding: const EdgeInsets.all(10.0),
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Expanded(
-                                      child: Text(
-                                    _descriptionController.text.isEmpty
-                                        ? "Description"
-                                        : _descriptionController.text,
-                                    style: AppTheme.subheadline,
-                                  )),
-                                  Gap(10),
-                                  Text(
-                                    '\$${variation[_currentPageIndex]?.price ?? 0}', // Exibe o preço da variação atual
-                                    style: AppTheme.subheadlinevinho,
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                          child: Text(
+                                        _descriptionController.text.isEmpty
+                                            ? "Description"
+                                            : _descriptionController.text,
+                                        style: AppTheme.subheadline,
+                                      )),
+                                      Gap(10),
+                                      Text(
+                                        '\$${variation[_currentPageIndex]?.price ?? 0}', // Exibe o preço da variação atual
+                                        style: AppTheme.subheadlinevinho,
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                              Gap(
-                                size.height * 0.006,
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                    left: 10.0, top: 18.0, bottom: 10.0),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    GestureDetector(
-                                      onTap: () => _selectImage(
-                                          context, variation.length),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.end,
-                                        children: [
-                                          const Icon(
-                                            Icons.add,
-                                            color: Colors.black,
-                                          ),
-                                          Gap(4),
-                                          const Text(
-                                            'Add More variations',
-                                            style: TextStyle(
-                                              fontFamily: 'Quicksand',
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    GestureDetector(
-                                      onTap: () => _selectmoreImage(
-                                          context, _currentPageIndex),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.end,
-                                        children: [
-                                          const Icon(
-                                            Icons.add,
-                                            color: Colors.black,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          const Text(
-                                            'Add More photos',
-                                            style: TextStyle(
-                                              fontFamily: 'Quicksand',
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Visibility(
-                                visible: variation.length != null &&
-                                    variation.length > 1,
-                                child: SizedBox(
-                                  height: size.height * 0.1,
-                                  child: GridView.builder(
-                                    scrollDirection: Axis.horizontal,
-                                    itemCount: variation.length,
-                                    gridDelegate:
-                                        SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 1,
-                                      crossAxisSpacing: 8.0,
-                                    ),
-                                    itemBuilder: (context, index) {
-                                      return GestureDetector(
-                                        onTap: () {
-                                          setState(() {
-                                            _currentPageIndex = index;
-                                            lastSelectedSize = -1;
-                                            currentPhotoIndex = 0;
-                                            itemdescriptionController
-                                                .text = variation[
-                                                        _currentPageIndex]
-                                                    ?.variationdescription ??
-                                                " ${_currentPageIndex + 1}";
-                                            itemCountController.text =
-                                                '${variation[_currentPageIndex]?.itemCount ?? 0}';
-                                            itempriceController.text =
-                                                '${variation[_currentPageIndex]?.price ?? 0}';
-                                          });
-                                        },
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: AnimatedContainer(
-                                            width: size.width * 0.15,
-                                            decoration: BoxDecoration(
-                                              border: Border.all(
-                                                color:
-                                                    _currentPageIndex == index
-                                                        ? AppTheme.vinho
-                                                        : Colors.transparent,
-                                                width: 2,
+                                  Gap(
+                                    size.height * 0.006,
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                        left: 10.0, top: 18.0, bottom: 10.0),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () => _selectImage(
+                                              context, variation.length),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.end,
+                                            children: [
+                                              const Icon(
+                                                Icons.add,
+                                                color: Colors.black,
                                               ),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            duration: const Duration(
-                                                milliseconds: 200),
-                                            child: ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                              child: Image.memory(
-                                                variation[index]
-                                                            ?.photos
-                                                            .isNotEmpty ==
-                                                        true
-                                                    ? variation[index]!
-                                                        .photos[0]
-                                                    : Uint8List(0),
+                                              Gap(4),
+                                              const Text(
+                                                'Add More variations',
+                                                style: TextStyle(
+                                                  fontFamily: 'Quicksand',
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black,
+                                                ),
                                               ),
-                                            ),
+                                            ],
                                           ),
                                         ),
-                                      );
-                                    },
+                                        GestureDetector(
+                                          onTap: () => _selectmoreImage(
+                                              context, _currentPageIndex),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.end,
+                                            children: [
+                                              const Icon(
+                                                Icons.add,
+                                                color: Colors.black,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              const Text(
+                                                'Add More photos',
+                                                style: TextStyle(
+                                                  fontFamily: 'Quicksand',
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ),
-                              SizedBox(
-                                height: size.height * 0.003,
-                              ),
-                              Visibility(
-                                visible: variation.length != null &&
-                                    variation.length > 1,
-                                child: Text(
-                                  "Variation selected: ${variation[_currentPageIndex]?.variationdescription?.isNotEmpty == true ? variation[_currentPageIndex]!.variationdescription! : " Variation ${_currentPageIndex + 1}"}",
-                                  style: AppTheme.caption,
-                                ),
-                              ),
-                              SizedBox(
-                                height: size.height * 0.006,
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                    left: 10.0, top: 18.0, bottom: 10.0),
-                                child: Text(
-                                  "Select Sizes available for the variation: ",
-                                  style: AppTheme.title,
-                                ),
-                              ),
-                              SizedBox(
-                                width: size.width * 0.9,
-                                height: size.height * 0.08,
-                                child: ListView.builder(
-                                  physics:
-                                      const AlwaysScrollableScrollPhysics(),
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount:
-                                      categorySizes[selectedCategory]!.length,
-                                  itemBuilder: (ctx, index) {
-                                    var current =
-                                        categorySizes[selectedCategory]![index];
-                                    bool isSelected =
-                                        variation[_currentPageIndex]!
-                                            .sizesAvailable
-                                            .contains(index);
-                                    bool isLastSelected =
-                                        lastSelectedSize == index;
+                                  variation.length > 1
+                                      ? SizedBox(
+                                          height: size.height * 0.1,
+                                          child: GridView.builder(
+                                            scrollDirection: Axis.horizontal,
+                                            itemCount: variation.length,
+                                            gridDelegate:
+                                                SliverGridDelegateWithFixedCrossAxisCount(
+                                              crossAxisCount: 1,
+                                              crossAxisSpacing: 8.0,
+                                            ),
+                                            itemBuilder: (context, index) {
+                                              return GestureDetector(
+                                                onTap: () {
+                                                  setState(() {
+                                                    _currentPageIndex = index;
+                                                    lastSelectedSize = -1;
+                                                    currentPhotoIndex = 0;
+                                                    itemdescriptionController
+                                                        .text = variation[
+                                                                _currentPageIndex]
+                                                            ?.variationdescription ??
+                                                        " ${_currentPageIndex + 1}";
+                                                    itemCountController.text =
+                                                        '${variation[_currentPageIndex]?.itemCount ?? 0}';
+                                                    itempriceController.text =
+                                                        '${variation[_currentPageIndex]?.price ?? 0}';
+                                                  });
+                                                },
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.all(8.0),
+                                                  child: AnimatedContainer(
+                                                    width: size.width * 0.15,
+                                                    decoration: BoxDecoration(
+                                                      border: Border.all(
+                                                        color:
+                                                            _currentPageIndex ==
+                                                                    index
+                                                                ? AppTheme.vinho
+                                                                : Colors
+                                                                    .transparent,
+                                                        width: 2,
+                                                      ),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
+                                                    ),
+                                                    duration: const Duration(
+                                                        milliseconds: 200),
+                                                    child: ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
+                                                      child: Image.memory(
+                                                        variation[index]
+                                                                    ?.photos
+                                                                    .isNotEmpty ==
+                                                                true
+                                                            ? variation[index]!
+                                                                .photos[0]
+                                                            : Uint8List(0),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        )
+                                      : SizedBox.shrink(),
+                                  SizedBox(
+                                    height: size.height * 0.003,
+                                  ),
+                                  Visibility(
+                                    visible: variation.length > 1,
+                                    child: Text(
+                                      "Variation selected: ${variation[_currentPageIndex]?.variationdescription?.isNotEmpty == true ? variation[_currentPageIndex]!.variationdescription! : " Variation ${_currentPageIndex + 1}"}",
+                                      style: AppTheme.caption,
+                                    ),
+                                  ),
+                                  categorySizes[selectedCategory] != null ||
+                                          categorySizes[selectedCategory]!
+                                              .isNotEmpty
+                                      ? Column(
+                                          children: [
+                                            SizedBox(
+                                              height: size.height * 0.006,
+                                            ),
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                  left: 10.0,
+                                                  top: 18.0,
+                                                  bottom: 10.0),
+                                              child: Text(
+                                                "Select Sizes available for the variation: ",
+                                                style: AppTheme.title,
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              width: size.width * 0.9,
+                                              height: size.height * 0.08,
+                                              child: ListView.builder(
+                                                physics:
+                                                    const AlwaysScrollableScrollPhysics(),
+                                                scrollDirection:
+                                                    Axis.horizontal,
+                                                itemCount: categorySizes[
+                                                        selectedCategory]!
+                                                    .length,
+                                                itemBuilder: (ctx, index) {
+                                                  var current = categorySizes[
+                                                      selectedCategory]![index];
+                                                  bool isSelected = variation[
+                                                          _currentPageIndex]!
+                                                      .sizesAvailable
+                                                      .contains(index);
+                                                  bool isLastSelected =
+                                                      lastSelectedSize == index;
 
-                                    return GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          if (isSelected && isLastSelected) {
-                                            variation[_currentPageIndex]!
-                                                .sizesAvailable
-                                                .remove(index);
-                                            lastSelectedSize = -1;
-                                          } else {
-                                            if (!isSelected) {
-                                              variation[_currentPageIndex]!
-                                                  .sizesAvailable
-                                                  .add(index);
-                                            }
-                                            lastSelectedSize = index;
-                                          }
-                                        });
-                                      },
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(10.0),
-                                        child: AnimatedContainer(
-                                          width: size.width * 0.12,
-                                          decoration: BoxDecoration(
-                                            color: isSelected
-                                                ? AppTheme.vinho
-                                                : Colors.transparent,
-                                            border: Border.all(
-                                              color: isLastSelected
-                                                  ? Colors.blue
-                                                  : AppTheme.vinho,
-                                              width: 2,
-                                            ),
-                                            borderRadius:
-                                                BorderRadius.circular(15),
-                                          ),
-                                          duration:
-                                              const Duration(milliseconds: 200),
-                                          child: Center(
-                                            child: Text(
-                                              current,
-                                              style: TextStyle(
-                                                fontSize: 17,
-                                                fontWeight: FontWeight.w500,
-                                                color: isSelected
-                                                    ? Colors.white
-                                                    : Colors.black,
+                                                  return GestureDetector(
+                                                    onTap: () {
+                                                      setState(() {
+                                                        if (isSelected &&
+                                                            isLastSelected) {
+                                                          variation[
+                                                                  _currentPageIndex]!
+                                                              .sizesAvailable
+                                                              .remove(index);
+                                                          lastSelectedSize = -1;
+                                                        } else {
+                                                          if (!isSelected) {
+                                                            variation[
+                                                                    _currentPageIndex]!
+                                                                .sizesAvailable
+                                                                .add(index);
+                                                          }
+                                                          lastSelectedSize =
+                                                              index;
+                                                        }
+                                                      });
+
+                                                      // Ensure the scroll happens after the setState has completed
+                                                      WidgetsBinding.instance
+                                                          .addPostFrameCallback(
+                                                              (_) {
+                                                        _scrollDown();
+                                                      });
+                                                    },
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              10.0),
+                                                      child: AnimatedContainer(
+                                                        width:
+                                                            size.width * 0.12,
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color: isSelected
+                                                              ? AppTheme.vinho
+                                                              : Colors
+                                                                  .transparent,
+                                                          border: Border.all(
+                                                            color:
+                                                                isLastSelected
+                                                                    ? Colors
+                                                                        .blue
+                                                                    : AppTheme
+                                                                        .vinho,
+                                                            width: 2,
+                                                          ),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(15),
+                                                        ),
+                                                        duration:
+                                                            const Duration(
+                                                                milliseconds:
+                                                                    200),
+                                                        child: Center(
+                                                          child: Text(
+                                                            current,
+                                                            style: TextStyle(
+                                                              fontSize: 17,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500,
+                                                              color: isSelected
+                                                                  ? Colors.white
+                                                                  : Colors
+                                                                      .black,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
                                               ),
                                             ),
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                                          ],
+                                        )
+                                      : SizedBox.shrink()
+                                ])),
                       ),
                       Padding(
                         padding: const EdgeInsets.only(left: 18.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (lastSelectedSize == null ||
-                                lastSelectedSize == -1)
+                            if (lastSelectedSize == -1)
                               Container()
                             else
                               Text(
@@ -937,10 +999,18 @@ class _AddPostScreenState extends State<AddProductScreen> {
                                           child: ElevatedButton(
                                             onPressed: () {
                                               setState(() {
+                                                variation[_currentPageIndex]!
+                                                    .sizesAvailable = [];
+                                                lastSelectedSize = -1;
+                                                selectedCategory = 'Tronco';
+
                                                 showCategoryDialog(
                                                     context, category, (value) {
                                                   setState(() {
                                                     selectedClothType = value;
+                                                    selectedCategory =
+                                                        clothingItems.keys
+                                                            .elementAt(index);
                                                   });
                                                 });
                                               });
@@ -990,6 +1060,10 @@ class _AddPostScreenState extends State<AddProductScreen> {
                                             onTap: () {
                                               setState(() {
                                                 selectedClothType = null;
+                                                variation[_currentPageIndex]!
+                                                    .sizesAvailable = [];
+                                                lastSelectedSize = -1;
+                                                selectedCategory = 'Tronco';
                                               });
                                             },
                                             child: Container(
@@ -1001,7 +1075,7 @@ class _AddPostScreenState extends State<AddProductScreen> {
                                               child: Icon(
                                                 Icons.close,
                                                 color: Colors.black,
-                                                size: 12,
+                                                size: 22,
                                               ),
                                             ),
                                           ),

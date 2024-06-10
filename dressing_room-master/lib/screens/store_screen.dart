@@ -17,9 +17,9 @@ import 'package:dressing_room/widgets/follow_button.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class StoreScreen extends StatefulWidget {
-  final String uid;
+  final String storeId;
 
-  StoreScreen({Key? key, required this.uid}) : super(key: key);
+  StoreScreen({Key? key, required this.storeId}) : super(key: key);
 
   @override
   _StoreScreenState createState() => _StoreScreenState();
@@ -51,25 +51,14 @@ class _StoreScreenState extends State<StoreScreen>
     });
     try {
       var userSnap = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.uid)
+          .collection('store')
+          .doc(widget.storeId)
           .get();
 
-      var postSnap = await FirebaseFirestore.instance
-          .collection('posts')
-          .where('uid', isEqualTo: widget.uid)
-          .get();
-
-      var votationSnap = await FirebaseFirestore.instance
-          .collection('votations')
-          .where('uid', isEqualTo: widget.uid)
-          .get();
-
-      postLen = postSnap.docs.length + votationSnap.docs.length;
       userData = userSnap.data()!;
       followers = userSnap.data()!['followers'].length;
       following = userSnap.data()!['following'].length;
-      tabviews = userSnap.data()!['tabviews'].length;
+
       isFollowing = userSnap
           .data()!['followers']
           .contains(FirebaseAuth.instance.currentUser!.uid);
@@ -118,7 +107,7 @@ class _StoreScreenState extends State<StoreScreen>
                             ClipPath(
                               clipper: OvalBottomClipper(),
                               child: Image(
-                                image: NetworkImage(userData['photoUrl']),
+                                image: NetworkImage(userData['fotodecapa']),
                                 height: 245.h,
                                 width: double.infinity,
                                 fit: BoxFit.cover,
@@ -159,7 +148,7 @@ class _StoreScreenState extends State<StoreScreen>
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Text(
-                              userData['username'],
+                              userData['storename'],
                               style: AppTheme.barapp.copyWith(
                                 shadows: [
                                   Shadow(
@@ -169,6 +158,8 @@ class _StoreScreenState extends State<StoreScreen>
                                 ],
                               ),
                             ),
+                            Gap(6.h),
+                            Text(userData['bio'], style: AppTheme.dividerfont),
                             Gap(16.h),
                             Row(
                               mainAxisSize: MainAxisSize.max,
@@ -180,8 +171,9 @@ class _StoreScreenState extends State<StoreScreen>
                               ],
                             ),
                             Gap(16.h),
-                            if (FirebaseAuth.instance.currentUser!.uid ==
-                                widget.uid)
+                            if (userData['adms'] != null &&
+                                userData['adms'].contains(
+                                    FirebaseAuth.instance.currentUser!.uid))
                               Container()
                             else if (isFollowing)
                               FollowButton(
@@ -192,7 +184,7 @@ class _StoreScreenState extends State<StoreScreen>
                                 function: () async {
                                   await FireStoreMethods().followUser(
                                     FirebaseAuth.instance.currentUser!.uid,
-                                    userData['uid'],
+                                    userData['storeId'],
                                   );
 
                                   setState(() {
@@ -210,7 +202,7 @@ class _StoreScreenState extends State<StoreScreen>
                                 function: () async {
                                   await FireStoreMethods().followUser(
                                     FirebaseAuth.instance.currentUser!.uid,
-                                    userData['uid'],
+                                    userData['storeId'],
                                   );
 
                                   setState(() {
@@ -276,8 +268,185 @@ class _StoreScreenState extends State<StoreScreen>
                                           FutureBuilder(
                                               future: FirebaseFirestore.instance
                                                   .collection('products')
-                                                  .where('uid',
-                                                      isEqualTo: widget.uid)
+                                                  .where('storeId',
+                                                      isEqualTo: widget.storeId)
+                                                  .where('vitrine',
+                                                      isEqualTo: true)
+                                                  .get(),
+                                              builder: (context, snapshot) {
+                                                if (snapshot.connectionState ==
+                                                    ConnectionState.waiting) {
+                                                  return const Center(
+                                                    child:
+                                                        CircularProgressIndicator(),
+                                                  );
+                                                }
+                                                if (!snapshot.hasData ||
+                                                    (snapshot.data
+                                                            as QuerySnapshot)
+                                                        .docs
+                                                        .isEmpty) {
+                                                  return NoContent();
+                                                }
+
+                                                return SizedBox(
+                                                  height: 340.h,
+                                                  child: GridView.builder(
+                                                    gridDelegate:
+                                                        SliverGridDelegateWithFixedCrossAxisCount(
+                                                      crossAxisCount:
+                                                          3, // Ajustado para 3 colunas
+                                                      mainAxisSpacing: 4.h,
+                                                      crossAxisSpacing: 5.h,
+                                                      childAspectRatio:
+                                                          0.7, // Ajuste o aspecto para itens mais compactos
+                                                    ),
+                                                    itemCount: (snapshot.data!
+                                                            as QuerySnapshot)
+                                                        .docs
+                                                        .length,
+                                                    itemBuilder:
+                                                        (context, index) {
+                                                      DocumentSnapshot snap =
+                                                          (snapshot.data!
+                                                                  as QuerySnapshot)
+                                                              .docs[index];
+
+                                                      return GestureDetector(
+                                                        onTap: () {
+                                                          Navigator.push(
+                                                            context,
+                                                            MaterialPageRoute(
+                                                              builder: (context) =>
+                                                                  SeePost(
+                                                                      postId: snap[
+                                                                          'productId']),
+                                                            ),
+                                                          );
+                                                        },
+                                                        child: Container(
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        10),
+                                                            border: Border.all(
+                                                                color: Colors
+                                                                    .grey
+                                                                    .withOpacity(
+                                                                        0.5)),
+                                                            boxShadow: [
+                                                              BoxShadow(
+                                                                color: Colors
+                                                                    .grey
+                                                                    .withOpacity(
+                                                                        0.5),
+                                                                spreadRadius: 2,
+                                                                blurRadius: 5,
+                                                                offset: Offset(
+                                                                    0, 3),
+                                                              ),
+                                                            ],
+                                                            color: Colors.white,
+                                                          ),
+                                                          child: Column(
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .start,
+                                                            children: [
+                                                              ClipRRect(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .only(
+                                                                  topLeft: Radius
+                                                                      .circular(
+                                                                          10),
+                                                                  topRight: Radius
+                                                                      .circular(
+                                                                          10),
+                                                                ),
+                                                                child: Image
+                                                                    .network(
+                                                                  snap['variations']
+                                                                          [0][
+                                                                      'photoUrls'][0],
+                                                                  height: 100
+                                                                      .h, // Reduzi a altura da imagem
+                                                                  width: double
+                                                                      .infinity,
+                                                                  fit: BoxFit
+                                                                      .cover,
+                                                                ),
+                                                              ),
+                                                              Padding(
+                                                                padding:
+                                                                    EdgeInsets
+                                                                        .all(8),
+                                                                child: Column(
+                                                                  crossAxisAlignment:
+                                                                      CrossAxisAlignment
+                                                                          .start,
+                                                                  children: <Widget>[
+                                                                    Text(
+                                                                      snap[
+                                                                          'description'],
+                                                                      maxLines:
+                                                                          1, // Reduzi para uma linha
+                                                                      overflow:
+                                                                          TextOverflow
+                                                                              .ellipsis,
+                                                                      style:
+                                                                          TextStyle(
+                                                                        fontSize:
+                                                                            12,
+                                                                        fontWeight:
+                                                                            FontWeight.bold,
+                                                                        color: Colors
+                                                                            .black87,
+                                                                      ),
+                                                                    ),
+                                                                    Gap(4
+                                                                        .h), // Reduzi o espaçamento vertical
+                                                                    Row(
+                                                                      children: [
+                                                                        Spacer(),
+                                                                        Text(
+                                                                          '\$${snap['variations'][0]['price']}',
+                                                                          style:
+                                                                              TextStyle(
+                                                                            fontSize:
+                                                                                14, // Reduzi o tamanho da fonte
+                                                                            fontWeight:
+                                                                                FontWeight.bold,
+                                                                            color:
+                                                                                AppTheme.vinho,
+                                                                          ),
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      );
+                                                    },
+                                                  ),
+                                                );
+                                              })
+                                        ]),
+                                        Column(children: [
+                                          Padding(
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 3),
+                                          ),
+                                          FutureBuilder(
+                                              future: FirebaseFirestore.instance
+                                                  .collection('products')
+                                                  .where('storeId',
+                                                      isEqualTo: widget.storeId)
                                                   .get(),
                                               builder: (context, snapshot) {
                                                 if (snapshot.connectionState ==
@@ -466,7 +635,7 @@ class _StoreScreenState extends State<StoreScreen>
                                             //   future: FirebaseFirestore.instance
                                             //       .collection('favorites')
                                             //       .doc(widget
-                                            //           .uid) // Use the user's ID as the document ID
+                                            //           .storeId) // Use the user's ID as the document ID
                                             //       .collection('userFavorites')
                                             //       .get(),
                                             //   builder: (context, snapshot) {
@@ -545,8 +714,8 @@ class _StoreScreenState extends State<StoreScreen>
                                             FutureBuilder(
                                               future: FirebaseFirestore.instance
                                                   .collection('clothes')
-                                                  .where('uid',
-                                                      isEqualTo: widget.uid)
+                                                  .where('storeId',
+                                                      isEqualTo: widget.storeId)
                                                   .get(),
                                               builder: (context, snapshot) {
                                                 if (snapshot.connectionState ==
@@ -614,165 +783,165 @@ class _StoreScreenState extends State<StoreScreen>
                                             ),
                                           ],
                                         ),
-                                        Column(
-                                          children: [
-                                            userData['tabviews'].isEmpty
-                                                ? NoContent()
-                                                : SizedBox(
-                                                    height: 450.h,
-                                                    child: GridView.builder(
-                                                      gridDelegate:
-                                                          SliverGridDelegateWithFixedCrossAxisCount(
-                                                        crossAxisCount: 3,
-                                                        mainAxisSpacing: 8.h,
-                                                        crossAxisSpacing: 8.h,
-                                                        childAspectRatio: 1.0,
-                                                      ),
-                                                      itemCount:
-                                                          userData['tabviews']
-                                                              .length,
-                                                      itemBuilder:
-                                                          (context, index) {
-                                                        Map<String, dynamic>
-                                                            tabView =
-                                                            userData['tabviews']
-                                                                [index];
-                                                        String tabName =
-                                                            tabView.keys.first;
-                                                        List<dynamic> postIds =
-                                                            tabView[tabName];
-                                                        [
-                                                          0
-                                                        ]; // Assuming postId is the identifier to fetch image URL
-                                                        return FutureBuilder(
-                                                            future:
-                                                                FirebaseFirestore
-                                                                    .instance
-                                                                    .collection(
-                                                                        'posts')
-                                                                    .doc(
-                                                                        postIds[
-                                                                            0])
-                                                                    .get(),
-                                                            builder: (context,
-                                                                AsyncSnapshot<
-                                                                        DocumentSnapshot>
-                                                                    snapshot) {
-                                                              if (snapshot
-                                                                      .connectionState ==
-                                                                  ConnectionState
-                                                                      .waiting) {
-                                                                return Center(
-                                                                  child:
-                                                                      CircularProgressIndicator(), // Display a loading indicator while fetching data
-                                                                );
-                                                              } else if (snapshot
-                                                                  .hasError) {
-                                                                return Text(
-                                                                    'Error: ${snapshot.error}');
-                                                              } else {
-                                                                String
-                                                                    imageUrl =
-                                                                    snapshot.data![
-                                                                        'photoUrls'][0];
+                                        // Column(
+                                        //   children: [
+                                        //     userData['tabviews'].isEmpty
+                                        //         ? NoContent()
+                                        //         : SizedBox(
+                                        //             height: 450.h,
+                                        //             child: GridView.builder(
+                                        //               gridDelegate:
+                                        //                   SliverGridDelegateWithFixedCrossAxisCount(
+                                        //                 crossAxisCount: 3,
+                                        //                 mainAxisSpacing: 8.h,
+                                        //                 crossAxisSpacing: 8.h,
+                                        //                 childAspectRatio: 1.0,
+                                        //               ),
+                                        //               itemCount:
+                                        //                   userData['tabviews']
+                                        //                       .length,
+                                        //               itemBuilder:
+                                        //                   (context, index) {
+                                        //                 Map<String, dynamic>
+                                        //                     tabView =
+                                        //                     userData['tabviews']
+                                        //                         [index];
+                                        //                 String tabName =
+                                        //                     tabView.keys.first;
+                                        //                 List<dynamic> postIds =
+                                        //                     tabView[tabName];
+                                        //                 [
+                                        //                   0
+                                        //                 ]; // Assuming postId is the identifier to fetch image URL
+                                        //                 return FutureBuilder(
+                                        //                     future:
+                                        //                         FirebaseFirestore
+                                        //                             .instance
+                                        //                             .collection(
+                                        //                                 'posts')
+                                        //                             .doc(
+                                        //                                 postIds[
+                                        //                                     0])
+                                        //                             .get(),
+                                        //                     builder: (context,
+                                        //                         AsyncSnapshot<
+                                        //                                 DocumentSnapshot>
+                                        //                             snapshot) {
+                                        //                       if (snapshot
+                                        //                               .connectionState ==
+                                        //                           ConnectionState
+                                        //                               .waiting) {
+                                        //                         return Center(
+                                        //                           child:
+                                        //                               CircularProgressIndicator(), // Display a loading indicator while fetching data
+                                        //                         );
+                                        //                       } else if (snapshot
+                                        //                           .hasError) {
+                                        //                         return Text(
+                                        //                             'Error: ${snapshot.error}');
+                                        //                       } else {
+                                        //                         String
+                                        //                             imageUrl =
+                                        //                             snapshot.data![
+                                        //                                 'photoUrls'][0];
 
-                                                                return Stack(
-                                                                  children: [
-                                                                    ClipRRect(
-                                                                      borderRadius:
-                                                                          BorderRadius.circular(
-                                                                              10),
-                                                                      child:
-                                                                          InkWell(
-                                                                        child: Image
-                                                                            .network(
-                                                                          imageUrl,
-                                                                          fit: BoxFit
-                                                                              .fill,
-                                                                          width:
-                                                                              double.infinity,
-                                                                        ),
-                                                                        onTap:
-                                                                            () {
-                                                                          showDialog(
-                                                                            context:
-                                                                                context,
-                                                                            builder:
-                                                                                (BuildContext context) {
-                                                                              return Dialog(
-                                                                                backgroundColor: AppTheme.cinza,
-                                                                                child: Column(
-                                                                                  mainAxisSize: MainAxisSize.min,
-                                                                                  children: [
-                                                                                    Gap(20),
-                                                                                    Text(tabName, style: AppTheme.barapp),
-                                                                                    Gap(15),
-                                                                                    SizedBox(
-                                                                                      height: 300.h,
-                                                                                      child: FutureBuilder(
-                                                                                        future: Future.wait(postIds.map((postId) {
-                                                                                          return FirebaseFirestore.instance.collection('posts').doc(postId).get();
-                                                                                        }).toList()),
-                                                                                        builder: (context, AsyncSnapshot<List<DocumentSnapshot>> snapshot) {
-                                                                                          if (snapshot.connectionState == ConnectionState.waiting) {
-                                                                                            return Center(
-                                                                                              child: CircularProgressIndicator(), // Display a loading indicator while fetching data
-                                                                                            );
-                                                                                          } else if (snapshot.hasError) {
-                                                                                            return Text('Error: ${snapshot.error}');
-                                                                                          } else {
-                                                                                            List<String> imageUrls = snapshot.data!.map((doc) => doc['photoUrls'][0] as String).toList();
+                                        //                         return Stack(
+                                        //                           children: [
+                                        //                             ClipRRect(
+                                        //                               borderRadius:
+                                        //                                   BorderRadius.circular(
+                                        //                                       10),
+                                        //                               child:
+                                        //                                   InkWell(
+                                        //                                 child: Image
+                                        //                                     .network(
+                                        //                                   imageUrl,
+                                        //                                   fit: BoxFit
+                                        //                                       .fill,
+                                        //                                   width:
+                                        //                                       double.infinity,
+                                        //                                 ),
+                                        //                                 onTap:
+                                        //                                     () {
+                                        //                                   showDialog(
+                                        //                                     context:
+                                        //                                         context,
+                                        //                                     builder:
+                                        //                                         (BuildContext context) {
+                                        //                                       return Dialog(
+                                        //                                         backgroundColor: AppTheme.cinza,
+                                        //                                         child: Column(
+                                        //                                           mainAxisSize: MainAxisSize.min,
+                                        //                                           children: [
+                                        //                                             Gap(20),
+                                        //                                             Text(tabName, style: AppTheme.barapp),
+                                        //                                             Gap(15),
+                                        //                                             SizedBox(
+                                        //                                               height: 300.h,
+                                        //                                               child: FutureBuilder(
+                                        //                                                 future: Future.wait(postIds.map((postId) {
+                                        //                                                   return FirebaseFirestore.instance.collection('posts').doc(postId).get();
+                                        //                                                 }).toList()),
+                                        //                                                 builder: (context, AsyncSnapshot<List<DocumentSnapshot>> snapshot) {
+                                        //                                                   if (snapshot.connectionState == ConnectionState.waiting) {
+                                        //                                                     return Center(
+                                        //                                                       child: CircularProgressIndicator(), // Display a loading indicator while fetching data
+                                        //                                                     );
+                                        //                                                   } else if (snapshot.hasError) {
+                                        //                                                     return Text('Error: ${snapshot.error}');
+                                        //                                                   } else {
+                                        //                                                     List<String> imageUrls = snapshot.data!.map((doc) => doc['photoUrls'][0] as String).toList();
 
-                                                                                            return GridView.builder(
-                                                                                              shrinkWrap: true, // Ensures the GridView takes minimal space
-                                                                                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                                                                                crossAxisCount: 3,
-                                                                                                mainAxisSpacing: 8.h,
-                                                                                                crossAxisSpacing: 8.h,
-                                                                                                childAspectRatio: 1.0,
-                                                                                              ),
-                                                                                              itemCount: imageUrls.length,
-                                                                                              itemBuilder: (context, index) {
-                                                                                                return GestureDetector(
-                                                                                                  onTap: () {
-                                                                                                    Navigator.push(
-                                                                                                      context,
-                                                                                                      MaterialPageRoute(
-                                                                                                        builder: (context) => SeePost(postId: postIds[index]),
-                                                                                                      ),
-                                                                                                    );
-                                                                                                  },
-                                                                                                  child: ClipRRect(
-                                                                                                    borderRadius: BorderRadius.circular(10),
-                                                                                                    child: Image.network(
-                                                                                                      imageUrls[index],
-                                                                                                      fit: BoxFit.fill,
-                                                                                                    ),
-                                                                                                  ),
-                                                                                                );
-                                                                                              },
-                                                                                            );
-                                                                                          }
-                                                                                        },
-                                                                                      ),
-                                                                                    ),
-                                                                                  ],
-                                                                                ),
-                                                                              );
-                                                                            },
-                                                                          );
-                                                                        },
-                                                                      ),
-                                                                    ),
-                                                                  ],
-                                                                );
-                                                              }
-                                                            });
-                                                      },
-                                                    ),
-                                                  ),
-                                          ],
-                                        )
+                                        //                                                     return GridView.builder(
+                                        //                                                       shrinkWrap: true, // Ensures the GridView takes minimal space
+                                        //                                                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                        //                                                         crossAxisCount: 3,
+                                        //                                                         mainAxisSpacing: 8.h,
+                                        //                                                         crossAxisSpacing: 8.h,
+                                        //                                                         childAspectRatio: 1.0,
+                                        //                                                       ),
+                                        //                                                       itemCount: imageUrls.length,
+                                        //                                                       itemBuilder: (context, index) {
+                                        //                                                         return GestureDetector(
+                                        //                                                           onTap: () {
+                                        //                                                             Navigator.push(
+                                        //                                                               context,
+                                        //                                                               MaterialPageRoute(
+                                        //                                                                 builder: (context) => SeePost(postId: postIds[index]),
+                                        //                                                               ),
+                                        //                                                             );
+                                        //                                                           },
+                                        //                                                           child: ClipRRect(
+                                        //                                                             borderRadius: BorderRadius.circular(10),
+                                        //                                                             child: Image.network(
+                                        //                                                               imageUrls[index],
+                                        //                                                               fit: BoxFit.fill,
+                                        //                                                             ),
+                                        //                                                           ),
+                                        //                                                         );
+                                        //                                                       },
+                                        //                                                     );
+                                        //                                                   }
+                                        //                                                 },
+                                        //                                               ),
+                                        //                                             ),
+                                        //                                           ],
+                                        //                                         ),
+                                        //                                       );
+                                        //                                     },
+                                        //                                   );
+                                        //                                 },
+                                        //                               ),
+                                        //                             ),
+                                        //                           ],
+                                        //                         );
+                                        //                       }
+                                        //                     });
+                                        //               },
+                                        //             ),
+                                        //           ),
+                                        //   ],
+                                        // )
                                       ]))
                                 ]))
                           ],

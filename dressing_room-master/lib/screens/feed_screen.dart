@@ -4,8 +4,10 @@ import 'package:dressing_room/providers/bottton_nav_controller.dart';
 import 'package:dressing_room/providers/isshop_provider.dart';
 import 'package:dressing_room/responsive/mobile_screen_layout.dart';
 import 'package:dressing_room/responsive/responsive_layout.dart';
+import 'package:dressing_room/screens/create_store_screen.dart';
 import 'package:dressing_room/screens/forum_screen.dart';
 import 'package:dressing_room/screens/shopping_cart.dart';
+import 'package:dressing_room/screens/store_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
@@ -130,7 +132,8 @@ class _FeedScreenState extends State<FeedScreen> {
                             context,
                             // MaterialPageRoute(builder: (context) => ChatPage()),
                             MaterialPageRoute(
-                                builder: (context) => ForumPage()),
+                                builder: (context) =>
+                                    StoreScreen(storeId: 'w4FlrYTKenJi4YR')),
                           );
                         },
                       ),

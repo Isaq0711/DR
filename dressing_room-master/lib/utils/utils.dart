@@ -185,6 +185,63 @@ pickImage1por1(ImageSource source) async {
   }
 }
 
+Future<Uint8List?> pickImageRedonda(ImageSource source) async {
+  final ImagePicker _imagePicker = ImagePicker();
+
+  // Pick an image
+  XFile? _file = await _imagePicker.pickImage(source: source);
+  if (_file != null) {
+    // Crop the image in a circular shape
+    final croppedFile = await ImageCropper().cropImage(
+      sourcePath: _file.path,
+      aspectRatio: CropAspectRatio(
+        ratioX: 1,
+        ratioY: 1,
+      ),
+      cropStyle: CropStyle.circle,
+      androidUiSettings: AndroidUiSettings(
+        toolbarTitle: 'Crop Image',
+        toolbarColor: Colors.blue, // Adjust toolbar color as needed
+        toolbarWidgetColor: Colors.white,
+        hideBottomControls: true,
+      ),
+    );
+
+    if (croppedFile != null) {
+      return await croppedFile.readAsBytes();
+    }
+  }
+  return null;
+}
+
+Future<Uint8List?> pickImagedeCapa(ImageSource source) async {
+  final ImagePicker _imagePicker = ImagePicker();
+
+  // Pick an image
+  XFile? _file = await _imagePicker.pickImage(source: source);
+  if (_file != null) {
+    // Crop the image in a circular shape
+    final croppedFile = await ImageCropper().cropImage(
+      sourcePath: _file.path,
+      aspectRatio: CropAspectRatio(
+        ratioX: 16,
+        ratioY: 9,
+      ),
+      androidUiSettings: AndroidUiSettings(
+        toolbarTitle: 'Crop Image',
+        toolbarColor: Colors.blue, // Adjust toolbar color as needed
+        toolbarWidgetColor: Colors.white,
+        hideBottomControls: true,
+      ),
+    );
+
+    if (croppedFile != null) {
+      return await croppedFile.readAsBytes();
+    }
+  }
+  return null;
+}
+
 showSnackBar(BuildContext context, String text) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(

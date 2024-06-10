@@ -6,11 +6,11 @@ class Product {
   final String uid;
   final String username;
   final int vendas;
-
   final String productId;
   final DateTime datePublished;
   final List<VariationInfo> variations;
   final String category;
+  final String type;
   final String profImage;
   final bool vitrine;
   final bool promotions;
@@ -23,6 +23,7 @@ class Product {
     required this.productId,
     required this.datePublished,
     required this.category,
+    required this.type,
     required this.variations,
     required this.profImage,
     required this.vitrine,
@@ -47,6 +48,7 @@ class Product {
           : DateTime.now(),
       username: snapshot["username"] ?? '',
       category: snapshot["category"] ?? '',
+      type: snapshot["type"] ?? '',
       profImage: snapshot['profImage'] ?? '',
       variations: variationsList,
       vitrine: snapshot['vitrine'] ?? false,
@@ -64,6 +66,7 @@ class Product {
         'profImage': profImage,
         'variations': variations.map((variation) => variation.toMap()).toList(),
         "category": category,
+        "type": type,
         'vitrine': vitrine,
         'promotions': promotions,
       };

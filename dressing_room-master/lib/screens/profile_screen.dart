@@ -12,8 +12,8 @@ import 'package:dressing_room/screens/login_screen.dart';
 import 'package:dressing_room/utils/colors.dart';
 import 'package:dressing_room/utils/utils.dart';
 import 'package:gap/gap.dart';
-import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
 import 'edit_profile_screen.dart';
+import 'create_store_screen.dart';
 import 'seepost.dart';
 import 'package:dressing_room/widgets/follow_button.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -1017,9 +1017,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => StoreScreen(
-                                              uid: FirebaseAuth
-                                                  .instance.currentUser!.uid),
+                                          builder: (context) =>
+                                              CreateStoreScreen(),
                                         ),
                                       );
                                     },

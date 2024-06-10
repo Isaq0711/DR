@@ -136,9 +136,45 @@ class _WardrobeState extends State<Wardrobe>
     return categoryItems;
   }
 
+  Future<void> getCategoryItemsAndIds(
+      List<String> clothItens, List<String> photoUrls) async {
+    Map<String, List<String>> tempCategoryItems = {};
+    Map<String, List<String>> tempCategoryIds = {};
+
+    for (int i = 0; i < clothItens.length; i++) {
+      String clothId = clothItens[i];
+      String photoUrl = photoUrls[i];
+
+      var clothDataSnap = await FirebaseFirestore.instance
+          .collection('clothes')
+          .doc(clothId)
+          .get();
+
+      String tipo = clothDataSnap['category'];
+
+      clothingItems.forEach((category, types) {
+        if (types.contains(tipo)) {
+          if (tempCategoryItems.containsKey(category)) {
+            tempCategoryItems[category]!.add(photoUrl);
+            tempCategoryIds[category]!.add(clothId);
+          } else {
+            tempCategoryItems[category] = [photoUrl];
+            tempCategoryIds[category] = [clothId];
+          }
+        }
+      });
+    }
+
+    setState(() {
+      categoryItems = tempCategoryItems;
+      categoryIds = tempCategoryIds;
+    });
+  }
+
   List<String> correspondingCategories = [];
   List<String> photoUrls = [];
   Map<String, List<String>> categoryItems = {};
+  Map<String, List<String>> categoryIds = {};
   bool isLoading = false;
 
   @override
@@ -159,27 +195,23 @@ class _WardrobeState extends State<Wardrobe>
           .collection('clothes')
           .get();
 
-      // Clear the existing list
       clothItens.clear();
+      photoUrls.clear();
 
-      await Future.forEach(clothesSnap.docs, (doc) async {
+      for (var doc in clothesSnap.docs) {
         String clothId = doc['clothId'];
-
         clothItens.add(clothId);
+
         var clothDataSnap = await FirebaseFirestore.instance
             .collection('clothes')
             .doc(clothId)
             .get();
 
         String photoUrl = clothDataSnap['photoUrl'];
-        String tipo = clothDataSnap['category'];
-
         photoUrls.add(photoUrl);
-      });
+      }
 
-      setState(() {
-        categoryItems = getCategoryItems(clothItens, photoUrls);
-      });
+      await getCategoryItemsAndIds(clothItens, photoUrls);
     } catch (e) {
       showSnackBar(
         context,
@@ -265,6 +297,7 @@ class _WardrobeState extends State<Wardrobe>
                                   category: category,
                                   categories: categories,
                                   categoryItems: categoryItems,
+                                  categoryIds: categoryIds,
                                   clothItems: clothItens,
                                   photoUrls: photoUrls,
                                   isDialog: widget.isDialog,
@@ -301,6 +334,7 @@ class _WardrobeState extends State<Wardrobe>
                     category: category,
                     categories: categories,
                     categoryItems: categoryItems,
+                    categoryIds: categoryIds,
                     clothItems: clothItens,
                     photoUrls: photoUrls,
                     isDialog: widget.isDialog));
@@ -383,6 +417,7 @@ class BodyWidget extends StatefulWidget {
   String? category;
   final List<String> categories;
   final Map<String, List<String>> categoryItems;
+  final Map<String, List<String>> categoryIds;
   final List<String> clothItems;
   final List<String> photoUrls;
   final bool isDialog;
@@ -394,6 +429,7 @@ class BodyWidget extends StatefulWidget {
       required this.category,
       required this.categories,
       required this.categoryItems,
+      required this.categoryIds,
       required this.clothItems,
       required this.photoUrls,
       required this.isDialog,
@@ -544,8 +580,9 @@ class _BodyWidgetState extends State<BodyWidget> {
                                                 context,
                                                 MaterialPageRoute(
                                                   builder: (context) => SeePost(
-                                                    postId: widget
-                                                        .clothItems[index],
+                                                    postId: widget.categoryIds[
+                                                        widget
+                                                            .category]![index],
                                                   ),
                                                 ),
                                               )
@@ -554,14 +591,16 @@ class _BodyWidgetState extends State<BodyWidget> {
                                                   widget.fotoUrls.remove(widget
                                                           .categoryItems[
                                                       widget.category]![index]);
-                                                  widget.ids.remove(
-                                                      widget.clothItems[index]);
+                                                  widget.ids.remove(widget
+                                                          .categoryIds[
+                                                      widget.category]![index]);
                                                 } else {
                                                   widget.fotoUrls.add(widget
                                                           .categoryItems[
                                                       widget.category]![index]);
-                                                  widget.ids.add(
-                                                      widget.clothItems[index]);
+                                                  widget.ids.add(widget
+                                                          .categoryIds[
+                                                      widget.category]![index]);
                                                 }
                                               });
                                       },

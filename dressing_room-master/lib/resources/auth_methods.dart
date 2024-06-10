@@ -17,28 +17,29 @@ class AuthMethods {
   }
 
   // Signing Up User
-
   Future<String> signUpUser({
     required String email,
     required String password,
     required String username,
     required String bio,
-    required Uint8List file,
+    Uint8List? file,
   }) async {
     String res = "Some error Occurred";
     try {
-      if (email.isNotEmpty ||
-          password.isNotEmpty ||
-          username.isNotEmpty ||
-          bio.isNotEmpty ||
-          file != null) {
+      if (email.isNotEmpty && password.isNotEmpty && username.isNotEmpty) {
         UserCredential cred = await _auth.createUserWithEmailAndPassword(
           email: email,
           password: password,
         );
 
-        String photoUrl = await StorageMethods()
-            .uploadImageToStorage('profilePics', file, false);
+        String photoUrl = "";
+        if (file != null) {
+          photoUrl = await StorageMethods()
+              .uploadImageToStorage('profilePics', file, false);
+        } else {
+          photoUrl =
+              "https://static.vecteezy.com/system/resources/thumbnails/007/033/146/small/profile-icon-login-head-icon-vector.jpg";
+        }
 
         model.User _user = model.User(
           username: username,

@@ -93,6 +93,7 @@ class _MyAppState extends State<MyApp> {
             ),
             routes: {
               '/handleoutsidemedia': (context) => HandleOutsideMedia(),
+              '/login': (context) => LoginScreen(),
             },
             home: StreamBuilder(
               stream: FirebaseAuth.instance.authStateChanges(),
@@ -110,15 +111,18 @@ class _MyAppState extends State<MyApp> {
                     );
                   } else if (snapshot.hasError) {
                     return Center(child: Text('${snapshot.error}'));
+                  } else {
+                    // No user logged in, navigate to login screen
+                    Future.delayed(Duration.zero, () {
+                      Navigator.pushReplacementNamed(context, '/login');
+                    });
+                    return const SizedBox(); // Placeholder widget until navigation completes
                   }
-                }
-
-                if (snapshot.connectionState == ConnectionState.waiting) {
+                } else {
                   return const Center(
                     child: CircularProgressIndicator(),
                   );
                 }
-                return const LoginScreen();
               },
             ),
           );
