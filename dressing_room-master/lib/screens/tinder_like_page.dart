@@ -149,12 +149,13 @@ class _TinderScreenState extends State<TinderScreen> {
   List<String> photoUrls = [];
   Map<String, List<String>> categoryItems = {};
   int indexTempo = 0;
+  int cardsCount = 1;
   List<int> troncoIndexes = [];
   List<int> pernasIndexes = [];
   List<int> pesIndexes = [];
-  late int troncoIndex;
-  late int pernaIndex;
-  late int pesIndex;
+  int troncoIndex = 0;
+  int pernaIndex = 0;
+  int pesIndex = 0;
 
   @override
   void initState() {
@@ -179,10 +180,18 @@ class _TinderScreenState extends State<TinderScreen> {
 
   void getWeatherData() async {
     try {
+      setState(() {
+        isLoading = true;
+      });
       tempo = await getWheather(true, "");
+      indexTempo = calculateIndexFromDate(DateTime.now());
     } catch (e) {
       print(e);
       // Handle the error appropriately here
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -324,9 +333,18 @@ class _TinderScreenState extends State<TinderScreen> {
       setState(() {
         categoryItems = fetchedCategoryItems;
         categoryIds = fetchedCategoryIds;
-        troncoIndex = Random().nextInt(categoryItems['Tronco']!.length);
-        pernaIndex = Random().nextInt(categoryItems['Pernas']!.length);
-        pesIndex = Random().nextInt(categoryItems['Pés']!.length);
+        if (categoryItems.containsKey('Tronco') &&
+            categoryItems['Tronco']!.isNotEmpty) {
+          troncoIndex = Random().nextInt(categoryItems['Tronco']!.length);
+        }
+        if (categoryItems.containsKey('Pernas') &&
+            categoryItems['Pernas']!.isNotEmpty) {
+          pernaIndex = Random().nextInt(categoryItems['Pernas']!.length);
+        }
+        if (categoryItems.containsKey('Pés') &&
+            categoryItems['Pés']!.isNotEmpty) {
+          pesIndex = Random().nextInt(categoryItems['Pés']!.length);
+        }
       });
     } catch (e) {
       showSnackBar(context, e.toString());
@@ -359,6 +377,16 @@ class _TinderScreenState extends State<TinderScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (categoryItems['Tronco'] != null) {
+      cardsCount *= categoryItems['Tronco']!.length;
+    }
+    if (categoryItems['Pernas'] != null) {
+      cardsCount *= categoryItems['Pernas']!.length;
+    }
+    if (categoryItems['Pés'] != null) {
+      cardsCount *= categoryItems['Pés']!.length;
+    }
+
     String getIcon(int condition) {
       if (condition < 300) {
         return '🌩';
@@ -397,10 +425,7 @@ class _TinderScreenState extends State<TinderScreen> {
               backgroundColor: Colors.transparent,
               actions: [
                 IconButton(
-                    onPressed: () {
-                      print(troncoIndex);
-                      print(troncoIndexes);
-                    },
+                    onPressed: () {},
                     icon: Icon(
                       shadows: <Shadow>[
                         Shadow(color: AppTheme.nearlyBlack, blurRadius: 5.0)
@@ -449,12 +474,7 @@ class _TinderScreenState extends State<TinderScreen> {
                                   ),
                                 ],
                               )
-                            : Center(
-                                child: Text(
-                                  "Failed to load weather data!",
-                                  style: AppTheme.barapp,
-                                ),
-                              ),
+                            : Container(),
                     Gap(35),
                     FloatingActionButton.extended(
                       onPressed: () {
@@ -499,9 +519,7 @@ class _TinderScreenState extends State<TinderScreen> {
               Expanded(
                 child: CardSwiper(
                   controller: controller,
-                  cardsCount: categoryItems['Tronco']!.length *
-                      categoryItems['Pernas']!.length *
-                      categoryItems['Pés']!.length,
+                  cardsCount: cardsCount,
                   onSwipe: _onSwipe,
                   onUndo: _onUndo,
                   numberOfCardsDisplayed: 1,
@@ -533,8 +551,10 @@ class _TinderScreenState extends State<TinderScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
                                 Visibility(
-                                  visible: troncoIndexes != null &&
-                                      troncoIndexes.length > 0,
+                                  visible: (troncoIndexes.length +
+                                          pernasIndexes.length +
+                                          pesIndexes.length) >
+                                      0,
                                   child: FloatingActionButton(
                                     backgroundColor: AppTheme.vinho,
                                     onPressed: controller.undo,
@@ -553,27 +573,64 @@ class _TinderScreenState extends State<TinderScreen> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                          builder: (context) => OutfitScreen(
-                                                TroncoList:
-                                                    categoryItems['Tronco']!,
-                                                PernasList:
-                                                    categoryItems['Pernas']!,
-                                                PesList: categoryItems['Pés']!,
-                                                TroncoIds:
-                                                    categoryIds['Tronco']!,
-                                                PernasIds:
-                                                    categoryIds['Pernas']!,
-                                                PesIds: categoryIds['Pés']!,
-                                                conditions: tempo!.condition,
-                                                forecast: tempo!.temp,
-                                                cityName: tempo!.cityName[0],
-                                                DATA: dataEscolhida!,
-                                                uid: FirebaseAuth
-                                                    .instance.currentUser!.uid,
-                                                troncoIndex: troncoIndex,
-                                                pernasIndex: pernaIndex,
-                                                pesIndex: pesIndex,
-                                              )),
+                                        builder: (context) => OutfitScreen(
+                                          TroncoList: categoryItems
+                                                      .containsKey('Tronco') &&
+                                                  categoryItems['Tronco']!
+                                                      .isNotEmpty
+                                              ? categoryItems['Tronco']!
+                                              : [],
+                                          PernasList: categoryItems
+                                                      .containsKey('Pernas') &&
+                                                  categoryItems['Pernas']!
+                                                      .isNotEmpty
+                                              ? categoryItems['Pernas']!
+                                              : [],
+                                          PesList: categoryItems
+                                                      .containsKey('Pés') &&
+                                                  categoryItems['Pés']!
+                                                      .isNotEmpty
+                                              ? categoryItems['Pés']!
+                                              : [],
+                                          TroncoIds: categoryIds
+                                                      .containsKey('Tronco') &&
+                                                  categoryIds['Tronco']!
+                                                      .isNotEmpty
+                                              ? categoryIds['Tronco']!
+                                              : [],
+                                          PernasIds: categoryIds
+                                                      .containsKey('Pernas') &&
+                                                  categoryIds['Pernas']!
+                                                      .isNotEmpty
+                                              ? categoryIds['Pernas']!
+                                              : [],
+                                          PesIds: categoryIds
+                                                      .containsKey('Pés') &&
+                                                  categoryIds['Pés']!.isNotEmpty
+                                              ? categoryIds['Pés']!
+                                              : [],
+                                          conditions: tempo?.condition !=
+                                                      null &&
+                                                  tempo!.condition.isNotEmpty
+                                              ? tempo!.condition
+                                              : [],
+                                          forecast: tempo?.temp != null &&
+                                                  tempo!.temp.isNotEmpty
+                                              ? tempo!.temp
+                                              : [],
+                                          cityName:
+                                              tempo?.cityName.isNotEmpty ??
+                                                      false
+                                                  ? tempo!.cityName[0]
+                                                  : "",
+                                          DATA: dataEscolhida!,
+                                          uid: FirebaseAuth
+                                              .instance.currentUser!.uid,
+                                          troncoIndex: troncoIndex,
+                                          pernasIndex: pernaIndex,
+                                          pesIndex: pesIndex,
+                                        ),
+                                      ),
                                     );
                                   },
                                   child: const Icon(Icons.check),
@@ -595,19 +652,24 @@ class _TinderScreenState extends State<TinderScreen> {
     int? currentIndex,
     CardSwiperDirection direction,
   ) {
-    debugPrint(
-      'The card $previousIndex was swiped to the ${direction.name}. Now the card $currentIndex is on top',
-    );
+    print(categoryItems['Pernas']);
 
     setState(() {
-      troncoIndexes.add(troncoIndex);
-      pernasIndexes.add(pernaIndex);
-      pesIndexes.add(pesIndex);
-
-      // Gerar novos índices aleatórios
-      troncoIndex = Random().nextInt(categoryItems['Tronco']!.length);
-      pernaIndex = Random().nextInt(categoryItems['Pernas']!.length);
-      pesIndex = Random().nextInt(categoryItems['Pés']!.length);
+      if (categoryItems.containsKey('Tronco') &&
+          categoryItems['Tronco']!.isNotEmpty) {
+        troncoIndexes.add(troncoIndex);
+        troncoIndex = Random().nextInt(categoryItems['Tronco']!.length);
+      }
+      if (categoryItems.containsKey('Pernas') &&
+          categoryItems['Pernas']!.isNotEmpty) {
+        pernasIndexes.add(pernaIndex);
+        pernaIndex = Random().nextInt(categoryItems['Pernas']!.length);
+      }
+      if (categoryItems.containsKey('Pés') &&
+          categoryItems['Pés']!.isNotEmpty) {
+        pesIndexes.add(pesIndex);
+        pesIndex = Random().nextInt(categoryItems['Pés']!.length);
+      }
     });
 
     return true;

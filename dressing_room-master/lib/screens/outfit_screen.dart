@@ -571,36 +571,44 @@ class _OutfitScreenState extends State<OutfitScreen> {
                           children: [
                             indexTempo >= 40
                                 ? SizedBox.shrink()
-                                : Row(
-                                    children: [
-                                      Column(
+                                : widget.forecast != null &&
+                                        widget.forecast!.isNotEmpty &&
+                                        widget.conditions != null &&
+                                        widget.conditions!.isNotEmpty &&
+                                        indexTempo < widget.forecast!.length &&
+                                        indexTempo < widget.conditions!.length
+                                    ? Row(
                                         children: [
-                                          Text(
-                                            widget.cityName!,
-                                            style: GoogleFonts.bebasNeue(
-                                              fontSize: 16,
-                                              letterSpacing: 1.7,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black,
-                                            ),
+                                          Column(
+                                            children: [
+                                              Text(
+                                                widget.cityName!,
+                                                style: GoogleFonts.bebasNeue(
+                                                  fontSize: 16,
+                                                  letterSpacing: 1.7,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                              Text(
+                                                '${double.parse(widget.forecast![indexTempo]).round()}°C',
+                                                style: GoogleFonts.quicksand(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                            ],
                                           ),
+                                          Gap(8),
                                           Text(
-                                            '${double.parse(widget.forecast![indexTempo]).round()}°C',
-                                            style: GoogleFonts.quicksand(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w500,
-                                              color: Colors.black,
-                                            ),
+                                            getIcon(
+                                                widget.conditions![indexTempo]),
+                                            style: TextStyle(fontSize: 25),
                                           ),
                                         ],
-                                      ),
-                                      Gap(8),
-                                      Text(
-                                        getIcon(widget.conditions![indexTempo]),
-                                        style: TextStyle(fontSize: 25),
-                                      ),
-                                    ],
-                                  ),
+                                      )
+                                    : SizedBox.shrink(),
                             Gap(35),
                             FloatingActionButton.extended(
                               onPressed: () {

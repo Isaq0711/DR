@@ -4,6 +4,12 @@ import 'package:image_picker/image_picker.dart';
 import 'package:gap/gap.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:dressing_room/utils/colors.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+import 'package:dressing_room/screens/create_store_screen.dart';
+
+import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:dressing_room/utils/utils.dart';
 
 class SelectImageDialog extends StatelessWidget {
@@ -317,6 +323,83 @@ class SelectImageSuggestion extends StatelessWidget {
               if (file != null) {
                 onImageSelected(file);
               }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SelectStore extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: AppTheme.nearlyWhite,
+      title: Align(
+        alignment: Alignment.center,
+        child: Text(
+          'SELECIONE A LOJA',
+          style: AppTheme.subheadline,
+        ),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          ElevatedButton(
+            child: Row(children: [
+              Icon(
+                Icons.add,
+                color: AppTheme.nearlyWhite,
+              ),
+              Gap(5),
+              Text('Criar uma loja', style: AppTheme.barapp),
+            ]),
+            style: ElevatedButton.styleFrom(primary: AppTheme.vinho),
+            onPressed: () async {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CreateStoreScreen(),
+                ),
+              );
+            },
+          ),
+          Gap(
+            10.h,
+          ),
+          FutureBuilder<QuerySnapshot>(
+            future: FirebaseFirestore.instance
+                .collection('store')
+                .where('adms',
+                    arrayContains: FirebaseAuth.instance.currentUser!.uid)
+                .get(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return CircularProgressIndicator();
+              }
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return Text('No stores found.');
+              }
+              var userStores = snapshot.data!.docs;
+              return ListView.builder(
+                shrinkWrap: true,
+                itemCount: userStores.length,
+                itemBuilder: (context, index) {
+                  var store = userStores[index].data() as Map<String, dynamic>;
+                  return ElevatedButton(
+                    child: Text(
+                      store['storename'],
+                      style: TextStyle(
+                        fontFamily: 'Quicksand',
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(primary: AppTheme.vinho),
+                    onPressed: () {},
+                  );
+                },
+              );
             },
           ),
         ],
