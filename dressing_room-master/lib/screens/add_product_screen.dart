@@ -17,7 +17,16 @@ import 'package:dressing_room/responsive/mobile_screen_layout.dart';
 import 'package:dressing_room/responsive/responsive_layout.dart';
 
 class AddProductScreen extends StatefulWidget {
-  const AddProductScreen({Key? key}) : super(key: key);
+  final String uid;
+  final String storename;
+  final String storephoto;
+
+  AddProductScreen(
+      {Key? key,
+      required this.uid,
+      required this.storename,
+      required this.storephoto})
+      : super(key: key);
 
   @override
   _AddPostScreenState createState() => _AddPostScreenState();
@@ -32,7 +41,8 @@ class _AddPostScreenState extends State<AddProductScreen> {
   String? selectedClothType;
   List<Uint8List>? _files;
   bool isLoading = false;
-  Set<SwitchOption> selectedOptions = Set<SwitchOption>();
+  bool vitrine = false;
+  bool promocoes = false;
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _variationController = TextEditingController();
   TextEditingController itemCountController = TextEditingController();
@@ -324,8 +334,8 @@ class _AddPostScreenState extends State<AddProductScreen> {
         variations,
         selectedCategory,
         selectedClothType!,
-        false,
-        true,
+        vitrine,
+        promocoes,
       );
 
       if (res == "success") {
@@ -409,18 +419,14 @@ class _AddPostScreenState extends State<AddProductScreen> {
     });
   }
 
-  Widget buildSwitchButton(SwitchOption option, String label) {
+  Widget buildSwitchButton(String valuee, String label) {
     return Row(
       children: [
         Switch(
-          value: selectedOptions.contains(option),
+          value: valuee == "vitrine" ? vitrine : promocoes,
           onChanged: (bool value) {
             setState(() {
-              if (value) {
-                selectedOptions.add(option);
-              } else {
-                selectedOptions.remove(option);
-              }
+              valuee == "vitrine" ? vitrine = !vitrine : promocoes = !promocoes;
             });
           },
           activeColor: AppTheme.vinho,
@@ -480,10 +486,7 @@ class _AddPostScreenState extends State<AddProductScreen> {
               actions: <Widget>[
                 TextButton(
                   onPressed: () => postImages(
-                    user.uid,
-                    user.username,
-                    user.photoUrl,
-                  ),
+                      widget.uid, widget.storename, widget.storephoto),
                   child: const Text(
                     "Post",
                     style: TextStyle(
@@ -1208,9 +1211,8 @@ class _AddPostScreenState extends State<AddProductScreen> {
                               "Adicionar em:",
                               style: AppTheme.title,
                             ),
-                            buildSwitchButton(SwitchOption.optionA, 'VITRINE'),
-                            buildSwitchButton(
-                                SwitchOption.optionB, 'PROMOÇÕES'),
+                            buildSwitchButton("vitrine", 'VITRINE'),
+                            buildSwitchButton("promocoes", 'PROMOÇÕES'),
                           ],
                         ),
                       ),

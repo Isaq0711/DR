@@ -56,7 +56,7 @@ class AppTheme {
   static TextStyle headlinewhite = GoogleFonts.getFont(
     fontName,
     fontWeight: FontWeight.bold,
-    fontSize: 24,
+    fontSize: 20.h,
     letterSpacing: 0.27,
     color: nearlyWhite,
   );

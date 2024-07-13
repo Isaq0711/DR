@@ -8,7 +8,7 @@ import 'package:dressing_room/resources/firestore_methods.dart';
 import 'package:dressing_room/utils/colors.dart';
 import 'package:dressing_room/utils/utils.dart';
 import 'package:flutter/cupertino.dart';
-
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:dressing_room/widgets/comment_card.dart';
 import 'package:provider/provider.dart';
 
@@ -52,7 +52,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
           title: Align(
             alignment: Alignment.center,
             child: Text(
-              'Do you want to delete this item?',
+              'VocÊ deseja remover esse comentário?',
               style: AppTheme.subheadline,
             ),
           ),
@@ -61,7 +61,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
             children: <Widget>[
               ElevatedButton(
                 child: Text(
-                  'No',
+                  'Não',
                   style: TextStyle(
                     fontFamily: 'Quicksand',
                     fontWeight: FontWeight.bold,
@@ -75,7 +75,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
               Gap(10),
               ElevatedButton(
                 child: Text(
-                  'Yes',
+                  'Sim',
                   style: TextStyle(
                     fontFamily: 'Quicksand',
                     fontWeight: FontWeight.bold,
@@ -186,38 +186,42 @@ class _CommentsScreenState extends State<CommentsScreen> {
                       (b.data()!['datePublished'] as Timestamp)
                           .compareTo(a.data()!['datePublished'] as Timestamp));
 
-                  return Scrollbar(
-                      thickness: 7,
-                      thumbVisibility: true,
-                      child: ListView.builder(
-                        itemCount: allDocuments.length,
-                        itemBuilder: (context, index) {
-                          final documentData = allDocuments[index].data();
+                  return allDocuments.isNotEmpty
+                      ? Scrollbar(
+                          thickness: 7,
+                          thumbVisibility: true,
+                          child: ListView.builder(
+                            itemCount: allDocuments.length,
+                            itemBuilder: (context, index) {
+                              final documentData = allDocuments[index].data();
 
-                          if (documentData!.containsKey('commentId')) {
-                            // Find the index of the comment in the comments list
-                            int commentIndex = comments.indexWhere((comment) =>
-                                comment.id == allDocuments[index].id);
-                            return CommentCard(
-                              snap: comments[commentIndex],
-                              onDelete: () => showDeleteItemDialog(context,
-                                  commentIndex, comments[commentIndex].id),
-                            );
-                          } else {
-                            // Find the index of the suggestion in the suggestions list
-                            int suggestionIndex = suggestion.indexWhere(
-                                (suggestion) =>
-                                    suggestion.id == allDocuments[index].id);
-                            return SuggestionCommentCard(
-                              snap: suggestion[suggestionIndex],
-                              onDelete: () => showDeleteItemDialog(
-                                  context,
-                                  suggestionIndex,
-                                  suggestion[suggestionIndex].id),
-                            );
-                          }
-                        },
-                      ));
+                              if (documentData!.containsKey('commentId')) {
+                                // Find the index of the comment in the comments list
+                                int commentIndex = comments.indexWhere(
+                                    (comment) =>
+                                        comment.id == allDocuments[index].id);
+                                return CommentCard(
+                                  snap: comments[commentIndex],
+                                  onDelete: () => showDeleteItemDialog(context,
+                                      commentIndex, comments[commentIndex].id),
+                                );
+                              } else {
+                                // Find the index of the suggestion in the suggestions list
+                                int suggestionIndex = suggestion.indexWhere(
+                                    (suggestion) =>
+                                        suggestion.id ==
+                                        allDocuments[index].id);
+                                return SuggestionCommentCard(
+                                  snap: suggestion[suggestionIndex],
+                                  onDelete: () => showDeleteItemDialog(
+                                      context,
+                                      suggestionIndex,
+                                      suggestion[suggestionIndex].id),
+                                );
+                              }
+                            },
+                          ))
+                      : NoContent();
                 },
               );
             },
@@ -242,7 +246,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
                         controller: commentEditingController,
                         style: AppTheme.title,
                         decoration: InputDecoration(
-                          hintText: 'Comment as ${user.username}',
+                          hintText: 'Comentar como ${user.username}...',
                           hintStyle: AppTheme.subtitle,
                           border: InputBorder.none,
                         ),
@@ -268,6 +272,20 @@ class _CommentsScreenState extends State<CommentsScreen> {
           ),
         );
       },
+    );
+  }
+}
+
+class NoContent extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Image.asset(
+        'assets/NO-CONTENT.png',
+        height: 400.h,
+        width: 250.w,
+        color: AppTheme.nearlyBlack,
+      ),
     );
   }
 }

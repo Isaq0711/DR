@@ -109,6 +109,7 @@ class FireStoreMethods {
 
   Future<String> uploadVotation(
     List<Map<String, dynamic>> votationOptions,
+    String question,
     List<Uint8List> photoFiles,
     String uid,
     String username,
@@ -118,25 +119,36 @@ class FireStoreMethods {
     try {
       List<VotationOption> options = [];
 
+      // Log the start of the upload process
+      print(
+          "Starting the upload process for ${votationOptions.length} options");
+
+      // Upload files in sequence
       for (int i = 0; i < votationOptions.length; i++) {
         Uint8List file = photoFiles[i];
         Map<String, dynamic> optionData = votationOptions[i];
 
+        print("Uploading image $i to storage");
         String photoUrl = await StorageMethods()
             .uploadImageToStorage('votations', file, true);
+        print("Uploaded image $i to storage with URL: $photoUrl");
+
         VotationOption option = VotationOption(
-            description: optionData['description'],
-            photoUrl: photoUrl,
-            pecasID: optionData['pecasID'],
-            pecasPhotoUrls: optionData['pecasPhotoUrls']);
+          description: optionData['description'],
+          photoUrl: photoUrl,
+          pecasID: optionData['pecasID'],
+          pecasPhotoUrls: optionData['pecasPhotoUrls'],
+        );
 
         options.add(option);
       }
 
+      // Generate votation ID
       String votationId = const Uuid().v1();
       Votation votation = Votation(
         uid: uid,
         username: username,
+        question: question,
         votes: [],
         votationId: votationId,
         datePublished: DateTime.now(),
@@ -144,11 +156,23 @@ class FireStoreMethods {
         profImage: profImage,
       );
 
-      _firestore.collection('votations').doc(votationId).set(votation.toJson());
+      // Log the creation of the votation
+      print("Creating votation with ID: $votationId");
+
+      // Save votation to Firestore
+      await _firestore
+          .collection('votations')
+          .doc(votationId)
+          .set(votation.toJson());
       res = "success";
     } catch (err) {
+      // Log any errors
+      print("Error during votation upload: ${err.toString()}");
       res = err.toString();
     }
+
+    // Log the result
+    print("Votation upload result: $res");
     return res;
   }
 
@@ -602,6 +626,33 @@ class FireStoreMethods {
           } else {
             res = 'Invalid option index';
           }
+        }
+      } else {
+        res = 'Votation does not exist';
+      }
+    } catch (err) {
+      res = err.toString();
+    }
+    return res;
+  }
+
+  Future<String> removeVote(String votationId, String uid) async {
+    String res = "Some error occurred";
+    try {
+      DocumentSnapshot votationSnapshot =
+          await _firestore.collection('votations').doc(votationId).get();
+
+      if (votationSnapshot.exists) {
+        List<dynamic> votes = (votationSnapshot.data() as dynamic)['votes'];
+
+        int existingVoteIndex = votes.indexWhere((vote) => vote['uid'] == uid);
+        if (existingVoteIndex != -1) {
+          await _firestore.collection('votations').doc(votationId).update({
+            'votes': FieldValue.arrayRemove([votes[existingVoteIndex]])
+          });
+          res = 'Vote removed';
+        } else {
+          res = 'User has not voted yet';
         }
       } else {
         res = 'Votation does not exist';

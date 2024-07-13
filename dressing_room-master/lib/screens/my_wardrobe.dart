@@ -345,7 +345,7 @@ Widget buildBeginning(TabController _tabController) {
   return Column(
     children: [
       Text(
-        "WARDROBE",
+        "Closet",
         style: AppTheme.barapp.copyWith(
           shadows: [
             Shadow(
@@ -580,6 +580,7 @@ class _BodyWidgetState extends State<BodyWidget> {
                                                 context,
                                                 MaterialPageRoute(
                                                   builder: (context) => SeePost(
+                                                    isTagclicked: false,
                                                     postId: widget.categoryIds[
                                                         widget
                                                             .category]![index],
@@ -648,6 +649,7 @@ class _BodyWidgetState extends State<BodyWidget> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => SeePost(
+                                        isTagclicked: false,
                                         postId: widget.clothItems[index],
                                       ),
                                     ),

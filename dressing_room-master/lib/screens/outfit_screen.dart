@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:dressing_room/utils/colors.dart';
 import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:dressing_room/screens/favorites_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -535,30 +536,39 @@ class _OutfitScreenState extends State<OutfitScreen> {
                       });
                     }
                   },
-                  child: Text(
-                    "SAVE",
-                    style: TextStyle(
-                      color: Colors.blueAccent,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16.0,
-                    ),
-                  ),
-                ),
+                  child: FirebaseAuth.instance.currentUser!.uid == widget.uid
+                      ? Text(
+                          "SALVAR",
+                          style: TextStyle(
+                            color: Colors.blueAccent,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16.0,
+                          ),
+                        )
+                      : Text(
+                          "SUGERIR",
+                          style: TextStyle(
+                            color: Colors.blueAccent,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16.0,
+                          ),
+                        ),
+                )
               ],
             ),
-            floatingActionButton: FloatingActionButton(
-              onPressed: () {
-                setState(() {
-                  _showFavorites(context);
-                });
-              },
-              backgroundColor: AppTheme.vinho,
-              elevation: 2.0,
-              child: Icon(
-                CupertinoIcons.heart_fill,
-                color: AppTheme.cinza,
-              ),
-            ),
+            // floatingActionButton: FloatingActionButton(
+            //   onPressed: () {
+            //     setState(() {
+            //       _showFavorites(context);
+            //     });
+            //   },
+            //   backgroundColor: AppTheme.vinho,
+            //   elevation: 2.0,
+            //   child: Icon(
+            //     CupertinoIcons.heart_fill,
+            //     color: AppTheme.cinza,
+            //   ),
+            // ),
             body: isLoadingmenor
                 ? LinearProgressIndicator()
                 : Column(
@@ -637,7 +647,7 @@ class _OutfitScreenState extends State<OutfitScreen> {
                             IconButton(
                               onPressed: () {},
                               icon: Icon(CupertinoIcons.heart,
-                                  color: AppTheme.vinho),
+                                  color: Colors.transparent),
                             ),
                             Expanded(
                               child: Center(
@@ -657,7 +667,7 @@ class _OutfitScreenState extends State<OutfitScreen> {
                           ],
                         ),
                       ),
-                      Gap(15),
+                      Gap(10.h),
                       Column(
                         children: [
                           RepaintBoundary(
@@ -670,7 +680,7 @@ class _OutfitScreenState extends State<OutfitScreen> {
                                     _pantsController, widget.pernasIndex!),
                                 buildImageList(widget.PesList ?? [],
                                     _shoesController, widget.pesIndex!),
-                                Gap(20),
+                                Gap(10.h),
                               ],
                             ),
                           ),

@@ -13,8 +13,10 @@ import 'package:dressing_room/screens/product_card.dart';
 
 class SeePost extends StatefulWidget {
   final String postId;
+  final bool isTagclicked;
 
-  const SeePost({Key? key, required this.postId}) : super(key: key);
+  const SeePost({Key? key, required this.postId, required this.isTagclicked})
+      : super(key: key);
 
   @override
   _SeePostState createState() => _SeePostState();
@@ -106,7 +108,8 @@ class _SeePostState extends State<SeePost> {
                       return Container();
                     }
                     final post = snapshot.data!.data();
-                    return PostCard(snap: post);
+                    return PostCard(
+                        snap: post, isTagCliked: widget.isTagclicked);
                   },
                 ),
                 StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
@@ -126,7 +129,8 @@ class _SeePostState extends State<SeePost> {
                       return Container();
                     }
                     final anonymousPost = snapshot.data!.data();
-                    return PostCard(snap: anonymousPost);
+                    return PostCard(
+                        snap: anonymousPost, isTagCliked: widget.isTagclicked);
                   },
                 ),
                 StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(

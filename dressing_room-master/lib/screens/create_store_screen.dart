@@ -49,7 +49,7 @@ class _CreateStoreScreenState extends State<CreateStoreScreen> {
       setState(() {
         _isLoading = false;
       });
-      // navigate to the home screen
+
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (context) => ResponsiveLayout(

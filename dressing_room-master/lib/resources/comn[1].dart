@@ -3,23 +3,26 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 
-String server = '172.20.10.6';
+String server = '192.168.1.14';
+//String server = '191.101.78.';
 String port = '5000';
 String resposta = '{' 'Calculado' ':' 'none' '}';
 
-Future<String> sendText(String funcao, String texto) async {
+Future<String> sendText(String funcao, String texto, String user) async {
   try {
-    final response = await http.post(Uri.parse('http://$server:$port/$funcao'),
-        body: {'texto': texto}).timeout(const Duration(seconds: 2));
+    final response = await http.post(
+      Uri.parse('http://$server:$port/$funcao'),
+      body: {'texto': texto, 'user': user},
+    ).timeout(const Duration(seconds: 5));
 
     if (response.statusCode == 200) {
       resposta = response.body;
-      return (resposta);
+      return resposta;
     } else {
-      return ('Error: ${response.reasonPhrase}');
+      return 'Error: ${response.reasonPhrase}';
     }
   } on TimeoutException catch (_) {
-    return ('{' 'Erro' ':' 'O servidor demorou a responder.' '}');
+    return '{"Erro": "O servidor demorou a responder."}';
   }
 }
 

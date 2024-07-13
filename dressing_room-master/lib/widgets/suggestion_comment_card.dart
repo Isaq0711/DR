@@ -85,6 +85,7 @@ class _SuggestionCommentCardState extends State<SuggestionCommentCard> {
                       MaterialPageRoute(
                         builder: (context) => ProfileScreen(
                           uid: widget.snap.data()['uid'],
+                          isMainn: false,
                         ),
                       ),
                     );
@@ -106,12 +107,13 @@ class _SuggestionCommentCardState extends State<SuggestionCommentCard> {
                             MaterialPageRoute(
                               builder: (context) => ProfileScreen(
                                 uid: widget.snap.data()['uid'],
+                                isMainn: false,
                               ),
                             ),
                           );
                         },
                         child: Text(
-                          username! + " suggested: ",
+                          username! + " sugeriu: ",
                           style: AppTheme.subtitle,
                         )),
                     Gap(4),
@@ -145,6 +147,7 @@ class _SuggestionCommentCardState extends State<SuggestionCommentCard> {
                                           ),
                                           onTap: () {
                                             SeePost(
+                                                isTagclicked: false,
                                                 postId: widget.snap
                                                     .data()['postIds'][index]);
                                           },

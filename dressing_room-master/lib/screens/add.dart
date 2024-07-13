@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:dressing_room/utils/colors.dart';
+import 'package:dressing_room/widgets/Select_image_dialog.dart';
 import 'add_post_screen.dart';
 import 'add_votations_screen.dart';
 import 'add_forum_screen.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/cupertino.dart';
+
 import 'test_api_screen.dart';
 import 'package:gap/gap.dart';
 
@@ -15,7 +18,7 @@ class AddPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "ADD PAGE",
+          "ADICIONAR",
           style: AppTheme.barapp.copyWith(
             shadows: [
               Shadow(
@@ -64,7 +67,7 @@ class AddPage extends StatelessWidget {
                             color: AppTheme.nearlyWhite,
                           ),
                           Gap(10),
-                          Text('Publication', style: AppTheme.subheadlinewhite),
+                          Text('Publicação', style: AppTheme.headlinewhite),
                         ],
                       ),
                     ),
@@ -86,21 +89,22 @@ class AddPage extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           ImageIcon(
-                            AssetImage('assets/ELECTION.png'),
+                            AssetImage('assets/ELECTION-FILL.png'),
                             color: AppTheme.nearlyWhite,
                             size: 40,
                           ),
                           Gap(10),
-                          Text('Votation', style: AppTheme.subheadlinewhite),
+                          Text('Enquete', style: AppTheme.headlinewhite),
                         ],
                       ),
                     ),
                     ElevatedButton(
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => AddProductScreen()),
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return SelectStore();
+                          },
                         );
                       },
                       style: ElevatedButton.styleFrom(
@@ -118,7 +122,7 @@ class AddPage extends StatelessWidget {
                             color: AppTheme.nearlyWhite,
                           ),
                           Gap(10),
-                          Text('Product', style: AppTheme.subheadlinewhite),
+                          Text('Produto', style: AppTheme.headlinewhite),
                         ],
                       ),
                     ),
@@ -145,7 +149,7 @@ class AddPage extends StatelessWidget {
                             color: AppTheme.nearlyWhite,
                           ),
                           Gap(10),
-                          Text('Fórum', style: AppTheme.subheadlinewhite),
+                          Text('Fórum', style: AppTheme.headlinewhite),
                         ],
                       ),
                     ),

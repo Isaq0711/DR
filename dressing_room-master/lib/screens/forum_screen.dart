@@ -6,6 +6,7 @@ import 'package:dressing_room/providers/user_provider.dart';
 import 'package:dressing_room/screens/comments_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:dressing_room/widgets/suggestion_card.dart';
+import 'package:dressing_room/screens/seepost.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:dressing_room/models/user.dart' as model;
 import 'package:dressing_room/utils/utils.dart';
@@ -21,7 +22,7 @@ class ForumPage extends StatelessWidget {
     return Scaffold(
         appBar: AppBar(
           title: Text(
-            "FÓRUM PAGE",
+            "FÓRUM",
             style: AppTheme.barapp.copyWith(
               shadows: [
                 Shadow(
@@ -106,7 +107,10 @@ class ForumPage extends StatelessWidget {
           backgroundColor: Colors.transparent,
         ),
         body: StreamBuilder(
-            stream: FirebaseFirestore.instance.collection('forum').snapshots(),
+            stream: FirebaseFirestore.instance
+                .collection('forum')
+                .orderBy('datePublished', descending: true)
+                .snapshots(),
             builder: (context,
                 AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -114,6 +118,7 @@ class ForumPage extends StatelessWidget {
                   child: CircularProgressIndicator(),
                 );
               }
+
               return ListView.builder(
                   itemCount: snapshot.data!.docs.length,
                   itemBuilder: (ctx, index) => Container(
@@ -161,18 +166,48 @@ class _ForumCardState extends State<ForumCard> {
   }
 
   void _showSuggestionMenu(BuildContext context) async {
-    await showModalBottomSheet(
+    showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (BuildContext context) {
         return Container(
-          height: 650.h,
-          child: SuggestionCard(
-            postId: widget.snap['forumId'],
-            uid: widget.snap['uid'],
-            category: 'forum',
-          ),
-        );
+            height: 650.h,
+            child: Container(
+                decoration: BoxDecoration(
+                  color: AppTheme.cinza,
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(30),
+                  ),
+                ),
+                width: double.infinity,
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                          child: Column(children: [
+                        Container(
+                          width: 40,
+                          height: 6,
+                          margin: const EdgeInsets.only(top: 16, bottom: 4),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(50),
+                            color: AppTheme.nearlyWhite,
+                          ),
+                        ),
+                        Gap(5),
+                        Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 10),
+                            child: SizedBox(
+                              height: 600.h,
+                              child: SuggestionCard(
+                                postId: widget.snap['forumId'],
+                                uid: widget.snap['uid'],
+                                username: widget.snap['username'],
+                                category: 'forum',
+                              ),
+                            ))
+                      ]))
+                    ])));
       },
     );
 
@@ -248,12 +283,96 @@ class _ForumCardState extends State<ForumCard> {
                         Padding(
                             padding: EdgeInsets.symmetric(horizontal: 10),
                             child: SizedBox(
-                                height: 570.h,
+                                height: 550.h,
                                 child: CommentsScreen(
                                     postId: widget.snap['forumId'],
                                     category: 'forum')))
                       ]))
                     ])));
+      },
+    );
+  }
+
+  void _showClothes(context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Container(
+            height: 650.h,
+            child: Container(
+                decoration: BoxDecoration(
+                  color: AppTheme.cinza,
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(30),
+                  ),
+                ),
+                width: double.infinity,
+                child: Expanded(
+                    child: Column(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 6,
+                      margin: const EdgeInsets.only(top: 16, bottom: 4),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(50),
+                        color: AppTheme.nearlyWhite,
+                      ),
+                    ),
+                    Gap(5),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: Text('Peças', style: AppTheme.barapp),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 70),
+                      child: SizedBox(
+                        height: 580.h,
+                        child: ListView.builder(
+                          itemCount: widget.snap['pecasPhotoUrls']!.length,
+                          itemBuilder: (context, index) {
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SeePost(
+                                      isTagclicked: false,
+                                      postId: widget.snap['pecasIds']![index],
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Padding(
+                                padding: EdgeInsets.all(6.h),
+                                child: Material(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  elevation: 3.0,
+                                  child: Container(
+                                    height: 160.h,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[100],
+                                      borderRadius: BorderRadius.circular(10.0),
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(10.0),
+                                      child: Image.network(
+                                        widget.snap['pecasPhotoUrls']![index],
+                                        fit: BoxFit.contain,
+                                        height: 150.h,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ))));
       },
     );
   }
@@ -354,7 +473,7 @@ class _ForumCardState extends State<ForumCard> {
                           child: FloatingActionButton(
                             onPressed: () {
                               setState(() {
-                                showPecas = !showPecas;
+                                _showClothes(context);
                               });
                             },
                             backgroundColor: AppTheme.cinza,
@@ -412,12 +531,12 @@ class _ForumCardState extends State<ForumCard> {
                     },
                     child: commentLen == 1
                         ? Text(
-                            '$commentLen sugestão',
+                            '$commentLen resposta',
                             style: AppTheme.subtitlewhite
                                 .copyWith(color: AppTheme.vinho),
                           )
                         : Text(
-                            '$commentLen sugestões',
+                            '$commentLen respostas',
                             style: AppTheme.subtitlewhite
                                 .copyWith(color: AppTheme.vinho),
                           ),
@@ -434,7 +553,7 @@ class _ForumCardState extends State<ForumCard> {
                       elevation: 10.0,
                       shape: CircleBorder(), // Makes the button more circular
                       child: Icon(
-                        Icons.add_comment_outlined,
+                        Icons.comment_outlined,
                         size: 18,
                         color: AppTheme.nearlyBlack,
                       ),
@@ -451,9 +570,10 @@ class _ForumCardState extends State<ForumCard> {
                       backgroundColor: AppTheme.cinza,
                       elevation: 10.0,
                       shape: CircleBorder(), // Makes the button more circular
-                      child: Icon(
-                        Icons.arrow_upward,
-                        size: 18,
+                      child: ImageIcon(
+                        AssetImage(
+                          'assets/SUGGESTION-OUTLINED.png',
+                        ),
                         color: AppTheme.nearlyBlack,
                       ),
                     ),

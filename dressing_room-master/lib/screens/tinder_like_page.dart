@@ -5,7 +5,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:dressing_room/resources/comn[1].dart';
 import 'package:dressing_room/utils/colors.dart';
+import 'package:dressing_room/models/clothes.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:dressing_room/screens/outfit_screen.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
@@ -13,6 +15,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:dressing_room/screens/favorites_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gap/gap.dart';
+import 'dart:convert';
 import 'package:dressing_room/utils/utils.dart';
 
 class TinderScreen extends StatefulWidget {
@@ -112,6 +115,55 @@ class _TinderScreenState extends State<TinderScreen> {
   Map<String, List<String>> categoryIds = {};
   List<String> fotosUrls = [];
   List<String> clothItens = [];
+  Future<void> enviarTexto() async {
+    String statusSever = 'Server online';
+
+    if (statusSever == 'Server online') {
+      var clothesSnap = await FirebaseFirestore.instance
+          .collection('wardrobe')
+          .doc(widget.uid)
+          .collection('clothes')
+          .get();
+
+      List<Map<String, dynamic>> clothesList = [];
+
+      for (var doc in clothesSnap.docs) {
+        String clothId = doc['clothId'];
+        var clothDataSnap = await FirebaseFirestore.instance
+            .collection('clothes')
+            .doc(clothId)
+            .get();
+
+        ClothPraMandar cloth = ClothPraMandar.fromSnap(clothDataSnap);
+        clothesList.add(cloth.toJson());
+      }
+
+      String clothesJson = jsonEncode(clothesList);
+
+      try {
+        // Construindo o payload para enviar
+        Map<String, dynamic> payload = {
+          'guardaRoupa': clothesJson,
+          'tempo': '${tempo!.temp} ${tempo!.cityName[0]}',
+          'uid': widget.uid,
+        };
+
+        String response =
+            await sendText('GuardaRoupa', jsonEncode(payload), widget.uid);
+
+        Map<String, dynamic> resultados = jsonDecode(response);
+
+        String formattedResultados = '';
+        resultados.forEach((key, value) {
+          formattedResultados += '$key: $value\n';
+        });
+
+        print(formattedResultados);
+      } catch (e) {
+        print('Failed to send data: $e');
+      }
+    }
+  }
 
   Future<Map<String, List<String>>> getCategoryItems(
       List<String> clothItens, List<String> photoUrls) async {
@@ -425,7 +477,9 @@ class _TinderScreenState extends State<TinderScreen> {
               backgroundColor: Colors.transparent,
               actions: [
                 IconButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      enviarTexto();
+                    },
                     icon: Icon(
                       shadows: <Shadow>[
                         Shadow(color: AppTheme.nearlyBlack, blurRadius: 5.0)
@@ -624,8 +678,7 @@ class _TinderScreenState extends State<TinderScreen> {
                                                   ? tempo!.cityName[0]
                                                   : "",
                                           DATA: dataEscolhida!,
-                                          uid: FirebaseAuth
-                                              .instance.currentUser!.uid,
+                                          uid: widget.uid,
                                           troncoIndex: troncoIndex,
                                           pernasIndex: pernaIndex,
                                           pesIndex: pesIndex,

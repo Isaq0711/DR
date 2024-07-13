@@ -139,6 +139,24 @@ class _AddClothScreenState extends State<AddClothScreen> {
     );
   }
 
+  void _performUndo() {
+    if (_paintHistory.isNotEmpty && _sliderValues.isNotEmpty) {
+      List<Offset> lastPaint = _paintHistory.last;
+      int removeCount = lastPaint.length;
+
+      _paintHistory.removeLast();
+
+      if (_sliderValues.length >= removeCount) {
+        _sliderValues.removeRange(
+            _sliderValues.length - removeCount, _sliderValues.length);
+      }
+
+      // Atualizar as posições selecionadas no mapa
+      _selectedPositionsMap[_currentPageIndex] =
+          _paintHistory.isNotEmpty ? List.from(_paintHistory.last) : [];
+    }
+  }
+
   void showCategoryDialog(BuildContext context, String category,
       Function(String?) setSelectedClothType) {
     showDialog(
@@ -422,109 +440,129 @@ class _AddClothScreenState extends State<AddClothScreen> {
                 ),
               ),
               bottom: PreferredSize(
-                preferredSize: Size.fromHeight(40.h),
-                child: Container(
-                  width: double.infinity,
-                  color: Colors.transparent,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: <Widget>[
-                      Spacer(),
-                      IconButton(
-                        icon: Icon(
-                          Icons.undo,
-                          color: _paintHistory.isNotEmpty
-                              ? AppTheme.vinho
-                              : Colors.grey,
-                        ),
-                        onPressed: _paintHistory.isNotEmpty
-                            ? () {
-                                setState(() {
-                                  _sliderValues.removeRange(
-                                      _paintHistory.last.length - 1,
-                                      _sliderValues.length);
-                                  _paintHistory.removeLast();
-                                  _selectedPositionsMap[_currentPageIndex] =
-                                      List.from(_paintHistory.isNotEmpty
-                                          ? _paintHistory.last
-                                          : []);
-                                });
-                                print(_sliderValues);
-                              }
-                            : null,
-                      ),
-                      if (_isPaintingMode) ...[
-                        PopupMenuButton(
-                          itemBuilder: (BuildContext context) {
-                            return [
-                              PopupMenuItem(
-                                child: StatefulBuilder(
-                                  builder: (BuildContext context,
-                                      StateSetter setState) {
-                                    return Row(
-                                      children: [
-                                        ImageIcon(
-                                          AssetImage(
-                                            'assets/BORRACHA.png',
-                                          ),
-                                          color: AppTheme.nearlyWhite,
-                                        ),
-                                        Expanded(
-                                          child: Slider(
-                                            value: _sliderValue,
-                                            min: 10,
-                                            max: 120,
-                                            onChanged: (value) {
+                  preferredSize: Size.fromHeight(40.h),
+                  child: Container(
+                    width: double.infinity,
+                    color: Colors.transparent,
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: <Widget>[
+                          Spacer(),
+                          !_isPaintingMode || !_isDraggingImage
+                              ? Row(
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(
+                                        Icons.undo,
+                                        color: _paintHistory.isNotEmpty
+                                            ? AppTheme.vinho
+                                            : Colors.grey,
+                                      ),
+                                      onPressed: _paintHistory.isNotEmpty
+                                          ? () {
                                               setState(() {
-                                                _sliderValue = value;
+                                                //_performUndo();
+                                                int removeCount =
+                                                    _paintHistory.last.length;
+                                                for (int i = 0;
+                                                    i < removeCount;
+                                                    i++) {
+                                                  if (_sliderValues
+                                                      .isNotEmpty) {
+                                                    _sliderValues.removeLast();
+                                                  }
+                                                }
+
+                                                _paintHistory.removeLast();
+                                                _selectedPositionsMap[
+                                                        _currentPageIndex] =
+                                                    List.from(
+                                                        _paintHistory.isNotEmpty
+                                                            ? _paintHistory.last
+                                                            : []);
                                               });
-                                            },
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                ),
-                              ),
-                            ];
-                          },
-                          child: Icon(Icons.circle, color: AppTheme.vinho),
-                        ),
-                      ],
-                      IconButton(
-                          icon: ImageIcon(
-                              AssetImage(
-                                'assets/BORRACHA.png',
-                              ),
-                              color: _isPaintingMode
-                                  ? AppTheme.vinho
-                                  : Colors.grey),
-                          onPressed: () {
-                            setState(() {
-                              _isPaintingMode = !_isPaintingMode;
-                              if (_isPaintingMode) {
-                                _isDraggingImage = false;
-                              }
-                            });
-                          }),
-                      IconButton(
-                        icon: Icon(Icons.my_location,
-                            color: _isDraggingImage
-                                ? AppTheme.vinho
-                                : Colors.grey),
-                        onPressed: () {
-                          setState(() {
-                            _isDraggingImage = !_isDraggingImage;
-                            if (_isDraggingImage) {
-                              _isPaintingMode = false;
-                            }
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+                                              print(_sliderValues);
+                                            }
+                                          : null,
+                                    ),
+                                    if (_isPaintingMode) ...[
+                                      PopupMenuButton(
+                                        itemBuilder: (BuildContext context) {
+                                          return [
+                                            PopupMenuItem(
+                                              child: StatefulBuilder(
+                                                builder: (BuildContext context,
+                                                    StateSetter setState) {
+                                                  return Row(
+                                                    children: [
+                                                      ImageIcon(
+                                                        AssetImage(
+                                                          'assets/BORRACHA.png',
+                                                        ),
+                                                        color: AppTheme
+                                                            .nearlyWhite,
+                                                      ),
+                                                      Expanded(
+                                                        child: Slider(
+                                                          value: _sliderValue,
+                                                          min: 10,
+                                                          max: 120,
+                                                          onChanged: (value) {
+                                                            setState(() {
+                                                              _sliderValue =
+                                                                  value;
+                                                            });
+                                                          },
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                          ];
+                                        },
+                                        child: Icon(Icons.circle,
+                                            color: AppTheme.vinho),
+                                      ),
+                                    ],
+                                    IconButton(
+                                        icon: ImageIcon(
+                                            AssetImage(
+                                              'assets/BORRACHA.png',
+                                            ),
+                                            color: _isPaintingMode
+                                                ? AppTheme.vinho
+                                                : Colors.grey),
+                                        onPressed: () {
+                                          setState(() {
+                                            _isPaintingMode = !_isPaintingMode;
+                                            if (_isPaintingMode) {
+                                              _isDraggingImage = false;
+                                            }
+                                          });
+                                        }),
+                                    IconButton(
+                                      icon: Icon(Icons.my_location,
+                                          color: _isDraggingImage
+                                              ? AppTheme.vinho
+                                              : Colors.grey),
+                                      onPressed: () {
+                                        setState(() {
+                                          _isDraggingImage = !_isDraggingImage;
+                                          if (_isDraggingImage) {
+                                            _isPaintingMode = false;
+                                          }
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                )
+                              : Row(
+                                  children: [],
+                                )
+                        ]),
+                  )),
               actions: [
                 isFront
                     ? IconButton(
@@ -679,58 +717,58 @@ class _AddClothScreenState extends State<AddClothScreen> {
                                                               // Seu conteúdo aqui
                                                             ),
                                                           ),
-                                                          Positioned(
-                                                            bottom: 5,
-                                                            right: 30.w,
-                                                            child: Row(
-                                                              children: [
-                                                                InkWell(
-                                                                  child:
-                                                                      Container(
-                                                                    decoration: BoxDecoration(
-                                                                        borderRadius:
-                                                                            BorderRadius.circular(
-                                                                                10),
-                                                                        color: AppTheme
-                                                                            .vinho),
-                                                                    child: Icon(
-                                                                        Icons
-                                                                            .zoom_out,
-                                                                        size:
-                                                                            45),
-                                                                  ),
-                                                                  onTap: () {
-                                                                    setState(
-                                                                        () {
-                                                                      _scale -=
-                                                                          0.05;
-                                                                    });
-                                                                  },
-                                                                ),
-                                                                Gap(10),
-                                                                InkWell(
-                                                                  child: Container(
-                                                                      decoration: BoxDecoration(
-                                                                          borderRadius: BorderRadius.circular(
-                                                                              10),
-                                                                          color: AppTheme
-                                                                              .vinho),
-                                                                      child: Icon(
-                                                                          Icons
-                                                                              .zoom_in,
-                                                                          size:
-                                                                              45)),
-                                                                  onTap: () {
-                                                                    setState(
-                                                                        () {
-                                                                      _scale +=
-                                                                          0.05;
-                                                                    });
-                                                                  },
-                                                                )
-                                                              ],
-                                                            ),
-                                                          ),
+                                                          // Positioned(
+                                                          //   bottom: 5,
+                                                          //   right: 30.w,
+                                                          //   child: Row(
+                                                          //     children: [
+                                                          //       InkWell(
+                                                          //         child:
+                                                          //             Container(
+                                                          //           decoration: BoxDecoration(
+                                                          //               borderRadius:
+                                                          //                   BorderRadius.circular(
+                                                          //                       10),
+                                                          //               color: AppTheme
+                                                          //                   .vinho),
+                                                          //           child: Icon(
+                                                          //               Icons
+                                                          //                   .zoom_out,
+                                                          //               size:
+                                                          //                   45),
+                                                          //         ),
+                                                          //         onTap: () {
+                                                          //           setState(
+                                                          //               () {
+                                                          //             _scale -=
+                                                          //                 0.05;
+                                                          //           });
+                                                          //         },
+                                                          //       ),
+                                                          //       Gap(10),
+                                                          //       InkWell(
+                                                          //         child: Container(
+                                                          //             decoration: BoxDecoration(
+                                                          //                 borderRadius: BorderRadius.circular(
+                                                          //                     10),
+                                                          //                 color: AppTheme
+                                                          //                     .vinho),
+                                                          //             child: Icon(
+                                                          //                 Icons
+                                                          //                     .zoom_in,
+                                                          //                 size:
+                                                          //                     45)),
+                                                          //         onTap: () {
+                                                          //           setState(
+                                                          //               () {
+                                                          //             _scale +=
+                                                          //                 0.05;
+                                                          //           });
+                                                          //         },
+                                                          //       )
+                                                          //     ],
+                                                          //   ),
+                                                          // ),
                                                         ],
                                                       ),
                                                     ),

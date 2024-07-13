@@ -342,16 +342,22 @@ class _ChatPageState extends State<ChatPage> {
 
     if (statusSever == 'Server online') {
       // String jsonresposta = resposta; //.replaceAll("\\", "");
-      Map<String, dynamic> resultados =
-          json.decode(await sendText('mensagem', _text));
-      String formattedResultados = '';
-      resultados.forEach((key, value) {
-        formattedResultados += '$key: $value\n';
-      });
+      Map<String, dynamic> resultados = {};
+      if (resultados != '') {
+        try {
+          resultados = json.decode(await sendText('mensagem', _text, "oi"));
+          String formattedResultados = '';
+          resultados.forEach((key, value) {
+            formattedResultados += '$key: $value\n';
+          });
 
-      _addQuestion(formattedResultados);
-    } else {
-      msg(statusSever);
+          _addQuestion(formattedResultados);
+        } on Error catch (_) {
+          _addQuestion('Lamentável: Ocorreu um erro');
+        }
+      } else {
+        msg(statusSever);
+      }
     }
   }
 

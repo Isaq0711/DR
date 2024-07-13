@@ -363,7 +363,7 @@ class _AddForumScreenState extends State<AddForumScreen> {
                                     ), // Exemplo de um ícone
                                     Gap(8), // Espaçamento entre o ícone e o texto
                                     Text(
-                                      'Add a picture',
+                                      'Add Foto',
                                       style: AppTheme.subtitlewhite,
                                     ),
                                   ],
@@ -393,7 +393,7 @@ class _AddForumScreenState extends State<AddForumScreen> {
                                     ), // Exemplo de um ícone
                                     Gap(8), // Espaçamento entre o ícone e o texto
                                     Text(
-                                      'Tag clothes',
+                                      'Marcar Roupas',
                                       style: AppTheme.subtitlewhite,
                                     ),
                                   ],

@@ -28,7 +28,7 @@ class StoreScreen extends StatefulWidget {
 class _StoreScreenState extends State<StoreScreen>
     with SingleTickerProviderStateMixin {
   var userData = {};
-  int postLen = 0;
+  int productsLen = 0;
   int followers = 0;
   int following = 0;
   int tabviews = 0;
@@ -54,7 +54,12 @@ class _StoreScreenState extends State<StoreScreen>
           .collection('store')
           .doc(widget.storeId)
           .get();
+      var productsSnap = await FirebaseFirestore.instance
+          .collection('products')
+          .where('uid', isEqualTo: widget.storeId)
+          .get();
 
+      productsLen = productsSnap.docs.length;
       userData = userSnap.data()!;
       followers = userSnap.data()!['followers'].length;
       following = userSnap.data()!['following'].length;
@@ -98,6 +103,15 @@ class _StoreScreenState extends State<StoreScreen>
                 Scaffold(
                     body: CustomScrollView(slivers: [
                   SliverAppBar(
+                      leading: IconButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        icon: Icon(
+                          Icons.arrow_back_ios,
+                          color: AppTheme.nearlyBlack,
+                        ),
+                      ),
                       backgroundColor: AppTheme.cinza,
                       expandedHeight: 230.h,
                       flexibleSpace: FlexibleSpaceBar(
@@ -165,7 +179,7 @@ class _StoreScreenState extends State<StoreScreen>
                               mainAxisSize: MainAxisSize.max,
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                buildStatColumn(postLen, "produtos"),
+                                buildStatColumn(productsLen, "produtos"),
                                 buildStatColumn(followers, "promoções"),
                                 buildStatColumn(following, "representantes"),
                               ],
@@ -177,7 +191,7 @@ class _StoreScreenState extends State<StoreScreen>
                               Container()
                             else if (isFollowing)
                               FollowButton(
-                                text: 'Unfollow',
+                                text: 'Deixar de seguir',
                                 backgroundColor: AppTheme.vinho,
                                 textColor: AppTheme.nearlyWhite,
                                 borderColor: Colors.grey,
@@ -195,7 +209,7 @@ class _StoreScreenState extends State<StoreScreen>
                               )
                             else
                               FollowButton(
-                                text: 'Follow',
+                                text: 'Seguir',
                                 backgroundColor: AppTheme.vinho,
                                 textColor: AppTheme.nearlyWhite,
                                 borderColor: Colors.grey,
@@ -212,7 +226,7 @@ class _StoreScreenState extends State<StoreScreen>
                                 },
                               ),
                             DefaultTabController(
-                                length: 4,
+                                length: 3,
                                 initialIndex: 0,
                                 child: Column(children: [
                                   Container(
@@ -251,9 +265,6 @@ class _StoreScreenState extends State<StoreScreen>
                                             Tab(
                                               text: "COLEÇÕES",
                                             ),
-                                            Tab(
-                                              text: "FOR YOU",
-                                            ),
                                           ],
                                         ),
                                       )),
@@ -268,7 +279,7 @@ class _StoreScreenState extends State<StoreScreen>
                                           FutureBuilder(
                                               future: FirebaseFirestore.instance
                                                   .collection('products')
-                                                  .where('storeId',
+                                                  .where('uid',
                                                       isEqualTo: widget.storeId)
                                                   .where('vitrine',
                                                       isEqualTo: true)
@@ -317,10 +328,11 @@ class _StoreScreenState extends State<StoreScreen>
                                                           Navigator.push(
                                                             context,
                                                             MaterialPageRoute(
-                                                              builder: (context) =>
-                                                                  SeePost(
-                                                                      postId: snap[
-                                                                          'productId']),
+                                                              builder: (context) => SeePost(
+                                                                  isTagclicked:
+                                                                      false,
+                                                                  postId: snap[
+                                                                      'productId']),
                                                             ),
                                                           );
                                                         },
@@ -445,7 +457,7 @@ class _StoreScreenState extends State<StoreScreen>
                                           FutureBuilder(
                                               future: FirebaseFirestore.instance
                                                   .collection('products')
-                                                  .where('storeId',
+                                                  .where('uid',
                                                       isEqualTo: widget.storeId)
                                                   .get(),
                                               builder: (context, snapshot) {
@@ -492,10 +504,11 @@ class _StoreScreenState extends State<StoreScreen>
                                                           Navigator.push(
                                                             context,
                                                             MaterialPageRoute(
-                                                              builder: (context) =>
-                                                                  SeePost(
-                                                                      postId: snap[
-                                                                          'productId']),
+                                                              builder: (context) => SeePost(
+                                                                  isTagclicked:
+                                                                      false,
+                                                                  postId: snap[
+                                                                      'productId']),
                                                             ),
                                                           );
                                                         },
@@ -669,7 +682,8 @@ class _StoreScreenState extends State<StoreScreen>
                                             //                 context,
                                             //                 MaterialPageRoute(
                                             //                   builder: (context) =>
-                                            //                       SeePost(
+                                            //                          SeePost(
+
                                             //                           postId: snap[
                                             //                               'postId']),
                                             //                 ),
@@ -757,10 +771,11 @@ class _StoreScreenState extends State<StoreScreen>
                                                           Navigator.push(
                                                             context,
                                                             MaterialPageRoute(
-                                                              builder: (context) =>
-                                                                  SeePost(
-                                                                      postId: snap[
-                                                                          'clothId']),
+                                                              builder: (context) => SeePost(
+                                                                  isTagclicked:
+                                                                      false,
+                                                                  postId: snap[
+                                                                      'clothId']),
                                                             ),
                                                           );
                                                         },
@@ -907,7 +922,8 @@ class _StoreScreenState extends State<StoreScreen>
                                         //                                                             Navigator.push(
                                         //                                                               context,
                                         //                                                               MaterialPageRoute(
-                                        //                                                                 builder: (context) => SeePost(postId: postIds[index]),
+                                        //                                                                 builder: (context) =>    SeePost(
+
                                         //                                                               ),
                                         //                                                             );
                                         //                                                           },

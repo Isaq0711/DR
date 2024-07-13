@@ -294,7 +294,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
         : Scaffold(
             resizeToAvoidBottomInset: false,
             appBar: AppBar(
-                backgroundColor: AppTheme.nearlyWhite,
+                backgroundColor: Colors.transparent,
                 leading: IconButton(
                   icon: const Icon(Icons.arrow_back_ios),
                   color: AppTheme.nearlyBlack,
@@ -326,9 +326,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                     ? LinearProgressIndicator()
                     : ListView(children: <Widget>[
                         Container(
-                          decoration: BoxDecoration(
-                            color: AppTheme.nearlyWhite,
-                          ),
+                          decoration: BoxDecoration(),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -431,6 +429,8 @@ class _AddPostScreenState extends State<AddPostScreen> {
                                                                     builder:
                                                                         (context) =>
                                                                             SeePost(
+                                                                      isTagclicked:
+                                                                          false,
                                                                       postId: pecasID![
                                                                           index],
                                                                     ),
@@ -503,7 +503,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Container(
-                                      margin: EdgeInsets.all(10),
+                                      margin: EdgeInsets.all(5.h),
                                       child: ElevatedButton(
                                         style: ButtonStyle(
                                           backgroundColor: MaterialStateProperty
@@ -523,7 +523,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                                             ), // Exemplo de um ícone
                                             Gap(8), // Espaçamento entre o ícone e o texto
                                             Text(
-                                              'Add more',
+                                              'Add Imagem',
                                               style: AppTheme.subtitlewhite,
                                             ),
                                           ],
@@ -531,7 +531,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                                       ),
                                     ),
                                     Container(
-                                      margin: EdgeInsets.all(10),
+                                      margin: EdgeInsets.all(5.h),
                                       child: ElevatedButton(
                                         style: ButtonStyle(
                                           backgroundColor: MaterialStateProperty
@@ -553,7 +553,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                                             ), // Exemplo de um ícone
                                             Gap(8), // Espaçamento entre o ícone e o texto
                                             Text(
-                                              'Clothes',
+                                              'Marcar Roupas',
                                               style: AppTheme.subtitlewhite,
                                             ),
                                           ],
@@ -620,8 +620,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                                           },
                                         ),
                                       ))
-                                  : Gap(
-                                      MediaQuery.of(context).size.height * 0.1)
+                                  : SizedBox.shrink()
                             ],
                           ),
                         ),
@@ -629,34 +628,40 @@ class _AddPostScreenState extends State<AddPostScreen> {
                 back: isLoading
                     ? LinearProgressIndicator()
                     : Container(
-                        decoration: BoxDecoration(
-                          color: AppTheme.nearlyWhite,
-                        ),
+                        decoration: BoxDecoration(),
                         child: Column(
                           children: [
                             Text(
-                              "Description",
+                              "Descrição",
                               style: AppTheme.dividerfont,
                             ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: TextField(
-                                controller: _descriptionController,
-                                style: AppTheme.title,
-                                decoration: InputDecoration(
-                                  hintText:
-                                      "Type a description for the product..",
-                                  hintStyle: AppTheme.title,
-                                  border: InputBorder.none,
+                            Gap(5),
+                            Container(
+                                width: 350.w,
+                                padding: EdgeInsets.symmetric(horizontal: 8),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.cinza,
+                                  borderRadius: BorderRadius.circular(10.0),
                                 ),
-                              ),
-                            ),
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 8),
+                                  child: TextField(
+                                    controller: _descriptionController,
+                                    style: AppTheme.title,
+                                    decoration: InputDecoration(
+                                      hintText:
+                                          "Escreva uma descrição para a publicação..",
+                                      hintStyle: AppTheme.title,
+                                      border: InputBorder.none,
+                                    ),
+                                  ),
+                                )),
                             Gap(20),
                             Divider(
                               color: Colors.grey,
                             ),
                             Text(
-                              "Category of the post",
+                              "Categoria do Post",
                               style: AppTheme.dividerfont,
                             ),
                             Gap(5),
@@ -667,7 +672,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 children: <Widget>[
                                   Text(
-                                    'Anonymous Post',
+                                    'Post anônimo',
                                     style: AppTheme.subtitle,
                                   ),
                                   Checkbox(
@@ -709,7 +714,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                                       borderRadius: BorderRadius.circular(10.0),
                                     ),
                                   ),
-                                  child: Text('Public',
+                                  child: Text('Publico',
                                       style: AppTheme.subtitlewhite),
                                 ),
                                 ElevatedButton(
@@ -726,7 +731,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                                       borderRadius: BorderRadius.circular(10.0),
                                     ),
                                   ),
-                                  child: Text('Followers',
+                                  child: Text('Seguidores',
                                       style: AppTheme.subtitlewhite),
                                 ),
                                 ElevatedButton(
@@ -746,7 +751,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                                       ),
                                     ),
                                     child: categoriaSelecionada == null
-                                        ? Text('List',
+                                        ? Text('Lista',
                                             style: AppTheme.subtitlewhite)
                                         : Text(categoriaSelecionada!,
                                             style: AppTheme.subtitlewhite)),
@@ -757,7 +762,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                               color: Colors.grey,
                             ),
                             Text(
-                              "Post information",
+                              "Informações do post",
                               style: AppTheme.dividerfont,
                             ),
                             Expanded(

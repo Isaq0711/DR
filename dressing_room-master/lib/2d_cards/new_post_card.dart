@@ -223,8 +223,8 @@ class _NewPostCardState extends State<NewPostCard> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          SeePost(postId: widget.snap['postId']),
+                      builder: (context) => SeePost(
+                          postId: widget.snap['postId'], isTagclicked: false),
                     ),
                   );
                 },
@@ -243,10 +243,18 @@ class _NewPostCardState extends State<NewPostCard> {
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
+                                    // Align(
+                                    //     alignment: Alignment.centerLeft,
+                                    //     child: IconButton(
+                                    //         onPressed: () {
+                                    //           Navigator.pop(context);
+                                    //         },
+                                    //         icon: Icon(
+                                    //           Icons.close,
+                                    //           color: AppTheme.nearlyBlack,
+                                    //         ))),
                                     SizedBox(
-                                      height:
-                                          MediaQuery.of(context).size.height *
-                                              0.7,
+                                      height: 550.h,
                                       width: double.infinity,
                                       child: ClipRRect(
                                         borderRadius:
@@ -433,22 +441,15 @@ class _NewPostCardState extends State<NewPostCard> {
                                 },
                               ),
                               SpeedDialChild(
-                                  child: Icon(
-                                    CupertinoIcons.arrow_up,
+                                  child: ImageIcon(
+                                    AssetImage(
+                                      'assets/SUGGESTION-OUTLINED.png',
+                                    ),
                                     color: Colors.black.withOpacity(0.6),
                                   ),
                                   backgroundColor: AppTheme.cinza,
                                   labelStyle: TextStyle(fontSize: 18.0),
                                   onTap: () => print('THIRD CHILD')),
-                              SpeedDialChild(
-                                child: Icon(
-                                  CupertinoIcons.bag,
-                                  color: Colors.black.withOpacity(0.6),
-                                ),
-                                backgroundColor: AppTheme.cinza,
-                                labelStyle: TextStyle(fontSize: 18.0),
-                                onTap: () => print('THIRD CHILD'),
-                              ),
                             ],
                           ),
                           Gap(5),
@@ -459,7 +460,16 @@ class _NewPostCardState extends State<NewPostCard> {
                                 height: 32.0,
                                 child: FloatingActionButton(
                                   onPressed: () {
-                                    setState(() {});
+                                    setState(() {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => SeePost(
+                                              postId: widget.snap['postId'],
+                                              isTagclicked: true),
+                                        ),
+                                      );
+                                    });
                                   },
                                   backgroundColor: AppTheme.cinza,
                                   elevation: 8.0,
@@ -527,6 +537,7 @@ class _NewPostCardState extends State<NewPostCard> {
                                                     builder: (context) =>
                                                         ProfileScreen(
                                                       uid: widget.snap['uid'],
+                                                      isMainn: false,
                                                     ),
                                                   ),
                                                 );
@@ -554,24 +565,6 @@ class _NewPostCardState extends State<NewPostCard> {
                                   ),
                                 ],
                               ),
-                              //DESCRIÇÃOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
-                              // Align(
-                              //   alignment: Alignment.topLeft,
-                              //   child: Text(
-                              //     widget.snap['description'].toString(),
-                              //     style: AppTheme.subtitlewhite.copyWith(
-                              //       shadows: [
-                              //         Shadow(
-                              //           blurRadius: 3.0,
-                              //           color:
-                              //               Colors.black, // Cor da sombra
-                              //           offset: Offset(2.0,
-                              //               2.0), // Deslocamento X e Y da sombra
-                              //         ),
-                              //       ],
-                              //     ),
-                              //   ),
-                              // )
                             ])))
                   ],
                 ),

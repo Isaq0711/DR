@@ -241,7 +241,7 @@ class _ClothCardState extends State<ClothCard> {
                                 borderRadius: BorderRadius.circular(10.0),
                                 child: Image.network(
                                   widget.snap['photoUrl'],
-                                  fit: BoxFit.cover,
+                                  fit: BoxFit.contain,
                                 ),
                               )))),
                   Positioned(
@@ -366,6 +366,8 @@ class _ClothCardState extends State<ClothCard> {
                                                                   uid: widget
                                                                           .snap[
                                                                       'uid'],
+                                                                  isMainn:
+                                                                      false,
                                                                 ),
                                                               ),
                                                             );

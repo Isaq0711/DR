@@ -415,6 +415,7 @@ class _VotationCardState extends State<VotationCard> {
                                                     MaterialPageRoute(
                                                       builder: (context) =>
                                                           SeePost(
+                                                        isTagclicked: false,
                                                         postId: widget.snap[
                                                                     'options'][
                                                                 currentImageIndex]
@@ -534,6 +535,8 @@ class _VotationCardState extends State<VotationCard> {
                                                                   uid: widget
                                                                           .snap[
                                                                       'uid'],
+                                                                  isMainn:
+                                                                      false,
                                                                 ),
                                                               ),
                                                             );

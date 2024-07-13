@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dressing_room/models/store.dart';
 import 'package:dressing_room/screens/basket_screen.dart';
 import 'package:dressing_room/screens/favorites_screen.dart';
 import 'package:dressing_room/screens/product_screen.dart';
+import 'package:dressing_room/screens/shopping_cart.dart';
+import 'package:dressing_room/screens/tinder_like_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dressing_room/screens/store_screen.dart';
 import 'package:flutter/cupertino.dart';
@@ -20,8 +23,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String uid;
+  final bool isMainn;
 
-  ProfileScreen({Key? key, required this.uid}) : super(key: key);
+  ProfileScreen({Key? key, required this.uid, required this.isMainn})
+      : super(key: key);
 
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
@@ -30,10 +35,17 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen>
     with SingleTickerProviderStateMixin {
   var userData = {};
-  int postLen = 0;
+  var storesData = {};
+  int storesLen = 0;
+
   int followers = 0;
   int following = 0;
   int tabviews = 0;
+  List<dynamic> followersIDs = [];
+  List<dynamic> followingIDs = [];
+  List<String> fotosUrls = [];
+  List<String> clothItens = [];
+  List<dynamic> storesIDs = [];
   bool isFollowing = false;
   bool isLoading = false;
   final double drawerWidth = 300.0;
@@ -57,20 +69,42 @@ class _ProfileScreenState extends State<ProfileScreen>
           .doc(widget.uid)
           .get();
 
-      var postSnap = await FirebaseFirestore.instance
-          .collection('posts')
-          .where('uid', isEqualTo: widget.uid)
+      var storeSnap = await FirebaseFirestore.instance
+          .collection('store')
+          .where('adms', arrayContains: widget.uid)
           .get();
 
-      var votationSnap = await FirebaseFirestore.instance
-          .collection('votations')
-          .where('uid', isEqualTo: widget.uid)
+      var clothesSnap = await FirebaseFirestore.instance
+          .collection('wardrobe')
+          .doc(widget.uid)
+          .collection('clothes')
           .get();
 
-      postLen = postSnap.docs.length + votationSnap.docs.length;
+      clothItens.clear();
+      fotosUrls.clear();
+
+      for (var doc in clothesSnap.docs) {
+        String clothId = doc['clothId'];
+        clothItens.add(clothId);
+
+        var clothDataSnap = await FirebaseFirestore.instance
+            .collection('clothes')
+            .doc(clothId)
+            .get();
+
+        String photoUrl = clothDataSnap['photoUrl'];
+        fotosUrls.add(photoUrl);
+      }
+
+      storesLen = storeSnap.docs.length;
+      storesData = userSnap.data()!;
       userData = userSnap.data()!;
       followers = userSnap.data()!['followers'].length;
       following = userSnap.data()!['following'].length;
+
+      followersIDs = userSnap.data()!['followers'];
+      followingIDs = userSnap.data()!['following'];
+      storesIDs = storeSnap.docs.map((doc) => doc.id).toList();
       tabviews = userSnap.data()!['tabviews'].length;
       isFollowing = userSnap
           .data()!['followers']
@@ -111,8 +145,21 @@ class _ProfileScreenState extends State<ProfileScreen>
               children: [
                 Scaffold(
                   appBar: AppBar(
+                    leading: !widget.isMainn
+                        ? IconButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            icon: Icon(
+                              Icons.arrow_back_ios,
+                              color: AppTheme.nearlyBlack,
+                            ),
+                          )
+                        : SizedBox.shrink(),
                     title: Text(
-                      "Profile",
+                      FirebaseAuth.instance.currentUser!.uid == widget.uid
+                          ? "Meu Perfil"
+                          : "Perfil",
                       style: AppTheme.barapp.copyWith(
                         shadows: [
                           Shadow(
@@ -140,6 +187,34 @@ class _ProfileScreenState extends State<ProfileScreen>
                     ],
                     iconTheme: IconThemeData(color: AppTheme.vinho),
                   ),
+                  floatingActionButton: Visibility(
+                      visible:
+                          FirebaseAuth.instance.currentUser!.uid != widget.uid,
+                      child: Container(
+                        margin: EdgeInsets.only(
+                          bottom: 10.h,
+                        ),
+                        child: FloatingActionButton(
+                          onPressed: () {
+                            setState(() {});
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      TinderScreen(uid: widget.uid)),
+                            );
+                          },
+                          backgroundColor: AppTheme.vinho,
+                          elevation: 2.0,
+                          child: ImageIcon(
+                            AssetImage(
+                              'assets/SUGGESTION.png',
+                            ),
+                            size: 30,
+                            color: AppTheme.cinza,
+                          ),
+                        ),
+                      )),
                   body: ListView(children: [
                     Padding(
                       padding: EdgeInsets.all(16),
@@ -192,9 +267,12 @@ class _ProfileScreenState extends State<ProfileScreen>
                             mainAxisSize: MainAxisSize.max,
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              buildStatColumn(postLen, "lojas"),
-                              buildStatColumn(followers, "seguidores"),
-                              buildStatColumn(following, "seguindo"),
+                              buildStatColumn(
+                                  storesLen, "lojas", storesIDs, 'store'),
+                              buildStatColumn(followers, "seguidores",
+                                  followersIDs, 'users'),
+                              buildStatColumn(
+                                  following, "seguindo", followingIDs, 'users'),
                             ],
                           ),
                           Gap(16.h),
@@ -275,7 +353,8 @@ class _ProfileScreenState extends State<ProfileScreen>
 
                                           Tab(
                                             icon: ImageIcon(
-                                              AssetImage('assets/ELECTION.png'),
+                                              AssetImage(
+                                                  'assets/ELECTION-FILL.png'),
                                             ),
                                           ),
                                           Tab(
@@ -296,7 +375,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                         ],
                                       ),
                                     )),
-                                Gap(20.h),
+                                Gap(5.h),
                                 SizedBox(
                                     height: 450.h,
                                     child: TabBarView(children: [
@@ -348,14 +427,20 @@ class _ProfileScreenState extends State<ProfileScreen>
                                                 } else {
                                                   allPosts = [...posts];
                                                 }
+                                                allPosts.sort((a, b) =>
+                                                    (b.data()!['datePublished']
+                                                            as Timestamp)
+                                                        .compareTo(a.data()![
+                                                                'datePublished']
+                                                            as Timestamp));
 
                                                 return SizedBox(
-                                                  height: 300.h,
+                                                  height: 400.h,
                                                   child: GridView.builder(
                                                     gridDelegate:
                                                         SliverGridDelegateWithFixedCrossAxisCount(
                                                       crossAxisCount: 3,
-                                                      mainAxisSpacing: 3.h,
+                                                      mainAxisSpacing: 6.h,
                                                       crossAxisSpacing: 6.h,
                                                     ),
                                                     itemCount: allPosts.length,
@@ -372,10 +457,11 @@ class _ProfileScreenState extends State<ProfileScreen>
                                                           Navigator.push(
                                                             context,
                                                             MaterialPageRoute(
-                                                              builder: (context) =>
-                                                                  SeePost(
-                                                                      postId: snap[
-                                                                          'postId']),
+                                                              builder: (context) => SeePost(
+                                                                  isTagclicked:
+                                                                      false,
+                                                                  postId: snap[
+                                                                      'postId']),
                                                             ),
                                                           );
                                                         },
@@ -462,7 +548,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                             }
 
                                             return SizedBox(
-                                              height: 300.h,
+                                              height: 400.h,
                                               child: GridView.builder(
                                                 gridDelegate:
                                                     SliverGridDelegateWithFixedCrossAxisCount(
@@ -489,6 +575,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                                                         MaterialPageRoute(
                                                           builder: (context) =>
                                                               SeePost(
+                                                                  isTagclicked:
+                                                                      false,
                                                                   postId: snap[
                                                                       'votationId']),
                                                         ),
@@ -521,170 +609,67 @@ class _ProfileScreenState extends State<ProfileScreen>
                                       Column(
                                         children: [
                                           Padding(
-                                            padding: EdgeInsets.symmetric(
-                                                horizontal: 16),
-                                          ),
-
-                                          // Padding(
-                                          //   padding: EdgeInsets.symmetric(
-                                          //       horizontal: 16),
-                                          //   child: Row(
-                                          //     children: [
-                                          //       Text(
-                                          //         "Favorites",
-                                          //         style: AppTheme.subheadline,
-                                          //       ),
-                                          //     ],
-                                          //   ),
-                                          // ),
-                                          // FutureBuilder(
-                                          //   future: FirebaseFirestore.instance
-                                          //       .collection('favorites')
-                                          //       .doc(widget
-                                          //           .uid) // Use the user's ID as the document ID
-                                          //       .collection('userFavorites')
-                                          //       .get(),
-                                          //   builder: (context, snapshot) {
-                                          //     if (snapshot.connectionState ==
-                                          //         ConnectionState.waiting) {
-                                          //       return Center(
-                                          //         child:
-                                          //             CircularProgressIndicator(),
-                                          //       );
-                                          //     }
-
-                                          //     List<QueryDocumentSnapshot>
-                                          //         favorites = (snapshot.data!
-                                          //                 as QuerySnapshot)
-                                          //             .docs;
-
-                                          //     return SizedBox(
-                                          //       height: 150,
-                                          //       child: ListView.builder(
-                                          //         itemCount: favorites.length,
-                                          //         scrollDirection:
-                                          //             Axis.horizontal,
-                                          //         itemBuilder:
-                                          //             (context, index) {
-                                          //           dynamic snap =
-                                          //               favorites[index];
-
-                                          //           return GestureDetector(
-                                          //             onTap: () {
-                                          //               Navigator.push(
-                                          //                 context,
-                                          //                 MaterialPageRoute(
-                                          //                   builder: (context) =>
-                                          //                       SeePost(
-                                          //                           postId: snap[
-                                          //                               'postId']),
-                                          //                 ),
-                                          //               );
-                                          //             },
-                                          //             child: Padding(
-                                          //               padding:
-                                          //                   EdgeInsets.all(
-                                          //                       8.0),
-                                          //               child: ClipRRect(
-                                          //                 borderRadius:
-                                          //                     BorderRadius
-                                          //                         .circular(
-                                          //                             10),
-                                          //                 child: Container(
-                                          //                   width: 150,
-                                          //                   decoration:
-                                          //                       BoxDecoration(
-                                          //                     color:
-                                          //                         Colors.grey,
-                                          //                   ),
-                                          //                   child: Image(
-                                          //                     image: NetworkImage(
-                                          //                         snap['photoUrls']
-                                          //                             [0]),
-                                          //                     fit: BoxFit
-                                          //                         .cover,
-                                          //                   ),
-                                          //                 ),
-                                          //               ),
-                                          //             ),
-                                          //           );
-                                          //         },
-                                          //       ),
-                                          //     );
-                                          //   },
-                                          // ),
-                                          Padding(
-                                            padding: EdgeInsets.symmetric(
-                                                horizontal: 3),
-                                          ),
-                                          FutureBuilder(
-                                            future: FirebaseFirestore.instance
-                                                .collection('clothes')
-                                                .where('uid',
-                                                    isEqualTo: widget.uid)
-                                                .get(),
-                                            builder: (context, snapshot) {
-                                              if (snapshot.connectionState ==
-                                                  ConnectionState.waiting) {
-                                                return Center(
-                                                  child:
-                                                      CircularProgressIndicator(),
-                                                );
-                                              }
-                                              if (!snapshot.hasData ||
-                                                  (snapshot.data
-                                                          as QuerySnapshot)
-                                                      .docs
-                                                      .isEmpty) {
-                                                return NoContent();
-                                              }
-                                              List<QueryDocumentSnapshot>
-                                                  cloth = (snapshot.data!
-                                                          as QuerySnapshot)
-                                                      .docs;
-
-                                              return SizedBox(
-                                                height: 300.h,
+                                              padding: EdgeInsets.symmetric(
+                                                  horizontal: 3, vertical: 5),
+                                              child: SizedBox(
+                                                height: 430.h,
                                                 child: GridView.builder(
                                                   gridDelegate:
                                                       SliverGridDelegateWithFixedCrossAxisCount(
                                                     crossAxisCount: 3,
-                                                    mainAxisSpacing: 3.h,
+                                                    mainAxisSpacing: 6.h,
                                                     crossAxisSpacing: 6.h,
                                                   ),
-                                                  itemCount: cloth.length,
+                                                  itemCount: clothItens.length,
                                                   itemBuilder:
                                                       (context, index) {
-                                                    dynamic snap = cloth[index];
-
                                                     return GestureDetector(
-                                                      onTap: () {
-                                                        Navigator.push(
-                                                          context,
-                                                          MaterialPageRoute(
-                                                            builder: (context) =>
-                                                                SeePost(
-                                                                    postId: snap[
-                                                                        'clothId']),
-                                                          ),
-                                                        );
-                                                      },
-                                                      child: ClipRRect(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(10),
-                                                        child: Image(
-                                                          image: NetworkImage(
-                                                              snap['photoUrl']),
-                                                          fit: BoxFit.fill,
-                                                        ),
-                                                      ),
-                                                    );
+                                                        onTap: () {
+                                                          Navigator.push(
+                                                            context,
+                                                            MaterialPageRoute(
+                                                              builder: (context) => SeePost(
+                                                                  isTagclicked:
+                                                                      false,
+                                                                  postId:
+                                                                      clothItens[
+                                                                          index]),
+                                                            ),
+                                                          );
+                                                        },
+                                                        child: Material(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        10.0),
+                                                            elevation: 6.0,
+                                                            child: Container(
+                                                              decoration:
+                                                                  BoxDecoration(
+                                                                color: Colors
+                                                                    .grey[200],
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            10.0),
+                                                              ),
+                                                              child: ClipRRect(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            10),
+                                                                child: Image(
+                                                                  image: NetworkImage(
+                                                                      fotosUrls[
+                                                                          index]),
+                                                                  fit: BoxFit
+                                                                      .contain,
+                                                                ),
+                                                              ),
+                                                            )));
                                                   },
                                                 ),
-                                              );
-                                            },
-                                          ),
+                                              ))
                                         ],
                                       ),
                                       Column(
@@ -809,7 +794,10 @@ class _ProfileScreenState extends State<ProfileScreen>
                                                                                                   Navigator.push(
                                                                                                     context,
                                                                                                     MaterialPageRoute(
-                                                                                                      builder: (context) => SeePost(postId: postIds[index]),
+                                                                                                      builder: (context) => SeePost(
+                                                                                                        postId: postIds[index],
+                                                                                                        isTagclicked: false,
+                                                                                                      ),
                                                                                                     ),
                                                                                                   );
                                                                                                 },
@@ -928,7 +916,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                             color: AppTheme.nearlyWhite,
                           ),
                           title: Text(
-                            "Edit Profile",
+                            "Editar Perfil",
                             style: AppTheme.subheadlinewhite,
                           ),
                           onTap: () {
@@ -947,7 +935,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                             color: AppTheme.nearlyWhite,
                           ),
                           title: Text(
-                            "My Purchases",
+                            "Minhas compras",
                             style: AppTheme.subheadlinewhite,
                           ),
                           onTap: () {},
@@ -958,7 +946,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 padding: EdgeInsets.symmetric(horizontal: 16),
                                 child: ListView(children: [
                                   Text(
-                                    "Collections",
+                                    "Coleções",
                                     style: AppTheme.subtitlewhite,
                                   ),
                                   ListTile(
@@ -967,7 +955,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                       color: AppTheme.nearlyWhite,
                                     ),
                                     title: Text(
-                                      "Favorites",
+                                      "Favoritos",
                                       style: AppTheme.subheadlinewhite,
                                     ),
                                     onTap: () {
@@ -987,21 +975,22 @@ class _ProfileScreenState extends State<ProfileScreen>
                                       color: AppTheme.nearlyWhite,
                                     ),
                                     title: Text(
-                                      "Cart",
+                                      "Carrinho",
                                       style: AppTheme.subheadlinewhite,
                                     ),
                                     onTap: () {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => BasketScreen(),
+                                          builder: (context) =>
+                                              ShoppingCart(uid: widget.uid),
                                         ),
                                       );
                                     },
                                   ),
                                   Divider(),
                                   Text(
-                                    "My stores",
+                                    "Minhas lojas",
                                     style: AppTheme.subtitlewhite,
                                   ),
                                   ListTile(
@@ -1010,7 +999,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                       color: AppTheme.nearlyWhite,
                                     ),
                                     title: Text(
-                                      "Create a store",
+                                      "Criar uma loja",
                                       style: AppTheme.subheadlinewhite,
                                     ),
                                     onTap: () {
@@ -1023,6 +1012,72 @@ class _ProfileScreenState extends State<ProfileScreen>
                                       );
                                     },
                                   ),
+                                  FutureBuilder<QuerySnapshot>(
+                                    future: FirebaseFirestore.instance
+                                        .collection('store')
+                                        .where('adms',
+                                            arrayContains: FirebaseAuth
+                                                .instance.currentUser!.uid)
+                                        .get(),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return Center(
+                                            child: CircularProgressIndicator());
+                                      }
+                                      if (!snapshot.hasData ||
+                                          snapshot.data!.docs.isEmpty) {
+                                        return SizedBox.shrink();
+                                      }
+                                      var userStores = snapshot.data!.docs;
+                                      return ListView.builder(
+                                        shrinkWrap: true,
+                                        itemCount: userStores.length,
+                                        itemBuilder: (context, index) {
+                                          var store = userStores[index].data()
+                                              as Map<String, dynamic>;
+                                          return ListTile(
+                                            leading: Container(
+                                                decoration: BoxDecoration(
+                                                    shape: BoxShape.circle,
+                                                    border: Border.all(
+                                                        width: 1,
+                                                        color: AppTheme.cinza),
+                                                    color: Colors.white,
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                          color: Colors.black54,
+                                                          blurRadius: 15)
+                                                    ]),
+                                                child: CircleAvatar(
+                                                  radius: 13,
+                                                  backgroundImage: NetworkImage(
+                                                      store['photoUrl']),
+                                                )),
+                                            title: Expanded(
+                                              child: Text(
+                                                store['storename'],
+                                                style:
+                                                    AppTheme.subheadlinewhite,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      StoreScreen(
+                                                    storeId: store['storeId'],
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
                                   Divider(),
                                   ListTile(
                                     leading: Icon(
@@ -1030,7 +1085,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                       color: AppTheme.nearlyWhite,
                                     ),
                                     title: Text(
-                                      "Logout",
+                                      "Sair",
                                       style: AppTheme.subheadlinewhite,
                                     ),
                                     onTap: () {
@@ -1059,20 +1114,146 @@ class _ProfileScreenState extends State<ProfileScreen>
           );
   }
 
-  Column buildStatColumn(int count, String label) {
+  Column buildStatColumn(
+      int count, String label, List<dynamic> uids, String category) {
+    String name = "";
     return Column(
       children: [
-        Text(
-          count.toString(),
-          style: AppTheme.title,
-        ),
-        Text(
-          label,
-          style: AppTheme.subtitle,
+        InkWell(
+          child: Column(children: [
+            Text(
+              count.toString(),
+              style: AppTheme.title,
+            ),
+            Text(
+              label,
+              style: AppTheme.subtitle,
+            ),
+          ]),
+          onTap: () {
+            category == "users" ? name = "username" : name = "storename";
+            if (count > 0)
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Dialog(
+                            backgroundColor: AppTheme.cinza,
+                            child: Padding(
+                              padding: const EdgeInsets.all(10),
+                              child: FutureBuilder<QuerySnapshot>(
+                                  future: FirebaseFirestore.instance
+                                      .collection(category)
+                                      .where(FieldPath.documentId,
+                                          whereIn: uids)
+                                      .get(),
+                                  builder: (BuildContext context,
+                                      AsyncSnapshot<QuerySnapshot> snapshot) {
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return Center(
+                                          child: CircularProgressIndicator());
+                                    }
+
+                                    if (snapshot.hasError) {
+                                      return Text('Erro ao carregar dados');
+                                    }
+                                    List<UserData> userDataList = [];
+
+                                    if (snapshot.hasData &&
+                                        snapshot.data!.docs.isNotEmpty) {
+                                      snapshot.data!.docs.forEach((doc) {
+                                        userDataList.add(UserData(doc[name],
+                                            doc.id, doc['photoUrl']));
+                                      });
+                                    }
+
+                                    return Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(label, style: AppTheme.barapp),
+                                          const Gap(10),
+                                          ListView.builder(
+                                            shrinkWrap: true,
+                                            itemCount: userDataList.length,
+                                            itemBuilder: (BuildContext context,
+                                                int index) {
+                                              return ListTile(
+                                                leading: Container(
+                                                    decoration: BoxDecoration(
+                                                        shape: BoxShape.circle,
+                                                        border: Border.all(
+                                                            width: 1,
+                                                            color:
+                                                                AppTheme.cinza),
+                                                        color: Colors.white,
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                              color: Colors
+                                                                  .black54,
+                                                              blurRadius: 15)
+                                                        ]),
+                                                    child: CircleAvatar(
+                                                      radius: 13,
+                                                      backgroundImage:
+                                                          NetworkImage(
+                                                              userDataList[
+                                                                      index]
+                                                                  .foto),
+                                                    )),
+                                                title: Text(
+                                                  userDataList[index].username,
+                                                  style: AppTheme.subheadline,
+                                                ),
+                                                onTap: () {
+                                                  name == "storename"
+                                                      ? Navigator.of(context).push(
+                                                          MaterialPageRoute(
+                                                              builder:
+                                                                  (context) =>
+                                                                      StoreScreen(
+                                                                        storeId:
+                                                                            userDataList[index].uid,
+                                                                      )))
+                                                      : Navigator.of(context)
+                                                          .push(
+                                                              MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              ProfileScreen(
+                                                            uid: userDataList[
+                                                                    index]
+                                                                .uid,
+                                                            isMainn: false,
+                                                          ),
+                                                        ));
+                                                },
+                                              );
+                                            },
+                                          ),
+                                        ]);
+                                  }),
+                            ))
+                      ],
+                    ),
+                  );
+                },
+              );
+          },
         ),
       ],
     );
   }
+}
+
+class UserData {
+  final String username;
+  final String uid;
+  final String foto;
+
+  UserData(this.username, this.uid, this.foto);
 }
 
 class NoContent extends StatelessWidget {

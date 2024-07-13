@@ -75,7 +75,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
           title: Align(
             alignment: Alignment.center,
             child: Text(
-              'Do you want to delete this item?',
+              'Deseja deletar esse item?',
               style: AppTheme.subheadline,
             ),
           ),
@@ -84,7 +84,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
             children: <Widget>[
               ElevatedButton(
                 child: Text(
-                  'No',
+                  'Não',
                   style: TextStyle(
                     fontFamily: 'Quicksand',
                     fontWeight: FontWeight.bold,
@@ -99,7 +99,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
               Gap(10.w),
               ElevatedButton(
                 child: Text(
-                  'Yes',
+                  'Sim',
                   style: TextStyle(
                     fontFamily: 'Quicksand',
                     fontWeight: FontWeight.bold,
@@ -174,7 +174,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
                   color: AppTheme.nearlyBlack,
                 ),
               ),
-              title: Text('Shopping Cart',
+              title: Text('Carrinho',
                   style: AppTheme.barapp.copyWith(
                     shadows: [
                       Shadow(
@@ -204,7 +204,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
                             onPrimary: const Color.fromARGB(
                                 255, 255, 226, 226), // foreground
                           ),
-                          child: Text('Pay Now'),
+                          child: Text('Ir para pagamento'),
                         ),
                       )
                     ],
@@ -215,44 +215,46 @@ class _ShoppingCartState extends State<ShoppingCart> {
             body: SingleChildScrollView(
               child: Column(
                 children: [
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    itemCount: itens.length,
-                    itemBuilder: (context, index) {
-                      return Slidable(
-                        key: ValueKey(index),
-                        endActionPane: ActionPane(
-                          motion: const ScrollMotion(),
-                          children: [
-                            SlidableAction(
-                              onPressed: doNothing,
-                              backgroundColor: Colors.grey,
-                              foregroundColor: Colors.white,
-                              icon: Icons.share,
-                              label: 'Share',
-                            ),
-                            SlidableAction(
-                              onPressed: doNothing,
-                              backgroundColor: AppTheme.vinho,
-                              foregroundColor: Colors.white,
-                              icon: Icons.shopping_bag,
-                              label: 'Basket',
-                            ),
-                          ],
-                        ),
-                        child: itemCard(
-                          itens[index]['description'],
-                          itens[index]['variationdescription'],
-                          itens[index]['price'].toString(),
-                          itens[index]['size'],
-                          itens[index]['photoUrl'],
-                          true,
-                          index,
-                        ),
-                      );
-                    },
-                  ),
+                  itens.isNotEmpty
+                      ? ListView.builder(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          itemCount: itens.length,
+                          itemBuilder: (context, index) {
+                            return Slidable(
+                              key: ValueKey(index),
+                              endActionPane: ActionPane(
+                                motion: const ScrollMotion(),
+                                children: [
+                                  SlidableAction(
+                                    onPressed: doNothing,
+                                    backgroundColor: Colors.grey,
+                                    foregroundColor: Colors.white,
+                                    icon: Icons.share,
+                                    label: 'Share',
+                                  ),
+                                  SlidableAction(
+                                    onPressed: doNothing,
+                                    backgroundColor: AppTheme.vinho,
+                                    foregroundColor: Colors.white,
+                                    icon: Icons.shopping_bag,
+                                    label: 'Basket',
+                                  ),
+                                ],
+                              ),
+                              child: itemCard(
+                                itens[index]['description'],
+                                itens[index]['variationdescription'],
+                                itens[index]['price'].toString(),
+                                itens[index]['size'],
+                                itens[index]['photoUrl'],
+                                true,
+                                index,
+                              ),
+                            );
+                          },
+                        )
+                      : NoContent()
                 ],
               ),
             ),
@@ -298,8 +300,8 @@ class _ShoppingCartState extends State<ShoppingCart> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            SeePost(postId: itens[i]['postId']),
+                        builder: (context) => SeePost(
+                            isTagclicked: false, postId: itens[i]['postId']),
                       ),
                     );
                   },
@@ -472,3 +474,16 @@ class _ShoppingCartState extends State<ShoppingCart> {
 }
 
 void doNothing(BuildContext context) {}
+
+class NoContent extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Image.asset(
+        'assets/NO-CONTENT.png',
+        height: 400.h,
+        width: 250.w,
+      ),
+    );
+  }
+}

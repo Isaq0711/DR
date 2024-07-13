@@ -238,8 +238,9 @@ class _NewProductCardState extends State<NewProductCard> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          SeePost(postId: widget.snap['productId']),
+                      builder: (context) => SeePost(
+                          isTagclicked: false,
+                          postId: widget.snap['productId']),
                     ),
                   );
                 },
@@ -389,7 +390,7 @@ class _NewProductCardState extends State<NewProductCard> {
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
-                                'Variation ${currentImageIndex + 1} of ${widget.snap['variations'].length}',
+                                'Variação ${currentImageIndex + 1} de ${widget.snap['variations'].length}',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 12,

@@ -14,5 +14,8 @@ List<Widget> homeScreenItems = [
   ForumPage(),
   AddPage(),
   WardrobeMenu(),
-  ProfileScreen(uid: FirebaseAuth.instance.currentUser!.uid),
+  ProfileScreen(
+    uid: FirebaseAuth.instance.currentUser!.uid,
+    isMainn: true,
+  ),
 ];

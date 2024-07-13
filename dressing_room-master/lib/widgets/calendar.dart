@@ -30,6 +30,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
   late DateTime _displayedMonth = DateTime.now();
   late DateTime data = DateTime.now();
   bool isLoading = false;
+  late ScrollController _scrollController;
 
   List<Map<String, dynamic>> calendarItems = [];
 
@@ -77,13 +78,31 @@ class _CalendarWidgetState extends State<CalendarWidget> {
 
       setState(() {
         isLoading = false;
+        // Scroll to today's date
+        WidgetsBinding.instance?.addPostFrameCallback((_) {
+          _scrollToToday();
+        });
       });
     } catch (e) {
       showSnackBar(context, e.toString());
-      print(e);
+
       setState(() {
         isLoading = false;
       });
+    }
+  }
+
+  void _scrollToToday() {
+    int daysInMonth =
+        DateTime(_displayedMonth.year, _displayedMonth.month + 1, 0).day;
+    int todayIndex = DateTime.now().day - 1;
+    if (todayIndex >= 0 && todayIndex < daysInMonth) {
+      double position = (todayIndex / 4) * 150.h; // Adjust as necessary
+      _scrollController.animateTo(
+        position,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.fastLinearToSlowEaseIn,
+      );
     }
   }
 
@@ -91,9 +110,16 @@ class _CalendarWidgetState extends State<CalendarWidget> {
   void initState() {
     super.initState();
     initializeDateFormatting('pt_BR', null);
+    _scrollController = ScrollController();
     getData();
     _displayedMonth = widget.Dataaa;
     data = widget.Dataaa;
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -169,7 +195,8 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                             data,
                             widget.isWidget,
                             _selectDate,
-                            calendarItems))))
+                            calendarItems,
+                            _scrollController))))
           ]));
   }
 }
@@ -181,7 +208,8 @@ Widget buildCalendar(
     DateTime data,
     bool isWidget,
     Function(DateTime) onDateSelected,
-    List<Map<String, dynamic>> calendarItems) {
+    List<Map<String, dynamic>> calendarItems,
+    ScrollController scrollController) {
   int daysInMonth = DateTime(month.year, month.month + 1, 0).day;
   bool _isSameDay(DateTime date1, DateTime date2) {
     return date1.year == date2.year &&
@@ -208,6 +236,7 @@ Widget buildCalendar(
       Gap(5),
       Expanded(
           child: GridView.builder(
+              controller: scrollController,
               padding: EdgeInsets.zero,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 4,
@@ -294,7 +323,7 @@ Widget buildCalendar(
                                     .shrink(), // If photoUrl is null, display an empty container
                           ),
                         ),
-                        Gap(10),
+                        Gap(3),
                         Expanded(
                           flex: 1,
                           child: Padding(

@@ -313,13 +313,13 @@ class _ProductCardState extends State<ProductCard> {
                                                               .length >
                                                           1
                                                       ? Text(
-                                                          "Select Variation",
+                                                          "Selecionar variação",
                                                           style: AppTheme.title,
                                                         )
                                                       : Container(),
                                                   Text(
                                                     '${widget.snap['variations'][_currentPageIndex]['itemCount'].toString()}' +
-                                                        " Items available",
+                                                        " Items disponíveis",
                                                     style: AppTheme.caption,
                                                   ),
                                                 ],
@@ -424,7 +424,7 @@ class _ProductCardState extends State<ProductCard> {
                                                         alignment: Alignment
                                                             .centerLeft,
                                                         child: Text(
-                                                          "Variation selected: " +
+                                                          "Variação selecionada: " +
                                                               '${widget.snap['variations'][_currentPageIndex]['variationdescription']}',
                                                           style:
                                                               AppTheme.caption,
@@ -441,7 +441,7 @@ class _ProductCardState extends State<ProductCard> {
                                                 top: 10.0,
                                               ),
                                               child: Text(
-                                                "Select Size",
+                                                "Selecionar tamanho",
                                                 style: AppTheme.dividerfont
                                                     .copyWith(
                                                         fontSize: 13,
@@ -639,7 +639,7 @@ class _ProductCardState extends State<ProductCard> {
                                                           MainAxisSize.min,
                                                       children: [
                                                         Text(
-                                                          'Add to Cart',
+                                                          'Adicionar ao carrinho',
                                                           style: TextStyle(
                                                               fontSize: 16),
                                                         ),

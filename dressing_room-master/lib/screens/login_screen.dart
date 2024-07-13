@@ -64,16 +64,21 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Column(
         children: [
           Expanded(
-              child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset(
-                'assets/LOGO-ICON2.png',
-                color: AppTheme.nearlyWhite,
-                height: 150.h,
+            child: Center(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/LOGO-ICON2.png',
+                      color: AppTheme.nearlyWhite,
+                      height: 150.h,
+                    ),
+                  ],
+                ),
               ),
-            ],
-          )),
+            ),
+          ),
           Container(
             width: 375.w,
             padding: EdgeInsets.symmetric(

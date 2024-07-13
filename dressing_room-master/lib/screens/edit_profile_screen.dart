@@ -44,6 +44,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   bool isLoading = false;
   int selectedIndex = 0;
   bool _isEditing = false;
+  List<Map<String, dynamic>> clothesData = [];
+
   late List<String> Categorias;
 
   @override
@@ -82,6 +84,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           .map((tab) => tab.keys.first)
           .toList();
 
+      var clothesSnap = await FirebaseFirestore.instance
+          .collection('wardrobe')
+          .doc(widget.uid)
+          .collection('clothes')
+          .get();
+
+      clothesData.clear();
+
+      for (var doc in clothesSnap.docs) {
+        String clothId = doc['clothId'];
+
+        var clothDataSnap = await FirebaseFirestore.instance
+            .collection('clothes')
+            .doc(clothId)
+            .get();
+
+        String photoUrl = clothDataSnap['photoUrl'];
+        clothesData.add({
+          'id': clothId,
+          'photoUrl': photoUrl,
+        });
+      }
       setState(() {});
     } catch (e) {
       showSnackBar(
@@ -95,53 +119,66 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   void saveChanges() async {
+    setState(() {
+      isLoading = true; // Set isLoading to true
+    });
+
     String newUsername = _usernameController.text;
     Uint8List? newImage = _image;
 
-    if (_usernameController.text != "") {
-      // Update username in 'users' collection
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.uid)
-          .update({'username': newUsername});
+    try {
+      if (_usernameController.text != "") {
+        // Update username in 'users' collection
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(widget.uid)
+            .update({'username': newUsername});
 
-      // Update username in 'posts' collection
-      QuerySnapshot posts = await FirebaseFirestore.instance
-          .collection('posts')
-          .where('uid', isEqualTo: widget.uid)
-          .get();
-      posts.docs.forEach((doc) {
-        doc.reference.update({'username': newUsername});
+        // Update username in 'posts' collection
+        QuerySnapshot posts = await FirebaseFirestore.instance
+            .collection('posts')
+            .where('uid', isEqualTo: widget.uid)
+            .get();
+        posts.docs.forEach((doc) {
+          doc.reference.update({'username': newUsername});
+        });
+
+        // Update username in 'votations' collection
+        QuerySnapshot votations = await FirebaseFirestore.instance
+            .collection('votations')
+            .where('uid', isEqualTo: widget.uid)
+            .get();
+        votations.docs.forEach((doc) {
+          doc.reference.update({'username': newUsername});
+        });
+      }
+
+      if (_image != null) {
+        String downloadUrl = await StorageMethods()
+            .uploadImageToStorage('profilePics', _image!, false);
+
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(widget.uid)
+            .update({'photoUrl': downloadUrl});
+      }
+
+      List<Map<String, dynamic>> tabViews =
+          List<Map<String, dynamic>>.from(userData['tabviews']);
+
+      String updateTabViewsRes =
+          await FireStoreMethods().updateTabViews(widget.uid, tabViews);
+      if (updateTabViewsRes == "success") {
+        Navigator.pop(context);
+      } else {
+        showSnackBar(context, updateTabViewsRes);
+      }
+    } catch (e) {
+      showSnackBar(context, e.toString());
+    } finally {
+      setState(() {
+        isLoading = false; // Set isLoading to false after all operations
       });
-
-      // Update username in 'votations' collection
-      QuerySnapshot votations = await FirebaseFirestore.instance
-          .collection('votations')
-          .where('uid', isEqualTo: widget.uid)
-          .get();
-      votations.docs.forEach((doc) {
-        doc.reference.update({'username': newUsername});
-      });
-    }
-
-    if (_image != null) {
-      String downloadUrl = await StorageMethods()
-          .uploadImageToStorage('profilePics', _image!, false);
-
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.uid)
-          .update({'photoUrl': downloadUrl});
-    }
-    List<Map<String, dynamic>> tabViews =
-        List<Map<String, dynamic>>.from(userData['tabviews']);
-
-    String updateTabViewsRes =
-        await FireStoreMethods().updateTabViews(widget.uid, tabViews);
-    if (updateTabViewsRes == "success") {
-      Navigator.pop(context);
-    } else {
-      showSnackBar(context, updateTabViewsRes);
     }
   }
 
@@ -160,7 +197,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   },
                 ),
                 title: Text(
-                  'Edit Profile',
+                  'Editar Perfil',
                   style: AppTheme.barapp.copyWith(shadows: [
                     Shadow(
                       blurRadius: 2.0,
@@ -266,20 +303,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   Divider(),
                   Gap(10.h),
                   Text(
-                    "Collections",
+                    "Coleções",
                     style: AppTheme.subheadline,
                   ),
                   Gap(10.h),
                   ListTile(
                     key: Key('primeiro item'),
-                    title:
-                        Text('Add a collection', style: AppTheme.dividerfont),
+                    title: Text('Adicionar uma coleção',
+                        style: AppTheme.dividerfont),
                     trailing: Icon(Icons.add, color: AppTheme.nearlyBlack),
                     onTap: () {
                       createDialog(
                         context,
                         userData,
                         Categorias,
+                        clothesData,
                         (List<String> updatedCategories) {
                           setState(() {
                             Categorias = updatedCategories;
@@ -315,6 +353,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                           context,
                                           Categorias[selectedIndex],
                                           userData,
+                                          clothesData,
                                           selectedIndex,
                                           Categorias,
                                           (List<String> updatedCategories) {
@@ -361,6 +400,7 @@ Future<void> showMyDialog(
   BuildContext context,
   String categoria,
   Map<dynamic, dynamic> userData,
+  List<Map<String, dynamic>> clothesData,
   int selectedIndex,
   List<String> Categorias,
   Function(List<String>) updateCategoriesCallback,
@@ -443,17 +483,25 @@ Future<void> showMyDialog(
                                 child: CircularProgressIndicator(),
                               );
                             }
-                            final documents =
+
+                            final postDocuments =
                                 (snapshot.data! as QuerySnapshot).docs.toList();
 
-                            final documentofiltrado = documents.where(
-                                (document) => !(userData['tabviews']
-                                        [selectedIndex] as Map<String, dynamic>)
-                                    .values
-                                    .where((value) =>
-                                        value is List &&
-                                        value.contains(document['postId']))
-                                    .isNotEmpty);
+                            final combinedDocuments = postDocuments.map((doc) {
+                              return {
+                                'id': doc['postId'],
+                                'photoUrl': doc['photoUrls'][0],
+                                'isPost': true,
+                              };
+                            }).toList();
+
+                            combinedDocuments.addAll(clothesData.map((cloth) {
+                              return {
+                                'id': cloth['id'],
+                                'photoUrl': cloth['photoUrl'],
+                                'isPost': false,
+                              };
+                            }));
 
                             return Column(children: [
                               SizedBox(
@@ -468,16 +516,31 @@ Future<void> showMyDialog(
                                   ),
                                   itemBuilder: (context, index) {
                                     return FutureBuilder(
-                                      future: FirebaseFirestore.instance
-                                          .collection('posts')
-                                          .doc(selectedPostIds[index])
-                                          .get(),
+                                      future: Future.wait([
+                                        FirebaseFirestore.instance
+                                            .collection('posts')
+                                            .doc(selectedPostIds[index])
+                                            .get(),
+                                        FirebaseFirestore.instance
+                                            .collection('clothes')
+                                            .doc(selectedPostIds[index])
+                                            .get(),
+                                      ]),
                                       builder: (context, snapshot) {
                                         if (!snapshot.hasData) {
                                           return const Center(
                                             child: CircularProgressIndicator(),
                                           );
                                         }
+
+                                        var postSnapshot = snapshot.data![0];
+                                        var clothesSnapshot = snapshot.data![1];
+
+                                        bool isPost = postSnapshot.exists &&
+                                            postSnapshot
+                                                .data()!
+                                                .containsKey('photoUrls');
+
                                         return Stack(
                                           children: [
                                             Padding(
@@ -487,8 +550,12 @@ Future<void> showMyDialog(
                                                       BorderRadius.circular(
                                                           10.0),
                                                   child: Image.network(
-                                                    snapshot.data!['photoUrls']
-                                                        [0],
+                                                    isPost
+                                                        ? postSnapshot.data()![
+                                                            'photoUrls'][0]
+                                                        : clothesSnapshot
+                                                                .data()![
+                                                            'photoUrl'],
                                                     fit: BoxFit.fill,
                                                     width: double.infinity,
                                                     height: double.infinity,
@@ -537,17 +604,19 @@ Future<void> showMyDialog(
                                       crossAxisSpacing: 8.0,
                                       childAspectRatio: 1.0,
                                     ),
-                                    itemCount: documents.length,
+                                    itemCount: combinedDocuments.length,
                                     itemBuilder: (context, index) {
                                       final document =
-                                          documents.elementAt(index);
+                                          combinedDocuments.elementAt(index);
+                                      final id = document['id'];
+                                      final isPost = document['isPost'];
 
                                       return GestureDetector(
                                         child: Container(
                                           decoration: BoxDecoration(
                                             border: Border.all(
-                                              color: selectedPostIds.contains(
-                                                      document['postId'])
+                                              color: selectedPostIds
+                                                      .contains(document['id'])
                                                   ? AppTheme.vinho
                                                   : Colors.transparent,
                                               width: 4.0,
@@ -559,20 +628,17 @@ Future<void> showMyDialog(
                                             borderRadius:
                                                 BorderRadius.circular(10.0),
                                             child: Image.network(
-                                              document['photoUrls'][0]
-                                                  .toString(),
+                                              document['photoUrl'].toString(),
                                               fit: BoxFit.cover,
                                             ),
                                           ),
                                         ),
                                         onTap: () {
                                           setState(() {
-                                            String postId = document['postId'];
-                                            if (!selectedPostIds
-                                                .contains(postId)) {
-                                              selectedPostIds.add(postId);
+                                            if (selectedPostIds.contains(id)) {
+                                              selectedPostIds.remove(id);
                                             } else {
-                                              selectedPostIds.remove(postId);
+                                              selectedPostIds.add(id);
                                             }
                                           });
                                         },
@@ -601,6 +667,7 @@ Future<void> createDialog(
   BuildContext context,
   Map<dynamic, dynamic> userData,
   List<String> Categorias,
+  List<Map<String, dynamic>> clothesData,
   Function(List<String>) updateCategoriesCallback,
 ) async {
   final TextEditingController collectionNameController =
@@ -624,7 +691,7 @@ Future<void> createDialog(
                         children: [
                           Expanded(
                             child: Text(
-                              "Create a collection",
+                              "Criar uma coleção",
                               style: AppTheme.barapp,
                               textAlign: TextAlign.center,
                             ),
@@ -652,7 +719,7 @@ Future<void> createDialog(
                         ],
                       ),
                       Gap(10.h),
-                      Text("Collection's name:", style: AppTheme.dividerfont),
+                      Text("Nome da coleção:", style: AppTheme.dividerfont),
                       Gap(10),
                       Container(
                         width: 300.w,
@@ -682,73 +749,94 @@ Future<void> createDialog(
                       ),
                       Divider(),
                       Gap(15.h),
-                      Text("Add to collection", style: AppTheme.dividerfont),
+                      Text("Adicionar para a coleção",
+                          style: AppTheme.dividerfont),
                       Gap(10),
                       SizedBox(
-                        height: 350.h,
-                        child: FutureBuilder(
-                          future: FirebaseFirestore.instance
-                              .collection('posts')
-                              .where('uid', isEqualTo: userData['uid'])
-                              .get(),
-                          builder: (context, snapshot) {
-                            if (!snapshot.hasData) {
-                              return const Center(
-                                child: CircularProgressIndicator(),
-                              );
-                            }
-                            final documents =
-                                (snapshot.data! as QuerySnapshot).docs.toList();
-
-                            return GridView.builder(
-                              gridDelegate:
-                                  SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 3,
-                                mainAxisSpacing: 8.0,
-                                crossAxisSpacing: 8.0,
-                                childAspectRatio: 1.0,
-                              ),
-                              itemCount: documents.length,
-                              itemBuilder: (context, index) {
-                                final document = documents.elementAt(index);
-
-                                return GestureDetector(
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10.0),
-                                      border: Border.all(
-                                        color: selectedPostIds
-                                                .contains(document['postId'])
-                                            ? AppTheme.vinho
-                                            : Colors.transparent,
-                                        width: 4.0,
-                                      ),
-                                    ),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(10.0),
-                                      child: Image.network(
-                                        document['photoUrls'][0].toString(),
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                  ),
-                                  onTap: () {
-                                    setState(() {
-                                      if (selectedPostIds
-                                          .contains(document['postId'])) {
-                                        selectedPostIds
-                                            .remove(document['postId']);
-                                      } else {
-                                        selectedPostIds.add(document['postId']);
-                                      }
-                                    });
-                                  },
+                          height: 350.h,
+                          child: FutureBuilder(
+                            future: FirebaseFirestore.instance
+                                .collection('posts')
+                                .where('uid', isEqualTo: userData['uid'])
+                                .get(),
+                            builder: (context, snapshot) {
+                              if (!snapshot.hasData) {
+                                return const Center(
+                                  child: CircularProgressIndicator(),
                                 );
-                              },
-                            );
-                          },
-                        ),
-                      ),
+                              }
+
+                              final postDocuments =
+                                  (snapshot.data! as QuerySnapshot)
+                                      .docs
+                                      .toList();
+
+                              final combinedDocuments =
+                                  postDocuments.map((doc) {
+                                return {
+                                  'id': doc['postId'],
+                                  'photoUrl': doc['photoUrls'][0],
+                                  'isPost': true,
+                                };
+                              }).toList();
+
+                              combinedDocuments.addAll(clothesData.map((cloth) {
+                                return {
+                                  'id': cloth['id'],
+                                  'photoUrl': cloth['photoUrl'],
+                                  'isPost': false,
+                                };
+                              }));
+
+                              return GridView.builder(
+                                gridDelegate:
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 3,
+                                  mainAxisSpacing: 8.0,
+                                  crossAxisSpacing: 8.0,
+                                  childAspectRatio: 1.0,
+                                ),
+                                itemCount: combinedDocuments.length,
+                                itemBuilder: (context, index) {
+                                  final document =
+                                      combinedDocuments.elementAt(index);
+                                  final id = document['id'];
+
+                                  return GestureDetector(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius:
+                                            BorderRadius.circular(10.0),
+                                        border: Border.all(
+                                          color: selectedPostIds.contains(id)
+                                              ? AppTheme.vinho
+                                              : Colors.transparent,
+                                          width: 4.0,
+                                        ),
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(10.0),
+                                        child: Image.network(
+                                          document['photoUrl'].toString(),
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
+                                    onTap: () {
+                                      setState(() {
+                                        if (selectedPostIds.contains(id)) {
+                                          selectedPostIds.remove(id);
+                                        } else {
+                                          selectedPostIds.add(id);
+                                        }
+                                      });
+                                    },
+                                  );
+                                },
+                              );
+                            },
+                          )),
                     ],
                   ),
                 );

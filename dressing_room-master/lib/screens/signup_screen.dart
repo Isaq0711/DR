@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:dressing_room/widgets/select_image_dialog.dart';
 import 'package:dressing_room/resources/auth_methods.dart';
 import 'package:dressing_room/responsive/mobile_screen_layout.dart';
+import 'package:gap/gap.dart';
 import 'package:dressing_room/responsive/responsive_layout.dart';
 import 'package:dressing_room/screens/login_screen.dart';
 import 'package:dressing_room/utils/colors.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:dressing_room/utils/utils.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -60,12 +62,13 @@ class _SignupScreenState extends State<SignupScreen> {
         _isLoading = false;
       });
 
-      Navigator.of(context).pushReplacement(
+      Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
-          builder: (context) => ResponsiveLayout(
+          builder: (context) => const ResponsiveLayout(
             mobileScreenLayout: MobileScreenLayout(),
           ),
         ),
+        (route) => false,
       );
     } else {
       setState(() {
@@ -79,36 +82,34 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 32),
-          width: double.infinity,
-          child: Theme(
-            data: Theme.of(context).copyWith(
-              textSelectionTheme: TextSelectionThemeData(
-                cursorColor: Colors.black,
-              ),
-              inputDecorationTheme: InputDecorationTheme(
-                border: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.black),
-                ),
-                labelStyle: TextStyle(color: Colors.black),
-                contentPadding:
-                    EdgeInsets.all(8), // Padding for the text field content
-              ),
+        body: SafeArea(
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 32),
+        width: double.infinity,
+        child: Theme(
+          data: Theme.of(context).copyWith(
+            textSelectionTheme: TextSelectionThemeData(
+              cursorColor: Colors.black,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
+            inputDecorationTheme: InputDecorationTheme(
+              border: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.black),
+              ),
+              labelStyle: TextStyle(color: Colors.black),
+              contentPadding:
+                  EdgeInsets.all(8), // Padding for the text field content
+            ),
+          ),
+          child: SizedBox(
+            child: ListView(
               children: [
-                Flexible(
-                  child: Container(),
-                  flex: 2,
-                ),
+                Gap(150.h),
                 InkWell(
                     onTap: () {
                       print(_image);
                     },
-                    child: Stack(
+                    child: Center(
+                        child: Stack(
                       children: [
                         _image != null
                             ? CircleAvatar(
@@ -144,9 +145,9 @@ class _SignupScreenState extends State<SignupScreen> {
                           ),
                         )
                       ],
-                    )),
-                SizedBox(
-                  height: 24,
+                    ))),
+                Gap(
+                  30.h,
                 ),
                 TextField(
                   controller: _usernameController,
@@ -156,8 +157,8 @@ class _SignupScreenState extends State<SignupScreen> {
                   style: AppTheme.dividerfont,
                   keyboardType: TextInputType.multiline,
                 ),
-                SizedBox(
-                  height: 24,
+                Gap(
+                  30.h,
                 ),
                 TextField(
                   controller: _emailController,
@@ -167,8 +168,8 @@ class _SignupScreenState extends State<SignupScreen> {
                   style: AppTheme.dividerfont,
                   keyboardType: TextInputType.multiline,
                 ),
-                SizedBox(
-                  height: 24,
+                Gap(
+                  30.h,
                 ),
                 TextField(
                   controller: _passwordController,
@@ -205,13 +206,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   onTap: signUpUser,
                 ),
-                SizedBox(
-                  height: 12,
-                ),
-                Flexible(
-                  child: Container(),
-                  flex: 2,
-                ),
+                Spacer(),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -243,6 +238,6 @@ class _SignupScreenState extends State<SignupScreen> {
           ),
         ),
       ),
-    );
+    ));
   }
 }

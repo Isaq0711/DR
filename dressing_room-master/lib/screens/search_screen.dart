@@ -57,6 +57,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         MaterialPageRoute(
                           builder: (context) => ProfileScreen(
                             uid: doc['uid'],
+                            isMainn: false,
                           ),
                         ),
                       ),

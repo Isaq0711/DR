@@ -181,260 +181,244 @@ class _NewVotationCardState extends State<NewVotationCard> {
               borderRadius: BorderRadius.circular(15),
             ),
             child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.grey,
-                  ),
-                  color: AppTheme.nearlyWhite,
-                  borderRadius: BorderRadius.circular(10),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.grey,
                 ),
-                child: Column(children: [
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              SeePost(postId: widget.snap['votationId']),
-                        ),
-                      );
-                    },
-                    onDoubleTap: () {
-                      showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return Dialog(
-                              backgroundColor: AppTheme.nearlyWhite,
-                              child: StatefulBuilder(
-                                builder: (BuildContext context,
-                                    StateSetter setState) {
-                                  return Padding(
-                                      padding: EdgeInsets.all(8),
-                                      child: ListView(
+                color: AppTheme.nearlyWhite,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SeePost(
+                          postId: widget.snap['votationId'],
+                          isTagclicked: false),
+                    ),
+                  );
+                },
+                onDoubleTap: () {
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return Dialog(
+                          backgroundColor: AppTheme.nearlyWhite,
+                          child: StatefulBuilder(
+                            builder:
+                                (BuildContext context, StateSetter setState) {
+                              return Padding(
+                                  padding: EdgeInsets.all(8),
+                                  child: ListView(
+                                    children: [
+                                      Column(
+                                        mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              SizedBox(
-                                                height: MediaQuery.of(context)
-                                                        .size
-                                                        .height *
-                                                    0.5,
-                                                width: double.infinity,
-                                                child: ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          10.0),
-                                                  child: PageView.builder(
-                                                    itemCount: widget
-                                                        .snap['options'].length,
-                                                    controller: PageController(
-                                                        initialPage:
-                                                            currentImageIndex),
-                                                    onPageChanged: (index) {
-                                                      setState(() {
-                                                        currentImageIndex =
-                                                            index;
-                                                      });
-                                                    },
-                                                    itemBuilder:
-                                                        (context, index) {
-                                                      return ClipRRect(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(25.0),
-                                                        child: Image.network(
-                                                          widget.snap['options']
-                                                                  [index]
-                                                              ['photoUrl'],
-                                                          fit: BoxFit.cover,
-                                                        ),
-                                                      );
-                                                    },
+                                          SizedBox(
+                                            height: 500.h,
+                                            width: double.infinity,
+                                            child: ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(10.0),
+                                              child: PageView.builder(
+                                                itemCount: widget
+                                                    .snap['options'].length,
+                                                controller: PageController(
+                                                    initialPage:
+                                                        currentImageIndex),
+                                                onPageChanged: (index) {
+                                                  setState(() {
+                                                    currentImageIndex = index;
+                                                  });
+                                                },
+                                                itemBuilder: (context, index) {
+                                                  return ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            25.0),
+                                                    child: Image.network(
+                                                      widget.snap['options']
+                                                          [index]['photoUrl'],
+                                                      fit: BoxFit.cover,
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                          ),
+                                          Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 4.5),
+                                              child: DotsIndicator(
+                                                dotsCount: widget
+                                                    .snap['options'].length,
+                                                position:
+                                                    currentImageIndex.toInt(),
+                                                decorator: DotsDecorator(
+                                                  color: AppTheme.cinza,
+                                                  activeColor: AppTheme.vinho,
+                                                  spacing: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 4.0),
+                                                  size: const Size.square(8.0),
+                                                  activeSize:
+                                                      const Size(16.0, 8.0),
+                                                  activeShape:
+                                                      RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            4.0),
                                                   ),
                                                 ),
-                                              ),
-                                              Padding(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(vertical: 4.5),
-                                                  child: DotsIndicator(
-                                                    dotsCount: widget
-                                                        .snap['options'].length,
-                                                    position: currentImageIndex
-                                                        .toInt(),
-                                                    decorator: DotsDecorator(
-                                                      color: AppTheme.cinza,
-                                                      activeColor:
-                                                          AppTheme.vinho,
-                                                      spacing: const EdgeInsets
-                                                          .symmetric(
-                                                          horizontal: 4.0),
-                                                      size: const Size.square(
-                                                          8.0),
-                                                      activeSize:
-                                                          const Size(16.0, 8.0),
-                                                      activeShape:
-                                                          RoundedRectangleBorder(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(4.0),
-                                                      ),
-                                                    ),
-                                                  )),
-                                              Text("Vote:",
-                                                  style: AppTheme.subheadline),
-                                              Gap(10),
-                                              Align(
-                                                alignment: Alignment.centerLeft,
-                                                child: Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                          left: 4),
-                                                  child: Container(
-                                                      child: ListView.builder(
-                                                    shrinkWrap: true,
-                                                    itemCount:
-                                                        descriptions.length,
-                                                    itemBuilder:
-                                                        (context, index) {
-                                                      bool isVoted = widget
-                                                              .snap['votes']
-                                                              ?.any((vote) {
-                                                            return vote['uid'] ==
-                                                                    user.uid &&
-                                                                vote['optionDescription'] ==
-                                                                    descriptions[
-                                                                        index];
-                                                          }) ??
-                                                          false;
-
-                                                      bool hasVoted(
-                                                          List<dynamic>? votes,
-                                                          String uid) {
-                                                        return votes?.any(
-                                                                (vote) =>
-                                                                    vote[
-                                                                        'uid'] ==
-                                                                    uid) ??
-                                                            false;
-                                                      }
-
-                                                      int optionVotes = widget
-                                                              .snap['votes']
-                                                              ?.where((vote) {
-                                                            return vote[
-                                                                    'optionDescription'] ==
+                                              )),
+                                          Text("Vote:",
+                                              style: AppTheme.subheadline),
+                                          Gap(10),
+                                          Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: Padding(
+                                              padding: const EdgeInsets.only(
+                                                  left: 4),
+                                              child: Container(
+                                                  child: ListView.builder(
+                                                shrinkWrap: true,
+                                                itemCount: descriptions.length,
+                                                itemBuilder: (context, index) {
+                                                  bool isVoted = widget
+                                                          .snap['votes']
+                                                          ?.any((vote) {
+                                                        return vote['uid'] ==
+                                                                user.uid &&
+                                                            vote['optionDescription'] ==
                                                                 descriptions[
                                                                     index];
-                                                          })?.length ??
-                                                          0;
+                                                      }) ??
+                                                      false;
 
-                                                      int totalVotes = widget
-                                                              .snap['votes']
-                                                              ?.length ??
-                                                          0;
+                                                  bool hasVoted(
+                                                      List<dynamic>? votes,
+                                                      String uid) {
+                                                    return votes?.any((vote) =>
+                                                            vote['uid'] ==
+                                                            uid) ??
+                                                        false;
+                                                  }
 
-                                                      double percentage =
-                                                          calculatePercentage(
-                                                              optionVotes,
-                                                              totalVotes);
+                                                  int optionVotes = widget
+                                                          .snap['votes']
+                                                          ?.where((vote) {
+                                                        return vote[
+                                                                'optionDescription'] ==
+                                                            descriptions[index];
+                                                      })?.length ??
+                                                      0;
 
-                                                      return InkWell(
-                                                        onTap: () {
-                                                          String votationId =
-                                                              widget.snap[
-                                                                      'votationId']
-                                                                  .toString();
-                                                          String uid = user.uid;
-                                                          int optionIndex =
-                                                              index;
-                                                          FireStoreMethods()
-                                                              .votePost(
-                                                                  votationId,
-                                                                  uid,
-                                                                  optionIndex)
-                                                              .then((res) {
-                                                            setState(() {
-                                                              isLikeAnimating =
-                                                                  res ==
-                                                                      'success';
-                                                            });
-                                                            showSnackBar(
-                                                                context,
-                                                                res ??
-                                                                    'An error occurred');
-                                                          });
-                                                        },
-                                                        child: Container(
-                                                          width: 50,
-                                                          height: 35,
-                                                          child: Card(
-                                                            shape:
-                                                                RoundedRectangleBorder(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          15),
-                                                            ),
-                                                            elevation: 5,
-                                                            margin:
-                                                                const EdgeInsets
-                                                                    .fromLTRB(
-                                                                    15,
-                                                                    10,
-                                                                    15,
-                                                                    0),
-                                                            color: isVoted
-                                                                ? AppTheme
-                                                                    .nearlyBlack
-                                                                : AppTheme
-                                                                    .vinho,
-                                                            child: Row(
-                                                              mainAxisAlignment:
-                                                                  MainAxisAlignment
-                                                                      .center,
-                                                              children: [
-                                                                SizedBox(
-                                                                    width: 10),
-                                                                Text(
-                                                                  hasVoted(
-                                                                          widget.snap[
-                                                                              'votes'],
-                                                                          user
-                                                                              .uid)
-                                                                      ? '${percentage.toStringAsFixed(0)}% voted for ${descriptions[index]}'
-                                                                      : descriptions[
-                                                                          index],
-                                                                  style:
-                                                                      TextStyle(
-                                                                    color: AppTheme
-                                                                        .subtitlewhite
-                                                                        .color,
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      );
+                                                  int totalVotes = widget
+                                                          .snap['votes']
+                                                          ?.length ??
+                                                      0;
+
+                                                  double percentage =
+                                                      calculatePercentage(
+                                                          optionVotes,
+                                                          totalVotes);
+
+                                                  return InkWell(
+                                                    onTap: () {
+                                                      String votationId = widget
+                                                          .snap['votationId']
+                                                          .toString();
+                                                      String uid = user.uid;
+                                                      int optionIndex = index;
+                                                      FireStoreMethods()
+                                                          .votePost(votationId,
+                                                              uid, optionIndex)
+                                                          .then((res) {
+                                                        setState(() {
+                                                          isLikeAnimating =
+                                                              res == 'success';
+                                                        });
+                                                        showSnackBar(
+                                                            context,
+                                                            res ??
+                                                                'An error occurred');
+                                                      });
                                                     },
-                                                  )),
-                                                ),
-                                              ),
-                                              Gap(10),
-                                            ],
+                                                    child: Container(
+                                                      width: 50,
+                                                      height: 35,
+                                                      child: Card(
+                                                        shape:
+                                                            RoundedRectangleBorder(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(15),
+                                                        ),
+                                                        elevation: 5,
+                                                        margin: const EdgeInsets
+                                                            .fromLTRB(
+                                                            15, 10, 15, 0),
+                                                        color: isVoted
+                                                            ? AppTheme
+                                                                .nearlyBlack
+                                                            : AppTheme.vinho,
+                                                        child: Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .center,
+                                                          children: [
+                                                            isVoted
+                                                                ? Icon(
+                                                                    Icons
+                                                                        .check_circle_outline,
+                                                                    size: 15,
+                                                                  )
+                                                                : SizedBox
+                                                                    .shrink(),
+                                                            Gap(2),
+                                                            Text(
+                                                              hasVoted(
+                                                                      widget.snap[
+                                                                          'votes'],
+                                                                      user.uid)
+                                                                  ? '${percentage.toStringAsFixed(0)}% voted for ${descriptions[index]}'
+                                                                  : descriptions[
+                                                                      index],
+                                                              style: AppTheme
+                                                                  .dividerfont
+                                                                  .copyWith(
+                                                                color: AppTheme
+                                                                    .nearlyWhite,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              )),
+                                            ),
                                           ),
+                                          Gap(10),
                                         ],
-                                      ));
-                                },
-                              ),
-                            );
-                          });
-                    },
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        AspectRatio(
+                                      ),
+                                    ],
+                                  ));
+                            },
+                          ),
+                        );
+                      });
+                },
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox(
+                        width: double.infinity,
+                        height: double.infinity,
+                        child: AspectRatio(
                           aspectRatio: 9 / 16,
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(10.0),
@@ -443,230 +427,229 @@ class _NewVotationCardState extends State<NewVotationCard> {
                               fit: BoxFit.cover,
                             ),
                           ),
+                        )),
+                    Positioned(
+                      top: 10,
+                      left: 10,
+                      child: Container(
+                        padding:
+                            EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.6),
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                        Positioned(
-                          top: 10,
-                          left: 10,
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                                vertical: 4, horizontal: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.6),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              'Option ${currentImageIndex + 1} of ${widget.snap['options'].length}',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                              ),
-                            ),
+                        child: Text(
+                          'Opção ${currentImageIndex + 1} de ${widget.snap['options'].length}',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
                           ),
                         ),
-                        Positioned(
-                            top: 5,
-                            right: 10,
-                            child: Column(
+                      ),
+                    ),
+                    Positioned(
+                        top: 5,
+                        right: 10,
+                        child: Column(
+                          children: [
+                            Gap(5),
+                            SizedBox(
+                              width: 29.0,
+                              height: 32.0,
+                              child: FloatingActionButton(
+                                onPressed: () {
+                                  setState(() {});
+                                },
+                                backgroundColor: AppTheme.cinza,
+                                elevation: 8.0,
+                                shape:
+                                    CircleBorder(), // Makes the button more circular
+                                child: ImageIcon(
+                                  AssetImage(
+                                    'assets/ELECTION.png',
+                                  ),
+                                  size: 19,
+                                  color: AppTheme.nearlyBlack,
+                                ),
+                              ),
+                            ),
+                            Gap(5.h),
+                            SpeedDial(
+                              direction: SpeedDialDirection.down,
+                              child: Icon(
+                                Icons.more_vert_rounded,
+                                size: 28,
+                              ),
+                              buttonSize: Size(1.0, 29.0),
+                              closeManually: false,
+                              curve: Curves.bounceIn,
+                              overlayColor: Colors.black,
+                              overlayOpacity: 0.5,
+                              backgroundColor: AppTheme.cinza,
+                              foregroundColor: Colors.black,
+                              elevation: 8.0,
+                              shape: CircleBorder(),
                               children: [
-                                Gap(5),
-                                SizedBox(
+                                SpeedDialChild(
+                                  child: isAddedOnFav
+                                      ? Icon(
+                                          CupertinoIcons.heart_fill,
+                                          color: Colors.black.withOpacity(0.6),
+                                        )
+                                      : Icon(
+                                          CupertinoIcons.heart,
+                                          color: Colors.black.withOpacity(0.6),
+                                        ),
+                                  backgroundColor: AppTheme.cinza,
+                                  onTap: () {
+                                    setState(() {
+                                      isAddedOnFav = !isAddedOnFav;
+                                      Future.delayed(
+                                          Duration(milliseconds: 500), () {
+                                        isAddedOnFav
+                                            ? showSnackBar(
+                                                context, 'Added to Favorites')
+                                            : showSnackBar(context,
+                                                'Removed from Favorites');
+                                      });
+                                    });
+                                    Future.microtask(() {
+                                      handleFavAction(FirebaseAuth
+                                          .instance.currentUser!.uid);
+                                    });
+                                  },
+                                ),
+                                SpeedDialChild(
+                                  child: ImageIcon(
+                                    AssetImage(
+                                      'assets/SUGGESTION-OUTLINED.png',
+                                    ),
+                                    color: Colors.black.withOpacity(0.6),
+                                  ),
+                                  backgroundColor: AppTheme.cinza,
+                                  labelStyle: TextStyle(fontSize: 18.0),
+                                  onTap: () {},
+                                ),
+                              ],
+                            ),
+                            Gap(5),
+                            Visibility(
+                                visible: existemPecas,
+                                child: SizedBox(
                                   width: 29.0,
                                   height: 32.0,
                                   child: FloatingActionButton(
                                     onPressed: () {
-                                      setState(() {});
+                                      setState(() {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => SeePost(
+                                                postId:
+                                                    widget.snap['votationId'],
+                                                isTagclicked: true),
+                                          ),
+                                        );
+                                      });
                                     },
                                     backgroundColor: AppTheme.cinza,
                                     elevation: 8.0,
                                     shape:
                                         CircleBorder(), // Makes the button more circular
-                                    child: ImageIcon(
-                                      AssetImage(
-                                        'assets/ELECTION.png',
-                                      ),
-                                      size: 21,
+                                    child: Icon(
+                                      CupertinoIcons.tag,
+                                      size: 18,
                                       color: AppTheme.nearlyBlack,
                                     ),
                                   ),
-                                ),
-                                Gap(5.h),
-                                SpeedDial(
-                                  direction: SpeedDialDirection.down,
-                                  child: Icon(
-                                    Icons.more_vert_rounded,
-                                    size: 28,
+                                ))
+                          ],
+                        )),
+                    Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 26, vertical: 5),
+                            child: Column(children: [
+                              Row(
+                                children: <Widget>[
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.3),
+                                          spreadRadius:
+                                              2, // Espalhamento da sombra
+                                          blurRadius: 5, // Difusão da sombra
+                                          offset: Offset(
+                                              0, 3), // Deslocamento da sombra
+                                        ),
+                                      ],
+                                    ),
+                                    child: CircleAvatar(
+                                      radius: 16,
+                                      backgroundImage: NetworkImage(
+                                        widget.snap['profImage'].toString(),
+                                      ),
+                                      backgroundColor: Colors
+                                          .transparent, // Define o fundo como transparente
+                                    ),
                                   ),
-                                  buttonSize: Size(1.0, 29.0),
-                                  closeManually: false,
-                                  curve: Curves.bounceIn,
-                                  overlayColor: Colors.black,
-                                  overlayOpacity: 0.5,
-                                  backgroundColor: AppTheme.cinza,
-                                  foregroundColor: Colors.black,
-                                  elevation: 8.0,
-                                  shape: CircleBorder(),
-                                  children: [
-                                    SpeedDialChild(
-                                      child: isAddedOnFav
-                                          ? Icon(
-                                              CupertinoIcons.heart_fill,
-                                              color:
-                                                  Colors.black.withOpacity(0.6),
-                                            )
-                                          : Icon(
-                                              CupertinoIcons.heart,
-                                              color:
-                                                  Colors.black.withOpacity(0.6),
-                                            ),
-                                      backgroundColor: AppTheme.cinza,
-                                      onTap: () {
-                                        setState(() {
-                                          isAddedOnFav = !isAddedOnFav;
-                                          Future.delayed(
-                                              Duration(milliseconds: 500), () {
-                                            isAddedOnFav
-                                                ? showSnackBar(context,
-                                                    'Added to Favorites')
-                                                : showSnackBar(context,
-                                                    'Removed from Favorites');
-                                          });
-                                        });
-                                        Future.microtask(() {
-                                          handleFavAction(FirebaseAuth
-                                              .instance.currentUser!.uid);
-                                        });
-                                      },
-                                    ),
-                                    SpeedDialChild(
-                                      child: Icon(
-                                        CupertinoIcons.arrow_up,
-                                        color: Colors.black.withOpacity(0.6),
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(
+                                        left: 8,
                                       ),
-                                      backgroundColor: AppTheme.cinza,
-                                      labelStyle: TextStyle(fontSize: 18.0),
-                                      onTap: () {},
-                                    ),
-                                    SpeedDialChild(
-                                      child: Icon(
-                                        CupertinoIcons.bag,
-                                        color: Colors.black.withOpacity(0.6),
-                                      ),
-                                      backgroundColor: AppTheme.cinza,
-                                      labelStyle: TextStyle(fontSize: 18.0),
-                                      onTap: () => print('THIRD CHILD'),
-                                    ),
-                                  ],
-                                ),
-                                Gap(5),
-                                Visibility(
-                                    visible: existemPecas,
-                                    child: SizedBox(
-                                      width: 29.0,
-                                      height: 32.0,
-                                      child: FloatingActionButton(
-                                        onPressed: () {
-                                          setState(() {});
-                                        },
-                                        backgroundColor: AppTheme.cinza,
-                                        elevation: 8.0,
-                                        shape:
-                                            CircleBorder(), // Makes the button more circular
-                                        child: Icon(
-                                          CupertinoIcons.tag,
-                                          size: 18,
-                                          color: AppTheme.nearlyBlack,
-                                        ),
-                                      ),
-                                    ))
-                              ],
-                            )),
-                        Positioned(
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 26, vertical: 5),
-                                child: Column(children: [
-                                  Row(
-                                    children: <Widget>[
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color:
-                                                  Colors.black.withOpacity(0.3),
-                                              spreadRadius:
-                                                  2, // Espalhamento da sombra
-                                              blurRadius:
-                                                  5, // Difusão da sombra
-                                              offset: Offset(0,
-                                                  3), // Deslocamento da sombra
-                                            ),
-                                          ],
-                                        ),
-                                        child: CircleAvatar(
-                                          radius: 16,
-                                          backgroundImage: NetworkImage(
-                                            widget.snap['profImage'].toString(),
-                                          ),
-                                          backgroundColor: Colors
-                                              .transparent, // Define o fundo como transparente
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.only(
-                                            left: 8,
-                                          ),
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: <Widget>[
-                                              InkWell(
-                                                onTap: () {
-                                                  if (widget.snap['username'] !=
-                                                      "Anonymous User") {
-                                                    Navigator.of(context).push(
-                                                      MaterialPageRoute(
-                                                        builder: (context) =>
-                                                            ProfileScreen(
-                                                          uid: widget
-                                                              .snap['uid'],
-                                                        ),
-                                                      ),
-                                                    );
-                                                  }
-                                                },
-                                                child: Text(
-                                                  widget.snap['username'],
-                                                  style: AppTheme.subtitlewhite
-                                                      .copyWith(
-                                                    shadows: [
-                                                      Shadow(
-                                                        blurRadius: 3.0,
-                                                        color: Colors
-                                                            .black, // Cor da sombra
-                                                        offset: Offset(2.0,
-                                                            2.0), // Deslocamento X e Y da sombra
-                                                      ),
-                                                    ],
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: <Widget>[
+                                          InkWell(
+                                            onTap: () {
+                                              if (widget.snap['username'] !=
+                                                  "Anonymous User") {
+                                                Navigator.of(context).push(
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        ProfileScreen(
+                                                      uid: widget.snap['uid'],
+                                                      isMainn: false,
+                                                    ),
                                                   ),
-                                                ),
+                                                );
+                                              }
+                                            },
+                                            child: Text(
+                                              widget.snap['username'],
+                                              style: AppTheme.subtitlewhite
+                                                  .copyWith(
+                                                shadows: [
+                                                  Shadow(
+                                                    blurRadius: 3.0,
+                                                    color: Colors
+                                                        .black, // Cor da sombra
+                                                    offset: Offset(2.0,
+                                                        2.0), // Deslocamento X e Y da sombra
+                                                  ),
+                                                ],
                                               ),
-                                            ],
+                                            ),
                                           ),
-                                        ),
+                                        ],
                                       ),
-                                    ],
+                                    ),
                                   ),
-                                ])))
-                      ],
-                    ),
-                  ),
-                ])));
+                                ],
+                              ),
+                            ])))
+                  ],
+                ),
+              ),
+            ));
       },
     );
   }

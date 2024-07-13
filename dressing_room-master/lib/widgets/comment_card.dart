@@ -29,6 +29,7 @@ class CommentCard extends StatelessWidget {
                   MaterialPageRoute(
                     builder: (context) => ProfileScreen(
                       uid: snap.data()['uid'],
+                      isMainn: false,
                     ),
                   ),
                 );

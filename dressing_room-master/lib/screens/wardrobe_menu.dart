@@ -15,7 +15,7 @@ class WardrobeMenu extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "WARDROBE MENU",
+          "MENU Closet",
           style: AppTheme.barapp.copyWith(
             shadows: [
               Shadow(
@@ -69,8 +69,8 @@ class WardrobeMenu extends StatelessWidget {
                             color: AppTheme.nearlyWhite,
                           ),
                           Gap(10),
-                          Text('My wardrobe',
-                              style: AppTheme.subheadlinewhite,
+                          Text('Meu Closet',
+                              style: AppTheme.headlinewhite,
                               textAlign: TextAlign.center),
                         ],
                       ),
@@ -98,8 +98,8 @@ class WardrobeMenu extends StatelessWidget {
                             color: AppTheme.nearlyWhite,
                           ),
                           Gap(10),
-                          Text('Add cloth',
-                              style: AppTheme.subheadlinewhite,
+                          Text('Adicionar Roupa',
+                              style: AppTheme.headlinewhite,
                               textAlign: TextAlign.center),
                         ],
                       ),
@@ -131,8 +131,8 @@ class WardrobeMenu extends StatelessWidget {
                             color: AppTheme.nearlyWhite,
                           ),
                           Gap(10),
-                          Text('Plan a look',
-                              style: AppTheme.subheadlinewhite,
+                          Text('Planejar um look',
+                              style: AppTheme.headlinewhite,
                               textAlign: TextAlign.center),
                         ],
                       ),
@@ -164,7 +164,7 @@ class WardrobeMenu extends StatelessWidget {
                             color: AppTheme.nearlyWhite,
                           ),
                           Gap(10),
-                          Text('Calendário', style: AppTheme.subheadlinewhite),
+                          Text('Calendário', style: AppTheme.headlinewhite),
                         ],
                       ),
                     ),

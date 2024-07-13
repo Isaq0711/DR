@@ -22,11 +22,13 @@ class SuggestionCard extends StatefulWidget {
       {Key? key,
       required this.postId,
       required this.category,
+      required this.username,
       required this.uid})
       : super(key: key);
 
   final String? postId;
   final String category;
+  final String? username;
   final String? uid;
   @override
   _SuggestionCardState createState() => _SuggestionCardState();
@@ -42,6 +44,18 @@ class _SuggestionCardState extends State<SuggestionCard>
   String? category;
 
   List<String> clothItens = [];
+  List<String> icons = [
+    'icons8-head-profile-100.png',
+    'icons8-pés-100.png',
+    'icons8-camisa-100.png',
+    'icons8-calças-100.png',
+    'icons8-cinto-100.png',
+    'icons8-joalheria-100.png',
+    'icons8-vista-frontal-de-relógios-100.png',
+    'icons8-toda-a-mão-100.png',
+    'icons8-tipo-de-corpo-alto-100.png',
+    'icons8-óculos-de-sol-100.png',
+  ];
 
   final Map<String, List<String>> clothingItems = {
     "Top (cabeça)": [
@@ -698,9 +712,12 @@ class _SuggestionCardState extends State<SuggestionCard>
                                                   BorderRadius.circular(10.0),
                                             ),
                                           ),
-                                          child: Text(
-                                            categories[index],
-                                            style: AppTheme.subheadlinewhite,
+                                          child: ImageIcon(
+                                            AssetImage(
+                                              'assets/${icons[index]}',
+                                            ),
+                                            color: AppTheme.nearlyWhite,
+                                            size: 40,
                                           ),
                                         );
                                       },
@@ -858,438 +875,455 @@ class _SuggestionCardState extends State<SuggestionCard>
   @override
   Widget build(BuildContext context) {
     return isLoading
-        ? Center(
-            child: CircularProgressIndicator(color: Colors.blueAccent),
-          )
-        : Container(
+        ? Container(
             decoration: BoxDecoration(
               color: AppTheme.cinza,
               borderRadius: BorderRadius.vertical(
                 top: Radius.circular(30),
               ),
             ),
-            width: double.infinity,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                    child: Column(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 6,
-                      margin: const EdgeInsets.only(top: 16, bottom: 4),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(50),
-                        color: AppTheme.nearlyWhite,
-                      ),
+            child: Center(
+              child: CircularProgressIndicator(color: Colors.blueAccent),
+            ))
+        : Scaffold(
+            appBar: AppBar(
+              centerTitle: true,
+              backgroundColor: Colors.transparent,
+              title: Text(
+                'Sugerir',
+                style: AppTheme.barapp.copyWith(
+                  shadows: [
+                    Shadow(
+                      blurRadius: 2.0,
+                      color: Colors.black,
                     ),
-                    Gap(5),
-                    Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Gap(30),
-                            Expanded(
-                                child: InkWell(
-                              onTap: () {
-                                print(postIds);
-                              },
-                              child: Text(
-                                "Suggest",
-                                style: AppTheme.barapp,
-                                textAlign: TextAlign.center,
-                              ),
-                            )),
-                            IconButton(
-                              onPressed: () async {
-                                setState(() {
-                                  isLoading = true;
-                                });
-
-                                if (photoUrls.isEmpty) {
-                                  Navigator.pop(context);
-                                } else {
-                                  await uploadImagesAndReplaceUrls(); // Espera o upload das imagens e a substituição dos URLs
-                                  await FireStoreMethods().suggest(
-                                      widget.postId,
-                                      commentEditingController.text,
-                                      FirebaseAuth.instance.currentUser!.uid,
-                                      photoUrls,
-                                      postIds,
-                                      widget.category);
-
-                                  setState(() {
-                                    isLoading = false;
-                                  });
-
-                                  Navigator.pop(context);
-                                }
-                              },
-                              icon: Icon(
-                                Icons.check,
-                                color: AppTheme.nearlyBlack,
-                              ),
-                            ),
-                          ],
-                        )),
-                    Gap(15),
-                    photoUrls.length > 0
-                        ? Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 5),
-                            child: SizedBox(
-                              height: 100.h,
-                              child: RawScrollbar(
-                                thumbVisibility: true,
-                                thumbColor: Colors.grey,
-                                radius: Radius.circular(20),
-                                thickness: 5,
-                                scrollbarOrientation:
-                                    ScrollbarOrientation.bottom,
-                                child: GridView.builder(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: photoUrls.length,
-                                  gridDelegate:
-                                      SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 1,
-                                  ),
-                                  itemBuilder: (context, index) {
-                                    dynamic photoUrl = photoUrls[index];
-                                    late Widget imageWidget;
-
-                                    if (photoUrl is String) {
-                                      imageWidget = Image.network(
-                                        photoUrl,
-                                        fit: BoxFit.fill,
-                                        width: double.infinity,
-                                        height: double.infinity,
-                                      );
-                                    } else if (photoUrl is Uint8List) {
-                                      imageWidget = Image.memory(
-                                        photoUrl,
-                                        fit: BoxFit.fill,
-                                        width: double.infinity,
-                                        height: double.infinity,
-                                      );
-                                    }
-
-                                    return Container(
-                                      margin: EdgeInsets.only(right: 8.0),
-                                      decoration: BoxDecoration(
-                                        borderRadius:
-                                            BorderRadius.circular(10.0),
-                                        border: Border.all(
-                                          color: Colors.transparent,
-                                          width: 2.0,
-                                        ),
-                                      ),
-                                      child: Stack(
-                                        children: [
-                                          ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(10.0),
-                                            child: imageWidget,
-                                          ),
-                                          Positioned(
-                                            child: InkWell(
-                                              onTap: () {
-                                                setState(() {
-                                                  photoUrls.removeAt(index);
-                                                });
-                                              },
-                                              child: Container(
-                                                decoration: BoxDecoration(
-                                                  color: AppTheme.vinho,
-                                                  borderRadius:
-                                                      BorderRadius.circular(10),
-                                                ),
-                                                child: Icon(Icons.delete,
-                                                    size: 20),
-                                              ),
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                          )
-                        : SizedBox.shrink(),
-                    Gap(5),
-                    Divider(color: AppTheme.nearlyWhite),
-                    Gap(15),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 10),
-                      child: SingleChildScrollView(
-                          child: SizedBox(
-                        height: photoUrls.isEmpty ? 450.h : 350.h,
-                        child: selected == null
-                            ? ListView(
-                                children: [
-                                  GridView.count(
-                                    shrinkWrap: true,
-                                    crossAxisCount: 2,
-                                    crossAxisSpacing: 20.0,
-                                    mainAxisSpacing: 20.0,
-                                    children: [
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            selected = "wardrobe";
-                                            print(widget.uid!);
-                                          });
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: AppTheme.vinho,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10.0),
-                                          ),
-                                        ),
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            ImageIcon(
-                                              AssetImage(
-                                                  'assets/CLOSET-FILL.png'),
-                                              size: 40,
-                                              color: AppTheme.nearlyWhite,
-                                            ),
-                                            Gap(10),
-                                            Text('Wardrobe',
-                                                style:
-                                                    AppTheme.subheadlinewhite),
-                                          ],
-                                        ),
-                                      ),
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            selected = "products";
-                                          });
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: AppTheme.vinho,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10.0),
-                                          ),
-                                        ),
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              CupertinoIcons.bag_fill,
-                                              size: 40,
-                                              color: AppTheme.nearlyWhite,
-                                            ),
-                                            Gap(10),
-                                            Text('Products',
-                                                style:
-                                                    AppTheme.subheadlinewhite),
-                                          ],
-                                        ),
-                                      ),
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            selected = "search";
-                                          });
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: AppTheme.vinho,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10.0),
-                                          ),
-                                        ),
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              CupertinoIcons.search,
-                                              size: 40,
-                                              color: AppTheme.nearlyWhite,
-                                            ),
-                                            Gap(10),
-                                            Text('Search',
-                                                style:
-                                                    AppTheme.subheadlinewhite),
-                                          ],
-                                        ),
-                                      ),
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          _selectImage(context);
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: AppTheme.vinho,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10.0),
-                                          ),
-                                        ),
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.upload_file_rounded,
-                                              size: 40,
-                                              color: AppTheme.nearlyWhite,
-                                            ),
-                                            Gap(10),
-                                            Text('Upload',
-                                                style:
-                                                    AppTheme.subheadlinewhite),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              )
-                            : selected == 'wardrobe'
-                                ? ListView(
-                                    children: [
-                                      Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: IconButton(
-                                          onPressed: () {
-                                            setState(() {
-                                              selected = null;
-                                            });
-                                          },
-                                          icon: Icon(
-                                            Icons.arrow_back_ios,
-                                            color: AppTheme.nearlyBlack,
-                                          ),
-                                        ),
-                                      ),
-                                      GridView.builder(
-                                        shrinkWrap: true,
-                                        physics: NeverScrollableScrollPhysics(),
-                                        itemCount: 2,
-                                        gridDelegate:
-                                            SliverGridDelegateWithFixedCrossAxisCount(
-                                                crossAxisCount:
-                                                    1, // Alterado para uma coluna
-                                                crossAxisSpacing: 60.0,
-                                                mainAxisSpacing: 30.0,
-                                                childAspectRatio:
-                                                    photoUrls.isEmpty
-                                                        ? 10 / 5
-                                                        : 9 / 3),
-                                        itemBuilder: (context, index) {
-                                          return Padding(
-                                              padding: EdgeInsets.symmetric(
-                                                  horizontal: 40),
-                                              child: ElevatedButton(
-                                                onPressed: () {
-                                                  setState(() {
-                                                    if (index == 0) {
-                                                      selected = "my_wardrobe";
-                                                      clothItens.clear();
-                                                      wardrobephotoUrls.clear();
-                                                      categoryItems.clear();
-                                                      category = null;
-                                                      getData(FirebaseAuth
-                                                          .instance
-                                                          .currentUser!
-                                                          .uid);
-                                                    } else {
-                                                      selected =
-                                                          "users_wardrobe";
-                                                      clothItens
-                                                          .clear(); // Limpa a lista de itens de roupa
-                                                      wardrobephotoUrls.clear();
-                                                      categoryItems.clear();
-                                                      category = null;
-                                                      getData(widget.uid!);
-                                                    }
-                                                  });
-                                                },
-                                                style: ElevatedButton.styleFrom(
-                                                  padding: EdgeInsets.all(20.0),
-                                                  backgroundColor:
-                                                      AppTheme.vinho,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            10.0),
-                                                  ),
-                                                ),
-                                                child: Text(
-                                                  index == 0
-                                                      ? "My Wardrobe"
-                                                      : "User's Wardrobe",
-                                                  style:
-                                                      AppTheme.subheadlinewhite,
-                                                ),
-                                              ));
-                                        },
-                                      )
-                                    ],
-                                  )
-                                : selected == 'my_wardrobe'
-                                    ? exibir_wardrobe()
-                                    : selected == 'users_wardrobe'
-                                        ? exibir_wardrobe()
-                                        : selected == 'search'
-                                            ? Container()
-                                            : selected == 'products'
-                                                ? SingleChildScrollView(
-                                                    // Wrap with SingleChildScrollView
-                                                    child: SizedBox(
-                                                      height: 450.h,
-                                                      child: exibir_products(
-                                                          FirebaseAuth
-                                                              .instance
-                                                              .currentUser!
-                                                              .uid),
-                                                    ),
-                                                  )
-                                                : Container(), // You might want to handle other cases
-                      )),
-                    )
                   ],
-                )),
-                SafeArea(
-                  child: Container(
-                    height: kToolbarHeight,
-                    margin: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom,
-                    ),
-                    padding: const EdgeInsets.only(left: 16, right: 8),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 16, right: 8),
-                            child: TextField(
-                              controller: commentEditingController,
-                              style: AppTheme.title,
-                              decoration: InputDecoration(
-                                hintText: 'Talk about your suggestion...',
-                                hintStyle: AppTheme.subtitle,
-                                border: InputBorder.none,
-                              ),
-                              maxLines: null,
-                              textInputAction: TextInputAction.newline,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                ),
+              ),
+              iconTheme: IconThemeData(color: Colors.transparent),
+              actions: [
+                IconButton(
+                  onPressed: () async {
+                    setState(() {
+                      isLoading = true;
+                    });
+
+                    if (photoUrls.isEmpty) {
+                      Navigator.pop(context);
+                    } else {
+                      await uploadImagesAndReplaceUrls(); // Espera o upload das imagens e a substituição dos URLs
+                      await FireStoreMethods().suggest(
+                          widget.postId,
+                          commentEditingController.text,
+                          FirebaseAuth.instance.currentUser!.uid,
+                          photoUrls,
+                          postIds,
+                          widget.category);
+
+                      setState(() {
+                        isLoading = false;
+                      });
+
+                      Navigator.pop(context);
+                    }
+                  },
+                  icon: Icon(
+                    Icons.check,
+                    color: AppTheme.nearlyBlack,
                   ),
                 ),
               ],
+            ),
+            body: ListView(children: [
+              Expanded(
+                  child: Column(
+                children: [
+                  // Padding(
+                  //     padding: EdgeInsets.symmetric(horizontal: 20),
+                  //     child: Row(
+                  //       crossAxisAlignment: CrossAxisAlignment.center,
+                  //       children: [
+                  //         IconButton(
+                  //           onPressed: () async {
+                  //             setState(() {
+                  //               isLoading = true;
+                  //             });
+
+                  //             if (photoUrls.isEmpty) {
+                  //               Navigator.pop(context);
+                  //             } else {
+                  //               await uploadImagesAndReplaceUrls(); // Espera o upload das imagens e a substituição dos URLs
+                  //               await FireStoreMethods().suggest(
+                  //                   widget.postId,
+                  //                   commentEditingController.text,
+                  //                   FirebaseAuth.instance.currentUser!.uid,
+                  //                   photoUrls,
+                  //                   postIds,
+                  //                   widget.category);
+
+                  //               setState(() {
+                  //                 isLoading = false;
+                  //               });
+
+                  //               Navigator.pop(context);
+                  //             }
+                  //           },
+                  //           icon: Icon(
+                  //             Icons.check,
+                  //             color: AppTheme.nearlyBlack,
+                  //           ),
+                  //         ),
+                  //       ],
+                  //     )),
+                  photoUrls.length > 0
+                      ? Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 5),
+                          child: SizedBox(
+                            height: 100.h,
+                            child: RawScrollbar(
+                              thumbVisibility: true,
+                              thumbColor: Colors.grey,
+                              radius: Radius.circular(20),
+                              thickness: 5,
+                              scrollbarOrientation: ScrollbarOrientation.bottom,
+                              child: GridView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: photoUrls.length,
+                                gridDelegate:
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 1,
+                                ),
+                                itemBuilder: (context, index) {
+                                  dynamic photoUrl = photoUrls[index];
+                                  late Widget imageWidget;
+
+                                  if (photoUrl is String) {
+                                    imageWidget = Image.network(
+                                      photoUrl,
+                                      fit: BoxFit.fill,
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                    );
+                                  } else if (photoUrl is Uint8List) {
+                                    imageWidget = Image.memory(
+                                      photoUrl,
+                                      fit: BoxFit.fill,
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                    );
+                                  }
+
+                                  return Container(
+                                    margin: EdgeInsets.only(right: 8.0),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10.0),
+                                      border: Border.all(
+                                        color: Colors.transparent,
+                                        width: 2.0,
+                                      ),
+                                    ),
+                                    child: Stack(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(10.0),
+                                          child: imageWidget,
+                                        ),
+                                        Positioned(
+                                          child: InkWell(
+                                            onTap: () {
+                                              setState(() {
+                                                photoUrls.removeAt(index);
+                                              });
+                                            },
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color: AppTheme.vinho,
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                              ),
+                                              child:
+                                                  Icon(Icons.delete, size: 20),
+                                            ),
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        )
+                      : SizedBox.shrink(),
+                  Gap(5),
+                  Divider(color: AppTheme.nearlyWhite),
+                  Gap(15),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    child: SingleChildScrollView(
+                        child: SizedBox(
+                      height: photoUrls.isEmpty ? 400.h : 350.h,
+                      child: selected == null
+                          ? ListView(
+                              children: [
+                                GridView.count(
+                                  shrinkWrap: true,
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 20.0,
+                                  mainAxisSpacing: 20.0,
+                                  children: [
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          selected = "wardrobe";
+                                        });
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppTheme.vinho,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10.0),
+                                        ),
+                                      ),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          ImageIcon(
+                                            AssetImage(
+                                                'assets/CLOSET-FILL.png'),
+                                            size: 40,
+                                            color: AppTheme.nearlyWhite,
+                                          ),
+                                          Gap(10),
+                                          Text('Closet',
+                                              style: AppTheme.subheadlinewhite),
+                                        ],
+                                      ),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          selected = "products";
+                                        });
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppTheme.vinho,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10.0),
+                                        ),
+                                      ),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            CupertinoIcons.bag_fill,
+                                            size: 40,
+                                            color: AppTheme.nearlyWhite,
+                                          ),
+                                          Gap(10),
+                                          Text('Produtos',
+                                              style: AppTheme.subheadlinewhite),
+                                        ],
+                                      ),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          selected = "search";
+                                        });
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppTheme.vinho,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10.0),
+                                        ),
+                                      ),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            CupertinoIcons.search,
+                                            size: 40,
+                                            color: AppTheme.nearlyWhite,
+                                          ),
+                                          Gap(10),
+                                          Text('Pesquisar',
+                                              style: AppTheme.subheadlinewhite),
+                                        ],
+                                      ),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        _selectImage(context);
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppTheme.vinho,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10.0),
+                                        ),
+                                      ),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.upload_file_rounded,
+                                            size: 40,
+                                            color: AppTheme.nearlyWhite,
+                                          ),
+                                          Gap(10),
+                                          Text('Upload',
+                                              style: AppTheme.subheadlinewhite),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            )
+                          : selected == 'wardrobe'
+                              ? ListView(
+                                  children: [
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: IconButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            selected = null;
+                                          });
+                                        },
+                                        icon: Icon(
+                                          Icons.arrow_back_ios,
+                                          color: AppTheme.nearlyBlack,
+                                        ),
+                                      ),
+                                    ),
+                                    GridView.builder(
+                                      shrinkWrap: true,
+                                      physics: NeverScrollableScrollPhysics(),
+                                      itemCount: 2,
+                                      gridDelegate:
+                                          SliverGridDelegateWithFixedCrossAxisCount(
+                                              crossAxisCount: 1,
+                                              mainAxisSpacing: 15.h,
+                                              childAspectRatio:
+                                                  photoUrls.isEmpty
+                                                      ? 16 / 7
+                                                      : 9 / 3),
+                                      itemBuilder: (context, index) {
+                                        return Padding(
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 40),
+                                          child: ElevatedButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  if (index == 0) {
+                                                    selected = "my_wardrobe";
+                                                    clothItens.clear();
+                                                    wardrobephotoUrls.clear();
+                                                    categoryItems.clear();
+                                                    category = null;
+                                                    getData(FirebaseAuth
+                                                        .instance
+                                                        .currentUser!
+                                                        .uid);
+                                                  } else {
+                                                    selected = "users_wardrobe";
+                                                    clothItens
+                                                        .clear(); // Limpa a lista de itens de roupa
+                                                    wardrobephotoUrls.clear();
+                                                    categoryItems.clear();
+                                                    category = null;
+                                                    getData(widget.uid!);
+                                                  }
+                                                });
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                padding: EdgeInsets.all(20.0),
+                                                backgroundColor: AppTheme.vinho,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          10.0),
+                                                ),
+                                              ),
+                                              child: Text(
+                                                index == 0
+                                                    ? "Meu closet"
+                                                    : "Closet de ${widget.username!} ",
+                                                style:
+                                                    AppTheme.subheadlinewhite,
+                                              )),
+                                        );
+                                      },
+                                    )
+                                  ],
+                                )
+                              : selected == 'my_wardrobe'
+                                  ? exibir_wardrobe()
+                                  : selected == 'users_wardrobe'
+                                      ? exibir_wardrobe()
+                                      : selected == 'search'
+                                          ? Container()
+                                          : selected == 'products'
+                                              ? SingleChildScrollView(
+                                                  // Wrap with SingleChildScrollView
+                                                  child: SizedBox(
+                                                    height: 450.h,
+                                                    child: exibir_products(
+                                                        FirebaseAuth.instance
+                                                            .currentUser!.uid),
+                                                  ),
+                                                )
+                                              : Container(), // You might want to handle other cases
+                    )),
+                  )
+                ],
+              )),
+            ]),
+            bottomNavigationBar: SafeArea(
+              child: Container(
+                height: kToolbarHeight,
+                margin: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
+                padding: const EdgeInsets.only(left: 16, right: 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        width: 300.w,
+                        padding: EdgeInsets.symmetric(horizontal: 8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.nearlyWhite,
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8),
+                          child: TextField(
+                            controller: commentEditingController,
+                            style: AppTheme.title,
+                            decoration: InputDecoration(
+                              hintText: 'Descrição de sua sugestão...',
+                              hintStyle: AppTheme.subtitle,
+                              border: InputBorder.none,
+                            ),
+                            maxLines: null,
+                            textInputAction: TextInputAction.newline,
+                          ),
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              ),
             ),
           );
   }
