@@ -104,8 +104,8 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
                       });
                     },
                   )),
-              SizedBox(
-                width: 10.h,
+              Gap(
+                10.h,
               ),
               Container(
                   width: 300.h,
