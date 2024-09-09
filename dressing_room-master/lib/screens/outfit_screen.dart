@@ -108,7 +108,7 @@ class _OutfitScreenState extends State<OutfitScreen> {
                                 Expanded(
                                   child: Center(
                                     child: Text(
-                                      'WARDROBE',
+                                      '',
                                       style: AppTheme.barapp.copyWith(
                                         shadows: [
                                           Shadow(

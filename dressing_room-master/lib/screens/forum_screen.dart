@@ -204,6 +204,8 @@ class _ForumCardState extends State<ForumCard> {
                                 uid: widget.snap['uid'],
                                 username: widget.snap['username'],
                                 category: 'forum',
+                                description: widget.snap['description'],
+                                rating: null,
                               ),
                             ))
                       ]))
@@ -279,13 +281,15 @@ class _ForumCardState extends State<ForumCard> {
                             ),
                           ),
                         ),
-                        Gap(15),
                         Padding(
                             padding: EdgeInsets.symmetric(horizontal: 10),
                             child: SizedBox(
                                 height: 550.h,
                                 child: CommentsScreen(
                                     postId: widget.snap['forumId'],
+                                    description: widget.snap['description'],
+                                    userquepostou: widget.snap['uid'],
+                                    rating: "",
                                     category: 'forum')))
                       ]))
                     ])));

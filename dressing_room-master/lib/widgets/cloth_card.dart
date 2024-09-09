@@ -7,6 +7,7 @@ import 'package:dressing_room/providers/user_provider.dart';
 import 'package:dressing_room/resources/firestore_methods.dart';
 import 'package:dressing_room/screens/comments_screen.dart';
 import 'package:dressing_room/screens/profile_screen.dart';
+
 import 'package:dressing_room/utils/colors.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:dressing_room/utils/global_variable.dart';
@@ -37,6 +38,8 @@ class _ClothCardState extends State<ClothCard> {
   bool showreactions = false;
   bool isFavorite = false;
   String? username;
+  String? userquecriou;
+
   String? profilePhoto;
   double rating = 0;
 
@@ -70,6 +73,7 @@ class _ClothCardState extends State<ClothCard> {
       setState(() {
         username = userSnap['username'];
         profilePhoto = userSnap['photoUrl'];
+        userquecriou = userSnap['uid'];
       });
       setState(() {});
     } catch (e) {
@@ -126,6 +130,57 @@ class _ClothCardState extends State<ClothCard> {
     setState(() {});
   }
 
+  void showDeleteItemDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppTheme.nearlyWhite,
+          title: Align(
+            alignment: Alignment.center,
+            child: Text(
+              'Você deseja remover essa roupa?',
+              style: AppTheme.subheadline,
+            ),
+          ),
+          content: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              ElevatedButton(
+                child: Text(
+                  'Não',
+                  style: TextStyle(
+                    fontFamily: 'Quicksand',
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(primary: AppTheme.vinho),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+              Gap(10),
+              ElevatedButton(
+                child: Text(
+                  'Sim',
+                  style: TextStyle(
+                    fontFamily: 'Quicksand',
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(primary: AppTheme.vinho),
+                onPressed: () async {
+                  deletePost(widget.snap['clothId']);
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _showComments(context) {
     showModalBottomSheet(
       context: context,
@@ -159,7 +214,7 @@ class _ClothCardState extends State<ClothCard> {
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: 20),
                           child: Text(
-                            'Comments',
+                            'Comentários',
                             style: AppTheme.barapp.copyWith(
                               shadows: [
                                 Shadow(
@@ -174,9 +229,12 @@ class _ClothCardState extends State<ClothCard> {
                         Padding(
                             padding: EdgeInsets.symmetric(horizontal: 10),
                             child: SizedBox(
-                                height: 570.h,
+                                height: 550.h,
                                 child: CommentsScreen(
                                     postId: widget.snap['clothId'],
+                                    userquepostou: widget.snap['uid'],
+                                    rating: "",
+                                    description: widget.snap['description'],
                                     category: 'clothes')))
                       ]))
                     ])));
@@ -184,9 +242,9 @@ class _ClothCardState extends State<ClothCard> {
     );
   }
 
-  deletePost(String postId) async {
+  deletePost(String clothId) async {
     try {
-      await FireStoreMethods().deletePost(postId);
+      await FireStoreMethods().deleteCloth(clothId, userquecriou!);
     } catch (err) {
       showSnackBar(
         context,
@@ -199,8 +257,15 @@ class _ClothCardState extends State<ClothCard> {
     setState(() {});
 
     try {
-      await FireStoreMethods()
-          .addToWardrobe(widget.snap['clothId'], uid, widget.snap['uid']);
+      if (!isOnMyWardrobe) {
+        await FireStoreMethods()
+            .removeFromWardrobe(widget.snap['clothId'], uid);
+        print("tchau");
+      } else {
+        await FireStoreMethods()
+            .addToWardrobe(widget.snap['clothId'], uid, widget.snap['uid']);
+        print("oi");
+      }
     } catch (err) {
       showSnackBar(context, err.toString());
     }
@@ -285,16 +350,7 @@ class _ClothCardState extends State<ClothCard> {
                                 onTap: () {
                                   setState(() {
                                     isOnMyWardrobe = !isOnMyWardrobe;
-                                    Future.delayed(Duration(milliseconds: 500),
-                                        () {
-                                      isOnMyWardrobe
-                                          ? showSnackBar(
-                                              context, 'Added to Wardrobe')
-                                          : showSnackBar(
-                                              context, 'Removed from Wardrobe');
-                                    });
-                                  });
-                                  Future.microtask(() {
+
                                     handleWardrobeAction(
                                         FirebaseAuth.instance.currentUser!.uid);
                                   });
@@ -309,6 +365,19 @@ class _ClothCardState extends State<ClothCard> {
                                 labelStyle: TextStyle(fontSize: 18.0),
                                 onTap: () => print('THIRD CHILD'),
                               ),
+                              if (userquecriou ==
+                                  FirebaseAuth.instance.currentUser!.uid)
+                                SpeedDialChild(
+                                  child: Icon(
+                                    Icons.delete_outline,
+                                    color: Colors.black.withOpacity(0.6),
+                                  ),
+                                  backgroundColor: AppTheme.cinza,
+                                  labelStyle: TextStyle(fontSize: 18.0),
+                                  onTap: () {
+                                    showDeleteItemDialog(context);
+                                  },
+                                ),
                             ],
                           ),
                         )

@@ -10,7 +10,7 @@ import 'package:dressing_room/screens/profile_screen.dart';
 const webScreenSize = 600;
 
 List<Widget> homeScreenItems = [
-  const FeedScreen(),
+  FeedScreen(),
   ForumPage(),
   AddPage(),
   WardrobeMenu(),

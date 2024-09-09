@@ -1,12 +1,14 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:dressing_room/providers/isshop_provider.dart';
 import 'package:dressing_room/utils/colors.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:dressing_room/providers/bottton_nav_controller.dart';
-import 'package:provider/provider.dart';
-import 'package:dressing_room/utils/global_variable.dart';
+import 'package:dressing_room/screens/add.dart';
+import 'package:dressing_room/screens/wardrobe_menu.dart';
+import 'package:dressing_room/screens/store_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:dressing_room/screens/feed_screen.dart';
+import 'package:dressing_room/screens/forum_screen.dart';
+import 'package:dressing_room/screens/profile_screen.dart';
 
 class MobileScreenLayout extends StatefulWidget {
   const MobileScreenLayout({Key? key}) : super(key: key);
@@ -18,12 +20,22 @@ class MobileScreenLayout extends StatefulWidget {
 class _MobileScreenLayoutState extends State<MobileScreenLayout> {
   int _page = 0;
   late PageController pageController;
+  late List<Widget> homeScreenItems;
 
   @override
   void initState() {
     super.initState();
     pageController = PageController();
-    ;
+    homeScreenItems = [
+      FeedScreen(),
+      ForumPage(),
+      AddPage(),
+      WardrobeMenu(),
+      ProfileScreen(
+        uid: FirebaseAuth.instance.currentUser!.uid,
+        isMainn: true,
+      ),
+    ];
   }
 
   @override
@@ -38,10 +50,6 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
     });
   }
 
-  void navigateToFeedPage() {
-    pageController.jumpToPage(0);
-  }
-
   void navigationTapped(int page) {
     pageController.jumpToPage(page);
   }
@@ -52,12 +60,12 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
     bool isBottomVisible = true;
     return Scaffold(
         body: PageView(
-          children: homeScreenItems,
           controller: pageController,
           onPageChanged: onPageChanged,
           physics: (_page == 0)
-              ? NeverScrollableScrollPhysics()
-              : PageScrollPhysics(),
+              ? const NeverScrollableScrollPhysics()
+              : const PageScrollPhysics(),
+          children: homeScreenItems,
         ),
         bottomNavigationBar: Visibility(
             visible: isBottomVisible,

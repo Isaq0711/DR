@@ -74,7 +74,7 @@ class _PostCardState extends State<PostCard> {
           title: Align(
             alignment: Alignment.center,
             child: Text(
-              'Do you want to delete this item?',
+              'Você deseja remover essa postagem?',
               style: AppTheme.subheadline,
             ),
           ),
@@ -83,7 +83,7 @@ class _PostCardState extends State<PostCard> {
             children: <Widget>[
               ElevatedButton(
                 child: Text(
-                  'No',
+                  'Não',
                   style: TextStyle(
                     fontFamily: 'Quicksand',
                     fontWeight: FontWeight.bold,
@@ -97,7 +97,7 @@ class _PostCardState extends State<PostCard> {
               Gap(10),
               ElevatedButton(
                 child: Text(
-                  'Yes',
+                  'Sim',
                   style: TextStyle(
                     fontFamily: 'Quicksand',
                     fontWeight: FontWeight.bold,
@@ -188,14 +188,24 @@ class _PostCardState extends State<PostCard> {
                             padding: EdgeInsets.symmetric(horizontal: 10),
                             child: SizedBox(
                                 height: 550.h,
-                                child:
-                                    widget.snap['username'] != "Anonymous User"
-                                        ? CommentsScreen(
-                                            postId: widget.snap['postId'],
-                                            category: 'posts')
-                                        : CommentsScreen(
-                                            postId: widget.snap['postId'],
-                                            category: 'anonymous_posts')))
+                                child: widget.snap['username'] !=
+                                        "Anonymous User"
+                                    ? CommentsScreen(
+                                        postId: widget.snap['postId'],
+                                        rating: widget.snap['votes'][
+                                            FirebaseAuth
+                                                .instance.currentUser!.uid],
+                                        userquepostou: widget.snap['uid'],
+                                        description: widget.snap['description'],
+                                        category: 'posts')
+                                    : CommentsScreen(
+                                        postId: widget.snap['postId'],
+                                        rating: widget.snap['votes'][
+                                            FirebaseAuth
+                                                .instance.currentUser!.uid],
+                                        userquepostou: widget.snap['uid'],
+                                        description: widget.snap['description'],
+                                        category: 'anonymous_posts')))
                       ]))
                     ])));
       },
@@ -345,6 +355,9 @@ class _PostCardState extends State<PostCard> {
                                 postId: widget.snap['postId'],
                                 uid: widget.snap['uid'],
                                 username: widget.snap['username'],
+                                description: widget.snap['description'],
+                                rating: widget.snap['votes']
+                                    [FirebaseAuth.instance.currentUser!.uid],
                                 category: 'posts',
                               ),
                             ))
@@ -511,6 +524,18 @@ class _PostCardState extends State<PostCard> {
           child: Column(
             children: [
               GestureDetector(
+                onHorizontalDragUpdate: canScroll
+                    ? (details) {
+                        if (details.primaryDelta! > 0) {
+                          Navigator.pop(context);
+                        }
+                      }
+                    : null,
+                onVerticalDragStart: canScroll
+                    ? (details) {
+                        _showComments(context);
+                      }
+                    : null,
                 onTap: () {
                   setState(() {
                     showinfo = !showinfo;
@@ -544,6 +569,7 @@ class _PostCardState extends State<PostCard> {
                                 onPointerUp: (event) {
                                   events.clear();
                                   print("events cleared");
+
                                   setState(() {
                                     canScroll = true;
                                     _zoomToMin();

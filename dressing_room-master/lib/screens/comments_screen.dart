@@ -15,7 +15,16 @@ import 'package:provider/provider.dart';
 class CommentsScreen extends StatefulWidget {
   final postId;
   final category;
-  const CommentsScreen({Key? key, required this.postId, required this.category})
+  final description;
+  final rating;
+  final userquepostou;
+  const CommentsScreen(
+      {Key? key,
+      required this.postId,
+      required this.category,
+      required this.description,
+      required this.rating,
+      required this.userquepostou})
       : super(key: key);
 
   @override
@@ -43,7 +52,8 @@ class _CommentsScreenState extends State<CommentsScreen> {
         .snapshots();
   }
 
-  void showDeleteItemDialog(BuildContext context, int index, String snapshot) {
+  void showDeleteItemDialog(
+      BuildContext context, int index, String snapshot, String itemType) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -52,7 +62,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
           title: Align(
             alignment: Alignment.center,
             child: Text(
-              'VocÊ deseja remover esse comentário?',
+              'Você deseja remover ess${itemType == 'comment' ? 'e' : 'a'}  ${itemType == 'comment' ? 'comentário' : 'sugestão'}?',
               style: AppTheme.subheadline,
             ),
           ),
@@ -67,7 +77,8 @@ class _CommentsScreenState extends State<CommentsScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                style: ElevatedButton.styleFrom(primary: AppTheme.vinho),
+                style:
+                    ElevatedButton.styleFrom(backgroundColor: AppTheme.vinho),
                 onPressed: () {
                   Navigator.pop(context);
                 },
@@ -81,9 +92,14 @@ class _CommentsScreenState extends State<CommentsScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                style: ElevatedButton.styleFrom(primary: AppTheme.vinho),
+                style:
+                    ElevatedButton.styleFrom(backgroundColor: AppTheme.vinho),
                 onPressed: () async {
-                  deleteComment(snapshot);
+                  if (itemType == 'comment') {
+                    deleteComment(snapshot);
+                  } else if (itemType == 'suggestion') {
+                    deleteSuggestion(snapshot);
+                  }
 
                   // Close the dialog
                   Navigator.pop(context);
@@ -104,7 +120,10 @@ class _CommentsScreenState extends State<CommentsScreen> {
     try {
       String res = await FireStoreMethods().postComment(
         widget.postId,
+        widget.description,
         commentEditingController.text,
+        widget.rating,
+        widget.userquepostou,
         uid,
         name,
         profilePic,
@@ -129,6 +148,20 @@ class _CommentsScreenState extends State<CommentsScreen> {
           .deleteComment(widget.postId, commentId, widget.category);
       if (res == 'success') {
         showSnackBar(context, 'Comment deleted');
+      } else {
+        showSnackBar(context, res);
+      }
+    } catch (err) {
+      showSnackBar(context, err.toString());
+    }
+  }
+
+  void deleteSuggestion(String suggestionId) async {
+    try {
+      String res = await FireStoreMethods()
+          .deleteSuggestion(widget.postId, suggestionId, widget.category);
+      if (res == 'success') {
+        showSnackBar(context, 'Suggestion deleted');
       } else {
         showSnackBar(context, res);
       }
@@ -202,8 +235,11 @@ class _CommentsScreenState extends State<CommentsScreen> {
                                         comment.id == allDocuments[index].id);
                                 return CommentCard(
                                   snap: comments[commentIndex],
-                                  onDelete: () => showDeleteItemDialog(context,
-                                      commentIndex, comments[commentIndex].id),
+                                  onDelete: () => showDeleteItemDialog(
+                                      context,
+                                      commentIndex,
+                                      comments[commentIndex].id,
+                                      'comment'),
                                 );
                               } else {
                                 // Find the index of the suggestion in the suggestions list
@@ -216,7 +252,8 @@ class _CommentsScreenState extends State<CommentsScreen> {
                                   onDelete: () => showDeleteItemDialog(
                                       context,
                                       suggestionIndex,
-                                      suggestion[suggestionIndex].id),
+                                      suggestion[suggestionIndex].id,
+                                      'suggestion'),
                                 );
                               }
                             },

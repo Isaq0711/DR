@@ -180,6 +180,8 @@ class _VotationCardState extends State<VotationCard> {
                                 postId: widget.snap['votationId'],
                                 uid: widget.snap['uid'],
                                 username: widget.snap['username'],
+                                description: widget.snap['description'],
+                                rating: null,
                                 category: 'votations',
                               ),
                             ))
@@ -262,6 +264,9 @@ class _VotationCardState extends State<VotationCard> {
                                 height: 550.h,
                                 child: CommentsScreen(
                                     postId: widget.snap['votationId'],
+                                    description: widget.snap['description'],
+                                    userquepostou: widget.snap['uid'],
+                                    rating: "",
                                     category: 'votation')))
                       ]))
                     ])));
@@ -504,335 +509,358 @@ class _VotationCardState extends State<VotationCard> {
                                     )
                                   : SizedBox.shrink(),
                               SizedBox(
-                                  width: MediaQuery.of(context).size.width,
-                                  child: Container(
-                                      color: AppTheme.cinza,
-                                      width: double.infinity,
-                                      child: Column(
-                                        children: [
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                vertical: 4),
-                                            child: widget.snap['options']
-                                                        .length >
-                                                    1
-                                                ? DotsIndicator(
-                                                    dotsCount: widget
-                                                        .snap['options'].length,
-                                                    position: currentImageIndex
-                                                        .toInt(),
-                                                    decorator: DotsDecorator(
-                                                      color:
-                                                          const Color.fromARGB(
-                                                              255,
-                                                              112,
-                                                              112,
-                                                              112),
-                                                      activeColor:
-                                                          AppTheme.vinho,
-                                                      spacing:
-                                                          EdgeInsets.symmetric(
-                                                              horizontal: 4.0),
-                                                      size: Size.square(8.0),
-                                                      activeSize:
-                                                          Size(16.0, 8.0),
-                                                      activeShape:
-                                                          RoundedRectangleBorder(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(4.0),
-                                                      ),
-                                                    ),
-                                                  )
-                                                : SizedBox.shrink(),
-                                          ),
-                                          Container(
-                                            padding: EdgeInsets.symmetric(
-                                              vertical: 5,
-                                              horizontal: 10,
-                                            ),
-                                            child: Row(
-                                              children: <Widget>[
-                                                CircleAvatar(
-                                                  radius: 16,
-                                                  backgroundImage: NetworkImage(
-                                                    widget.snap['profImage']
-                                                        .toString(),
-                                                  ),
-                                                ),
-                                                Expanded(
-                                                  child: Padding(
-                                                    padding: EdgeInsets.only(
-                                                      left: 8,
-                                                    ),
-                                                    child: Column(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: <Widget>[
-                                                        InkWell(
-                                                          onTap: () {
-                                                            Navigator.of(
-                                                                    context)
-                                                                .push(
-                                                              MaterialPageRoute(
-                                                                builder:
-                                                                    (context) =>
-                                                                        ProfileScreen(
-                                                                  uid: widget
-                                                                          .snap[
-                                                                      'uid'],
-                                                                  isMainn:
-                                                                      false,
-                                                                ),
-                                                              ),
-                                                            );
-                                                          },
-                                                          child: Text(
-                                                            "Enquete de ${widget.snap['username']}",
-                                                            style: AppTheme
-                                                                .subtitle,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          Align(
-                                              alignment: Alignment.center,
-                                              child: Text(
-                                                widget.snap['question'],
-                                                style: AppTheme.dividerfont
-                                                    .copyWith(
-                                                        color: AppTheme
-                                                            .nearlyBlack),
-                                              )),
-                                          Padding(
-                                            padding: EdgeInsets.symmetric(
-                                                horizontal: 10),
-                                            child: Container(
-                                              child: ListView.builder(
-                                                shrinkWrap: true,
-                                                itemCount: descriptions.length,
-                                                itemBuilder: (context, index) {
-                                                  bool isVoted = widget
-                                                          .snap['votes']
-                                                          ?.any((vote) {
-                                                        return vote['uid'] ==
-                                                                user.uid &&
-                                                            vote['optionDescription'] ==
-                                                                descriptions[
-                                                                    index];
-                                                      }) ??
-                                                      false;
-
-                                                  bool hasVoted(
-                                                      List<dynamic>? votes,
-                                                      String uid) {
-                                                    return votes?.any((vote) =>
-                                                            vote['uid'] ==
-                                                            uid) ??
-                                                        false;
-                                                  }
-
-                                                  int optionVotes = widget
-                                                          .snap['votes']
-                                                          ?.where((vote) =>
-                                                              vote[
-                                                                  'optionDescription'] ==
-                                                              descriptions[
-                                                                  index])
-                                                          ?.length ??
-                                                      0;
-
-                                                  int totalVotes = widget
-                                                          .snap['votes']
-                                                          ?.length ??
-                                                      0;
-
-                                                  double percentage =
-                                                      calculatePercentage(
-                                                          optionVotes,
-                                                          totalVotes);
-
-                                                  return InkWell(
-                                                    onTap: () {
-                                                      String votationId = widget
-                                                          .snap['votationId']
-                                                          .toString();
-                                                      String uid = user.uid;
-                                                      int optionIndex = index;
-                                                      FireStoreMethods()
-                                                          .votePost(votationId,
-                                                              uid, optionIndex)
-                                                          .then((res) {
-                                                        setState(() {
-                                                          isLikeAnimating =
-                                                              res == 'success';
-                                                        });
-                                                      });
-                                                    },
-                                                    child: SizedBox(
-                                                      width: 50,
-                                                      height: 40.h,
-                                                      child: Card(
-                                                        shape:
+                                width: MediaQuery.of(context).size.width,
+                                child: GestureDetector(
+                                    onVerticalDragStart: (details) {
+                                      _showComments(context);
+                                    },
+                                    child: Container(
+                                        color: AppTheme.cinza,
+                                        width: double.infinity,
+                                        child: Column(
+                                          children: [
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 4),
+                                              child: widget.snap['options']
+                                                          .length >
+                                                      1
+                                                  ? DotsIndicator(
+                                                      dotsCount: widget
+                                                          .snap['options']
+                                                          .length,
+                                                      position:
+                                                          currentImageIndex
+                                                              .toInt(),
+                                                      decorator: DotsDecorator(
+                                                        color: const Color
+                                                            .fromARGB(
+                                                            255, 112, 112, 112),
+                                                        activeColor:
+                                                            AppTheme.vinho,
+                                                        spacing: EdgeInsets
+                                                            .symmetric(
+                                                                horizontal:
+                                                                    4.0),
+                                                        size: Size.square(8.0),
+                                                        activeSize:
+                                                            Size(16.0, 8.0),
+                                                        activeShape:
                                                             RoundedRectangleBorder(
                                                           borderRadius:
                                                               BorderRadius
-                                                                  .circular(10),
-                                                        ),
-                                                        elevation: 5,
-                                                        margin:
-                                                            EdgeInsets.fromLTRB(
-                                                                15, 10, 15, 0),
-                                                        color: isVoted
-                                                            ? AppTheme
-                                                                .nearlyBlack
-                                                            : AppTheme.vinho,
-                                                        child: Row(
-                                                          mainAxisAlignment:
-                                                              MainAxisAlignment
-                                                                  .center,
-                                                          children: [
-                                                            isVoted
-                                                                ? Icon(
-                                                                    Icons
-                                                                        .check_circle_outline,
-                                                                    size: 15,
-                                                                  )
-                                                                : SizedBox
-                                                                    .shrink(),
-                                                            Gap(2),
-                                                            Text(
-                                                              hasVoted(
-                                                                      widget.snap[
-                                                                          'votes'],
-                                                                      user.uid)
-                                                                  ? '${percentage.toStringAsFixed(0)}% votaram em ${descriptions[index]}'
-                                                                  : descriptions[
-                                                                      index],
-                                                              style: AppTheme
-                                                                  .dividerfont
-                                                                  .copyWith(
-                                                                      color: AppTheme
-                                                                          .nearlyWhite,
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .bold),
-                                                            ),
-                                                          ],
+                                                                  .circular(
+                                                                      4.0),
                                                         ),
                                                       ),
-                                                    ),
-                                                  );
-                                                },
-                                              ),
+                                                    )
+                                                  : SizedBox.shrink(),
                                             ),
-                                          ),
-                                          DefaultTextStyle(
-                                            style: TextStyle(
-                                                color: AppTheme.nearlyBlack,
-                                                fontFamily: 'Quicksand',
-                                                fontWeight: FontWeight.bold),
-                                            child: Padding(
+                                            Container(
                                               padding: EdgeInsets.symmetric(
-                                                  horizontal: 24),
+                                                vertical: 5,
+                                                horizontal: 10,
+                                              ),
                                               child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: [
-                                                  hasVoted(
-                                                          widget.snap['votes'],
-                                                          FirebaseAuth.instance
-                                                              .currentUser!.uid)
-                                                      ? InkWell(
-                                                          child: Text(
-                                                            "Remover voto",
-                                                            style: AppTheme
-                                                                .dividerfont,
-                                                          ),
-                                                          onTap: () {
-                                                            String votationId =
-                                                                widget.snap[
-                                                                        'votationId']
-                                                                    .toString();
-                                                            String uid =
-                                                                user.uid;
-                                                            FireStoreMethods()
-                                                                .removeVote(
-                                                                    votationId,
-                                                                    uid);
-                                                          },
-                                                        )
-                                                      : Gap(50.h),
-                                                  Stack(children: [
-                                                    if (commentLen > 0)
-                                                      Positioned(
-                                                        right: 3,
-                                                        top: 2,
-                                                        child: Container(
-                                                          padding:
-                                                              EdgeInsets.all(2),
-                                                          decoration:
-                                                              BoxDecoration(
-                                                            color:
-                                                                AppTheme.vinho,
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        7),
-                                                          ),
-                                                          constraints:
-                                                              BoxConstraints(
-                                                            minWidth: 17,
-                                                            minHeight: 17,
-                                                          ),
-                                                          child: Text(
-                                                            '$commentLen',
-                                                            style: TextStyle(
-                                                              color:
-                                                                  Colors.white,
-                                                              fontSize: 10,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                            ),
-                                                            textAlign: TextAlign
-                                                                .center,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    IconButton(
-                                                      icon: Icon(
-                                                        Icons.comment_rounded,
-                                                        color: AppTheme
-                                                            .nearlyBlack,
-                                                      ),
-                                                      onPressed: () {
-                                                        _showComments(context);
-                                                      },
+                                                children: <Widget>[
+                                                  CircleAvatar(
+                                                    radius: 16,
+                                                    backgroundImage:
+                                                        NetworkImage(
+                                                      widget.snap['profImage']
+                                                          .toString(),
                                                     ),
-                                                  ]),
-                                                  Text(
-                                                    DateFormat.yMMMd().format(
-                                                        widget.snap[
-                                                                'datePublished']
-                                                            .toDate()),
-                                                    style: AppTheme.caption,
+                                                  ),
+                                                  Expanded(
+                                                    child: Padding(
+                                                      padding: EdgeInsets.only(
+                                                        left: 8,
+                                                      ),
+                                                      child: Column(
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: <Widget>[
+                                                          InkWell(
+                                                            onTap: () {
+                                                              Navigator.of(
+                                                                      context)
+                                                                  .push(
+                                                                MaterialPageRoute(
+                                                                  builder:
+                                                                      (context) =>
+                                                                          ProfileScreen(
+                                                                    uid: widget
+                                                                            .snap[
+                                                                        'uid'],
+                                                                    isMainn:
+                                                                        false,
+                                                                  ),
+                                                                ),
+                                                              );
+                                                            },
+                                                            child: Text(
+                                                              "Enquete de ${widget.snap['username']}",
+                                                              style: AppTheme
+                                                                  .subtitle,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
                                                   ),
                                                 ],
                                               ),
                                             ),
-                                          ),
-                                        ],
-                                      ))),
+                                            Align(
+                                                alignment: Alignment.center,
+                                                child: Text(
+                                                  widget.snap['question'],
+                                                  style: AppTheme.dividerfont
+                                                      .copyWith(
+                                                          color: AppTheme
+                                                              .nearlyBlack),
+                                                )),
+                                            Padding(
+                                              padding: EdgeInsets.symmetric(
+                                                  horizontal: 10),
+                                              child: Container(
+                                                child: ListView.builder(
+                                                  shrinkWrap: true,
+                                                  itemCount:
+                                                      descriptions.length,
+                                                  itemBuilder:
+                                                      (context, index) {
+                                                    bool isVoted = widget
+                                                            .snap['votes']
+                                                            ?.any((vote) {
+                                                          return vote['uid'] ==
+                                                                  user.uid &&
+                                                              vote['optionDescription'] ==
+                                                                  descriptions[
+                                                                      index];
+                                                        }) ??
+                                                        false;
+
+                                                    bool hasVoted(
+                                                        List<dynamic>? votes,
+                                                        String uid) {
+                                                      return votes?.any(
+                                                              (vote) =>
+                                                                  vote['uid'] ==
+                                                                  uid) ??
+                                                          false;
+                                                    }
+
+                                                    int optionVotes = widget
+                                                            .snap['votes']
+                                                            ?.where((vote) =>
+                                                                vote[
+                                                                    'optionDescription'] ==
+                                                                descriptions[
+                                                                    index])
+                                                            ?.length ??
+                                                        0;
+
+                                                    int totalVotes = widget
+                                                            .snap['votes']
+                                                            ?.length ??
+                                                        0;
+
+                                                    double percentage =
+                                                        calculatePercentage(
+                                                            optionVotes,
+                                                            totalVotes);
+
+                                                    return InkWell(
+                                                      onTap: () {
+                                                        String votationId =
+                                                            widget.snap[
+                                                                    'votationId']
+                                                                .toString();
+                                                        String uid = user.uid;
+                                                        int optionIndex = index;
+                                                        FireStoreMethods()
+                                                            .votePost(
+                                                                votationId,
+                                                                uid,
+                                                                optionIndex)
+                                                            .then((res) {
+                                                          setState(() {
+                                                            isLikeAnimating =
+                                                                res ==
+                                                                    'success';
+                                                          });
+                                                        });
+                                                      },
+                                                      child: SizedBox(
+                                                        width: 50,
+                                                        height: 40.h,
+                                                        child: Card(
+                                                          shape:
+                                                              RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        10),
+                                                          ),
+                                                          elevation: 5,
+                                                          margin: EdgeInsets
+                                                              .fromLTRB(15, 10,
+                                                                  15, 0),
+                                                          color: isVoted
+                                                              ? AppTheme
+                                                                  .nearlyBlack
+                                                              : AppTheme.vinho,
+                                                          child: Row(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .center,
+                                                            children: [
+                                                              isVoted
+                                                                  ? Icon(
+                                                                      Icons
+                                                                          .check_circle_outline,
+                                                                      size: 15,
+                                                                    )
+                                                                  : SizedBox
+                                                                      .shrink(),
+                                                              Gap(2),
+                                                              Text(
+                                                                hasVoted(
+                                                                        widget.snap[
+                                                                            'votes'],
+                                                                        user
+                                                                            .uid)
+                                                                    ? '${percentage.toStringAsFixed(0)}% votaram em ${descriptions[index]}'
+                                                                    : descriptions[
+                                                                        index],
+                                                                style: AppTheme
+                                                                    .dividerfont
+                                                                    .copyWith(
+                                                                        color: AppTheme
+                                                                            .nearlyWhite,
+                                                                        fontWeight:
+                                                                            FontWeight.bold),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
+                                              ),
+                                            ),
+                                            DefaultTextStyle(
+                                              style: TextStyle(
+                                                  color: AppTheme.nearlyBlack,
+                                                  fontFamily: 'Quicksand',
+                                                  fontWeight: FontWeight.bold),
+                                              child: Padding(
+                                                padding: EdgeInsets.symmetric(
+                                                    horizontal: 24),
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    hasVoted(
+                                                            widget
+                                                                .snap['votes'],
+                                                            FirebaseAuth
+                                                                .instance
+                                                                .currentUser!
+                                                                .uid)
+                                                        ? InkWell(
+                                                            child: Text(
+                                                              "Remover voto",
+                                                              style: AppTheme
+                                                                  .dividerfont,
+                                                            ),
+                                                            onTap: () {
+                                                              String
+                                                                  votationId =
+                                                                  widget.snap[
+                                                                          'votationId']
+                                                                      .toString();
+                                                              String uid =
+                                                                  user.uid;
+                                                              FireStoreMethods()
+                                                                  .removeVote(
+                                                                      votationId,
+                                                                      uid);
+                                                            },
+                                                          )
+                                                        : Gap(50.h),
+                                                    Stack(children: [
+                                                      if (commentLen > 0)
+                                                        Positioned(
+                                                          right: 3,
+                                                          top: 2,
+                                                          child: Container(
+                                                            padding:
+                                                                EdgeInsets.all(
+                                                                    2),
+                                                            decoration:
+                                                                BoxDecoration(
+                                                              color: AppTheme
+                                                                  .vinho,
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          7),
+                                                            ),
+                                                            constraints:
+                                                                BoxConstraints(
+                                                              minWidth: 17,
+                                                              minHeight: 17,
+                                                            ),
+                                                            child: Text(
+                                                              '$commentLen',
+                                                              style: TextStyle(
+                                                                color: Colors
+                                                                    .white,
+                                                                fontSize: 10,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                              ),
+                                                              textAlign:
+                                                                  TextAlign
+                                                                      .center,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      IconButton(
+                                                        icon: Icon(
+                                                          Icons.comment_rounded,
+                                                          color: AppTheme
+                                                              .nearlyBlack,
+                                                        ),
+                                                        onPressed: () {
+                                                          _showComments(
+                                                              context);
+                                                        },
+                                                      ),
+                                                    ]),
+                                                    Text(
+                                                      DateFormat.yMMMd().format(
+                                                          widget.snap[
+                                                                  'datePublished']
+                                                              .toDate()),
+                                                      style: AppTheme.caption,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ))),
+                              )
                             ],
                           ))),
                   AnimatedOpacity(

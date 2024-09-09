@@ -6,6 +6,8 @@ import 'package:dressing_room/responsive/web_screen_layout.dart';
 import 'package:dressing_room/screens/signup_screen.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 //import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:dressing_room/providers/user_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:dressing_room/utils/colors.dart';

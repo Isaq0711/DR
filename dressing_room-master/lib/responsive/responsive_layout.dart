@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dressing_room/providers/user_provider.dart';
-import 'package:dressing_room/utils/global_variable.dart';
 import 'package:provider/provider.dart';
+import 'package:dressing_room/utils/global_variable.dart';
 
 class ResponsiveLayout extends StatefulWidget {
   final Widget mobileScreenLayout;

@@ -203,6 +203,9 @@ class _VotationCardState extends State<VotationCard> {
                                 height: 570.h,
                                 child: CommentsScreen(
                                     postId: widget.snap['votationId'],
+                                    userquepostou: widget.snap['uid'],
+                                    rating: "",
+                                    description: widget.snap['description'],
                                     category: 'votation')))
                       ]))
                     ])));

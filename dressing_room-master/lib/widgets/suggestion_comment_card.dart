@@ -140,18 +140,65 @@ class _SuggestionCommentCardState extends State<SuggestionCommentCard> {
                                     return ClipRRect(
                                         borderRadius: BorderRadius.circular(10),
                                         child: InkWell(
-                                          child: Image.network(
-                                            widget.snap.data()['photoUrls']
-                                                [index],
-                                            fit: BoxFit.fill,
-                                          ),
-                                          onTap: () {
-                                            SeePost(
-                                                isTagclicked: false,
-                                                postId: widget.snap
-                                                    .data()['postIds'][index]);
-                                          },
-                                        ));
+                                            child: Image.network(
+                                              widget.snap.data()['photoUrls']
+                                                  [index],
+                                              fit: BoxFit.fill,
+                                            ),
+                                            onTap: () {
+                                              widget.snap.data()['postIds']
+                                                          [index] !=
+                                                      ""
+                                                  ? Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            SeePost(
+                                                          isTagclicked: false,
+                                                          postId: widget.snap
+                                                                  .data()[
+                                                              'postIds'][index],
+                                                        ),
+                                                      ),
+                                                    )
+                                                  : showDialog(
+                                                      context: context,
+                                                      builder: (BuildContext
+                                                          context) {
+                                                        return Dialog(
+                                                            backgroundColor:
+                                                                AppTheme
+                                                                    .nearlyWhite,
+                                                            child: Column(
+                                                                mainAxisSize:
+                                                                    MainAxisSize
+                                                                        .min,
+                                                                children: [
+                                                                  Gap(5.h),
+                                                                  Text(
+                                                                    "Upload Feito",
+                                                                    style: AppTheme
+                                                                        .barapp,
+                                                                  ),
+                                                                  Gap(5.h),
+                                                                  ClipRRect(
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
+                                                                            10),
+                                                                    child: Image
+                                                                        .network(
+                                                                      widget.snap
+                                                                              .data()['photoUrls']
+                                                                          [
+                                                                          index],
+                                                                      fit: BoxFit
+                                                                          .fill,
+                                                                    ),
+                                                                  ),
+                                                                  Gap(30.h),
+                                                                ]));
+                                                      });
+                                            }));
                                   },
                                 )))),
                     widget.snap.data()['text'] == ''

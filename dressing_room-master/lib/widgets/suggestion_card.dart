@@ -18,18 +18,23 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
 class SuggestionCard extends StatefulWidget {
-  const SuggestionCard(
-      {Key? key,
-      required this.postId,
-      required this.category,
-      required this.username,
-      required this.uid})
-      : super(key: key);
+  const SuggestionCard({
+    Key? key,
+    required this.postId,
+    required this.category,
+    required this.username,
+    required this.uid,
+    required this.description,
+    required this.rating,
+  }) : super(key: key);
 
   final String? postId;
   final String category;
   final String? username;
   final String? uid;
+  final String? description;
+  final double? rating;
+
   @override
   _SuggestionCardState createState() => _SuggestionCardState();
 }
@@ -41,6 +46,8 @@ class _SuggestionCardState extends State<SuggestionCard>
   List<String> clothIds = [];
   List<dynamic> photoUrls = [];
   List<String> wardrobephotoUrls = [];
+  List<String> wardrobeIds = [];
+
   String? category;
 
   List<String> clothItens = [];
@@ -197,17 +204,18 @@ class _SuggestionCardState extends State<SuggestionCard>
                           onImageSelected: (Uint8List file) async {
                             File tempFile = await saveBytesToFile(file);
                             setState(() {
-                              photoUrls ??= [];
-                              photoUrls!.add(file);
-                              isLoading = true; // Ativar indicador de progresso
+                              photoUrls.add(file);
+
+                              isLoading = true;
                             });
 
                             try {
                               Uint8List? processedImage =
-                                  await removeBg(tempFile.path);
+                                  await removeBg(tempFile.path, false);
                               setState(() {
-                                photoUrls!.removeLast();
-                                photoUrls!.add(processedImage);
+                                photoUrls.removeLast();
+                                photoUrls.add(processedImage);
+                                postIds.add("");
                                 isLoading = false;
                               });
                             } catch (e) {
@@ -241,8 +249,8 @@ class _SuggestionCardState extends State<SuggestionCard>
                         return SelectImageDialog1por1(
                             onImageSelected: (Uint8List file) async {
                           setState(() {
-                            photoUrls ??= [];
-                            photoUrls!.add(file);
+                            postIds.add("");
+                            photoUrls.add(file);
                           });
                         });
                       },
@@ -443,65 +451,78 @@ class _SuggestionCardState extends State<SuggestionCard>
                           snapshot.data as List<QueryDocumentSnapshot>;
 
                       return SingleChildScrollView(
-                        child: SizedBox(
-                          height: 450.h,
-                          child: GridView.builder(
-                            gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 3,
-                              mainAxisSpacing: 8.h,
-                              crossAxisSpacing: 8.h,
-                              childAspectRatio: 1.0,
-                            ),
-                            itemCount: validFavorites.length,
-                            itemBuilder: (context, index) {
-                              String postId = validFavorites[index]['postId'];
-                              bool alreadyAdded = photoUrls.contains(
-                                  validFavorites[index]['photoUrls'][0]);
-
-                              return Container(
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: alreadyAdded
-                                          ? AppTheme.vinho
-                                          : Colors.transparent,
-                                      width: 4.0,
-                                    ),
-                                    borderRadius: BorderRadius.circular(10.0),
+                        child: Expanded(
+                          child: validFavorites.isNotEmpty
+                              ? GridView.builder(
+                                  gridDelegate:
+                                      SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 3,
+                                    mainAxisSpacing: 8.h,
+                                    crossAxisSpacing: 8.h,
+                                    childAspectRatio: 1.0,
                                   ),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(10),
-                                    child: InkWell(
-                                      child: Image.network(
-                                        validFavorites[index]['photoUrls'][0],
-                                        fit: BoxFit.fill,
-                                      ),
-                                      onTap: () {
-                                        alreadyAdded
-                                            ? setState(() {
-                                                photoUrls.remove(
-                                                    validFavorites[index]
-                                                        ['photoUrls'][0]);
-                                                postIds.remove(postId[index]);
-                                              })
-                                            : setState(() {
-                                                photoUrls.add(
-                                                    validFavorites[index]
-                                                        ['photoUrls'][0]);
-                                                postIds.add(postId[index]);
-                                              });
-                                      },
-                                    ),
-                                  ));
-                            },
-                          ),
+                                  itemCount: validFavorites.length,
+                                  itemBuilder: (context, index) {
+                                    String postId =
+                                        validFavorites[index]['postId'];
+                                    bool alreadyAdded = photoUrls.contains(
+                                        validFavorites[index]['photoUrls'][0]);
+
+                                    return Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: alreadyAdded
+                                                ? AppTheme.vinho
+                                                : Colors.transparent,
+                                            width: 4.0,
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(10.0),
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          child: InkWell(
+                                            child: Image.network(
+                                              validFavorites[index]['photoUrls']
+                                                  [0],
+                                              fit: BoxFit.fill,
+                                            ),
+                                            onTap: () {
+                                              alreadyAdded
+                                                  ? setState(() {
+                                                      photoUrls.remove(
+                                                          validFavorites[index]
+                                                              ['photoUrls'][0]);
+                                                      postIds.remove(
+                                                          postId[index]);
+                                                    })
+                                                  : setState(() {
+                                                      photoUrls.add(
+                                                          validFavorites[index]
+                                                              ['photoUrls'][0]);
+                                                      postIds
+                                                          .add(postId[index]);
+                                                    });
+                                            },
+                                          ),
+                                        ));
+                                  },
+                                )
+                              : Center(
+                                  child: Image.asset(
+                                    'assets/NO-CONTENT.png',
+                                    height: 250.h,
+                                    width: 200.w,
+                                  ),
+                                ),
                         ),
                       );
                     },
                   );
                 },
               ),
-              // Conteúdo da segunda aba (Cart)
+
               FutureBuilder<DocumentSnapshot>(
                 future: FirebaseFirestore.instance
                     .collection('cart')
@@ -516,31 +537,39 @@ class _SuggestionCardState extends State<SuggestionCard>
                     );
                   }
 
-                  if (!snapshot.hasData || snapshot.data == null) {
+                  if (!snapshot.hasData ||
+                      snapshot.data == null ||
+                      !snapshot.data!.exists) {
+                    return Center(
+                      child: Image.asset(
+                        'assets/NO-CONTENT.png',
+                        height: 250.h,
+                        width: 300.w,
+                      ),
+                    );
+                  }
+
+                  Map<String, dynamic>? data =
+                      snapshot.data?.data() as Map<String, dynamic>?;
+
+                  if (data == null) {
                     return Center(
                       child: Text("No data found!"),
                     );
                   }
 
-                  // Explicitly cast data to Map
-                  Map<String, dynamic> data =
-                      (snapshot.data as DocumentSnapshot).data()
-                          as Map<String, dynamic>;
-
-                  // Manipulate data and populate itens list
                   List<dynamic> itens = [];
-                  if (data != null) {
-                    data.entries.forEach((entry) {
-                      var itemData = entry.value;
-                      itemData['postId'] = entry.key; // Add the 'postId' field
-                      itens.add(itemData);
-                    });
-                  }
+
+                  data.entries.forEach((entry) {
+                    var itemData = entry.value;
+                    itemData['postId'] = entry.key; // Add the 'postId' field
+                    itens.add(itemData);
+                  });
 
                   return Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
                     child: SizedBox(
-                      height: 450,
+                      height: 500,
                       child: GridView.builder(
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 3,
@@ -555,37 +584,37 @@ class _SuggestionCardState extends State<SuggestionCard>
                               photoUrls.contains(itens[index]['photoUrl']);
 
                           return Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: alreadyAdded
-                                      ? AppTheme.vinho
-                                      : Colors.transparent,
-                                  width: 4.0,
-                                ),
-                                borderRadius: BorderRadius.circular(10.0),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: alreadyAdded
+                                    ? AppTheme.vinho
+                                    : Colors.transparent,
+                                width: 4.0,
                               ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: InkWell(
-                                  child: Image.network(
-                                    itens[index]['photoUrl'],
-                                    fit: BoxFit.fill,
-                                  ),
-                                  onTap: () {
-                                    alreadyAdded
-                                        ? setState(() {
-                                            photoUrls.remove(
-                                                itens[index]['photoUrl']);
-                                            postIds.remove(postId);
-                                          })
-                                        : setState(() {
-                                            photoUrls
-                                                .add(itens[index]['photoUrl']);
-                                            postIds.add(postId);
-                                          });
-                                  },
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: InkWell(
+                                child: Image.network(
+                                  itens[index]['photoUrl'],
+                                  fit: BoxFit.fill,
                                 ),
-                              ));
+                                onTap: () {
+                                  setState(() {
+                                    if (alreadyAdded) {
+                                      photoUrls
+                                          .remove(itens[index]['photoUrl']);
+                                      postIds.remove(postId);
+                                    } else {
+                                      photoUrls.add(itens[index]['photoUrl']);
+                                      postIds.add(postId);
+                                    }
+                                  });
+                                },
+                              ),
+                            ),
+                          );
                         },
                       ),
                     ),
@@ -801,12 +830,16 @@ class _SuggestionCardState extends State<SuggestionCard>
                                                           categoryItems[
                                                                   category]![
                                                               index]);
+                                                      postIds.remove(
+                                                          clothIds[index]);
                                                     })
                                                   : setState(() {
                                                       photoUrls.add(
                                                           categoryItems[
                                                                   category]![
                                                               index]);
+                                                      postIds
+                                                          .add(clothIds[index]);
                                                     });
                                             },
                                           ),
@@ -856,8 +889,10 @@ class _SuggestionCardState extends State<SuggestionCard>
                             alreadyAdded
                                 ? setState(() {
                                     photoUrls.remove(wardrobephotoUrls[index]);
+                                    postIds.remove(clothItens[index]);
                                   })
                                 : setState(() {
+                                    postIds.add(clothItens[index]);
                                     photoUrls.add(wardrobephotoUrls[index]);
                                   });
                           },
@@ -918,7 +953,10 @@ class _SuggestionCardState extends State<SuggestionCard>
                           FirebaseAuth.instance.currentUser!.uid,
                           photoUrls,
                           postIds,
-                          widget.category);
+                          widget.category,
+                          widget.description,
+                          widget.rating,
+                          widget.uid);
 
                       setState(() {
                         isLoading = false;
@@ -1034,6 +1072,7 @@ class _SuggestionCardState extends State<SuggestionCard>
                                             onTap: () {
                                               setState(() {
                                                 photoUrls.removeAt(index);
+                                                postIds.removeAt(index);
                                               });
                                             },
                                             child: Container(

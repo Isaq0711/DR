@@ -141,6 +141,24 @@ class _ProfileScreenState extends State<ProfileScreen>
           )
         : GestureDetector(
             onTap: closeDrawer,
+            onHorizontalDragUpdate: !widget.isMainn
+                ? (details) {
+                    if (details.primaryDelta! > 0) {
+                      // Se o arrasto horizontal for para a esquerda (negativo)
+                      Navigator.pop(context);
+                    }
+                  }
+                : (details) {
+                    if (details.primaryDelta! < 0) {
+                      openDrawer();
+                    }
+                    if (isDrawerOpen) {
+                      if (details.primaryDelta! > 0) {
+                        // Se o arrasto horizontal for para a esquerda (negativo)
+                        closeDrawer();
+                      }
+                    }
+                  },
             child: Stack(
               children: [
                 Scaffold(
@@ -200,8 +218,10 @@ class _ProfileScreenState extends State<ProfileScreen>
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) =>
-                                      TinderScreen(uid: widget.uid)),
+                                  builder: (context) => TinderScreen(
+                                        uid: widget.uid,
+                                        datainicial: null,
+                                      )),
                             );
                           },
                           backgroundColor: AppTheme.vinho,
@@ -437,6 +457,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                                                 return SizedBox(
                                                   height: 400.h,
                                                   child: GridView.builder(
+                                                    physics:
+                                                        const NeverScrollableScrollPhysics(),
                                                     gridDelegate:
                                                         SliverGridDelegateWithFixedCrossAxisCount(
                                                       crossAxisCount: 3,
@@ -508,7 +530,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                                                             [
                                                                             0]),
                                                                         fit: BoxFit
-                                                                            .fill,
+                                                                            .cover,
                                                                       ),
                                                           ),
                                                         ),
@@ -550,6 +572,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                                             return SizedBox(
                                               height: 400.h,
                                               child: GridView.builder(
+                                                physics:
+                                                    const NeverScrollableScrollPhysics(),
                                                 gridDelegate:
                                                     SliverGridDelegateWithFixedCrossAxisCount(
                                                   crossAxisCount: 3,
@@ -595,7 +619,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                                           image: NetworkImage(
                                                               snap['options'][0]
                                                                   ['photoUrl']),
-                                                          fit: BoxFit.fill,
+                                                          fit: BoxFit.cover,
                                                         ),
                                                       ),
                                                     ),
@@ -614,6 +638,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                                               child: SizedBox(
                                                 height: 430.h,
                                                 child: GridView.builder(
+                                                  physics:
+                                                      const NeverScrollableScrollPhysics(),
                                                   gridDelegate:
                                                       SliverGridDelegateWithFixedCrossAxisCount(
                                                     crossAxisCount: 3,
@@ -679,6 +705,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                                               : SizedBox(
                                                   height: 450.h,
                                                   child: GridView.builder(
+                                                    physics:
+                                                        const NeverScrollableScrollPhysics(),
                                                     gridDelegate:
                                                         SliverGridDelegateWithFixedCrossAxisCount(
                                                       crossAxisCount: 3,
@@ -744,7 +772,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                                                           .network(
                                                                         imageUrl,
                                                                         fit: BoxFit
-                                                                            .fill,
+                                                                            .cover,
                                                                         width: double
                                                                             .infinity,
                                                                       ),

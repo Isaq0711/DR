@@ -23,7 +23,8 @@ import 'package:image/image.dart' as img;
 import 'package:flutter/services.dart';
 
 class AddClothScreen extends StatefulWidget {
-  const AddClothScreen({Key? key}) : super(key: key);
+  final Uint8List? image;
+  const AddClothScreen({Key? key, this.image}) : super(key: key);
 
   @override
   _AddClothScreenState createState() => _AddClothScreenState();
@@ -263,28 +264,29 @@ class _AddClothScreenState extends State<AddClothScreen> {
           File tempFile2 = await saveBytesToFile(pngBytes);
 
           try {
-            Uint8List? processedImage2 = await removeBg(tempFile2.path);
+            Uint8List? processedImage2 = await removeBg(tempFile2.path, true);
             setState(() {
               isLoading = true;
             });
 
-            String res = await FireStoreMethods().uploadCloth(
-                _descriptionController.text,
-                processedImage2!,
-                uid,
-                selectedClothType,
-                selectedCategory,
-                isPublic,
-                _barCodeController.text,
-                marcas,
-                tecido);
+            Map<String, String> res = await FireStoreMethods().uploadCloth(
+              _descriptionController.text,
+              processedImage2,
+              uid,
+              selectedClothType,
+              selectedCategory,
+              isPublic,
+              _barCodeController.text,
+              marcas,
+              tecido,
+            );
 
-            if (res == "success") {
+            if (res["message"] == "success") {
               showSnackBar(context, 'Posted!');
-
+              res["clothId"];
               clearImages();
             } else {
-              showSnackBar(context, res);
+              showSnackBar(context, res["message"]!);
             }
           } catch (err) {
             showSnackBar(context, err.toString());
@@ -357,9 +359,14 @@ class _AddClothScreenState extends State<AddClothScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _selectImage(context);
-    });
+    _files = [];
+    if (widget.image == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _selectImage(context);
+      });
+    } else {
+      _files!.add(widget.image!);
+    }
     _flipCardController = FlipCardController();
 
     _draggedImagePosition = Offset.zero;
@@ -383,13 +390,12 @@ class _AddClothScreenState extends State<AddClothScreen> {
           onImageSelected: (Uint8List file) async {
             File tempFile = await saveBytesToFile(file);
             setState(() {
-              _files ??= [];
               _files!.add(file);
               isLoading = true;
             });
 
             try {
-              Uint8List? processedImage = await removeBg(tempFile.path);
+              Uint8List? processedImage = await removeBg(tempFile.path, false);
               setState(() {
                 _files!.removeLast();
                 _files!.add(processedImage!);

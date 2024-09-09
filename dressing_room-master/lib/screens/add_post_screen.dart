@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:flip_card/flip_card.dart';
+import 'package:flip_card/flip_card_controller.dart';
 import 'package:dressing_room/providers/user_provider.dart';
 import 'package:dressing_room/resources/firestore_methods.dart';
 import 'package:dressing_room/utils/colors.dart';
@@ -29,11 +30,14 @@ class AddPostScreen extends StatefulWidget {
 enum SwitchOption { optionA, optionB, optionC }
 
 class _AddPostScreenState extends State<AddPostScreen> {
+  late FlipCardController _flipCardController;
+  bool isFront = true;
   bool isAnonymous = false;
   String selectedCategory = 'Public';
   String categoria1 = 'Marcas de roupas presentes';
   String categoria2 = 'Tecido da roupa';
   String categoria3 = 'Locais ou ocasião';
+
   String? categoriaSelecionada;
   List<String>? pecasID;
   List<String>? pecasPhotoUrls;
@@ -52,9 +56,9 @@ class _AddPostScreenState extends State<AddPostScreen> {
   void initState() {
     super.initState();
     _files = [];
-
+    _flipCardController = FlipCardController();
     if (widget.image == null) {
-      WidgetsBinding.instance!.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         _selectImage(context);
       });
     } else {
@@ -301,24 +305,44 @@ class _AddPostScreenState extends State<AddPostScreen> {
                   onPressed: clearImages,
                 ),
                 actions: <Widget>[
-                  TextButton(
-                    onPressed: () => postImages(
-                      user.uid,
-                      user.username,
-                      user.photoUrl,
-                    ),
-                    child: const Text(
-                      "POST",
-                      style: TextStyle(
-                        color: Colors.blueAccent,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16.0,
-                      ),
-                    ),
-                  ),
+                  isFront
+                      ? TextButton(
+                          onPressed: () {
+                            _flipCardController.toggleCard();
+                          },
+                          child: const Text(
+                            "INFO",
+                            style: TextStyle(
+                              color: Colors.blueAccent,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16.0,
+                            ),
+                          ),
+                        )
+                      : TextButton(
+                          onPressed: () => postImages(
+                            user.uid,
+                            user.username,
+                            user.photoUrl,
+                          ),
+                          child: const Text(
+                            "POST",
+                            style: TextStyle(
+                              color: Colors.blueAccent,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16.0,
+                            ),
+                          ),
+                        ),
                 ],
                 toolbarHeight: 50.h),
             body: FlipCard(
+                onFlip: () {
+                  setState(() {
+                    isFront = !isFront;
+                  });
+                },
+                controller: _flipCardController,
                 fill: Fill.fillBack,
                 direction: FlipDirection.HORIZONTAL,
                 side: CardSide.FRONT,
@@ -637,10 +661,10 @@ class _AddPostScreenState extends State<AddPostScreen> {
                             ),
                             Gap(5),
                             Container(
-                                width: 350.w,
+                                width: 360.w,
                                 padding: EdgeInsets.symmetric(horizontal: 8),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.cinza,
+                                  color: Colors.grey[300],
                                   borderRadius: BorderRadius.circular(10.0),
                                 ),
                                 child: Padding(
@@ -667,7 +691,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                             Gap(5),
                             Padding(
                               padding:
-                                  const EdgeInsets.symmetric(horizontal: 8),
+                                  const EdgeInsets.symmetric(horizontal: 20),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 children: <Widget>[
@@ -801,7 +825,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                                                         .width *
                                                     0.2,
                                                 decoration: BoxDecoration(
-                                                  color: AppTheme.cinza,
+                                                  color: Colors.grey[300],
                                                   borderRadius:
                                                       BorderRadius.circular(15),
                                                 ),
@@ -846,8 +870,9 @@ class _AddPostScreenState extends State<AddPostScreen> {
                                                                         0.2,
                                                                     decoration:
                                                                         BoxDecoration(
-                                                                      color: AppTheme
-                                                                          .cinza,
+                                                                      color: Colors
+                                                                              .grey[
+                                                                          300],
                                                                       borderRadius:
                                                                           BorderRadius.circular(
                                                                               15),
@@ -942,7 +967,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                                                           .width *
                                                       0.2,
                                                   decoration: BoxDecoration(
-                                                    color: AppTheme.cinza,
+                                                    color: Colors.grey[300],
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             15),
@@ -987,7 +1012,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                                                                         decoration:
                                                                             BoxDecoration(
                                                                           color:
-                                                                              AppTheme.cinza,
+                                                                              Colors.grey[300],
                                                                           borderRadius:
                                                                               BorderRadius.circular(15),
                                                                         ),
@@ -1074,7 +1099,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                                                         .width *
                                                     0.2,
                                                 decoration: BoxDecoration(
-                                                  color: AppTheme.cinza,
+                                                  color: Colors.grey[300],
                                                   borderRadius:
                                                       BorderRadius.circular(15),
                                                 ),
@@ -1115,8 +1140,8 @@ class _AddPostScreenState extends State<AddPostScreen> {
                                                                     Container(
                                                                       decoration:
                                                                           BoxDecoration(
-                                                                        color: AppTheme
-                                                                            .cinza,
+                                                                        color: Colors
+                                                                            .grey[300],
                                                                         borderRadius:
                                                                             BorderRadius.circular(15),
                                                                       ),

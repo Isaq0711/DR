@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
-
 import 'package:dressing_room/utils/colors.dart';
 import 'package:flutter/cupertino.dart';
-
+import 'package:dressing_room/screens/tinder_like_page.dart';
 import 'package:intl/date_symbol_data_local.dart';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gap/gap.dart';
 import 'package:dressing_room/utils/utils.dart';
@@ -235,112 +233,177 @@ Widget buildCalendar(
       ]),
       Gap(5),
       Expanded(
-          child: GridView.builder(
-              controller: scrollController,
-              padding: EdgeInsets.zero,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                childAspectRatio: 0.4,
-              ),
-              itemCount: daysInMonth,
-              itemBuilder: (context, index) {
-                DateTime date = DateTime(month.year, month.month, index + 1);
-                bool selecionada = data.isAtSameMomentAs(date);
-                String text = date.day.toString();
-                String diadasemana = DateFormat.EEEE('pt_BR').format(date);
-
-                Map<String, dynamic>? calendarItem;
-                try {
-                  calendarItem = calendarItems.firstWhere(
-                    (item) => _isSameDay(item['data'].toDate(), date),
-                  );
-                } catch (e) {
-                  calendarItem = null;
+          child: GestureDetector(
+              /////////////////melhorar isso
+              onHorizontalDragEnd: (details) {
+                if (details.velocity.pixelsPerSecond.dx > 0) {
+                  previousMonth();
+                } else if (details.velocity.pixelsPerSecond.dx < 0) {
+                  nextMonth();
                 }
-
-                String? look =
-                    calendarItem != null ? calendarItem['look'] : null;
-
-                return InkWell(
-                  onTap: () {
-                    if (isWidget) {
-                      if (date.isBefore(DateTime.now())) {
-                        // Handle the case where the date is before the current date
-                      } else {
-                        onDateSelected(date);
-                        String formattedDate = DateFormat('yyyy-MM-dd')
-                            .format(calendarItems[0]['data']);
-                        // Use the formatted date as needed, for example:
-                        print(formattedDate); // Example usage
-                      }
-                    } else {
-                      //go to see look page
-                    }
-                  },
-                  child: Container(
-                    decoration: selecionada
-                        ? BoxDecoration(
-                            border: Border(
-                              top:
-                                  BorderSide(width: 3.0, color: AppTheme.vinho),
-                              left:
-                                  BorderSide(width: 3.0, color: AppTheme.vinho),
-                              right:
-                                  BorderSide(width: 3.0, color: AppTheme.vinho),
-                              bottom:
-                                  BorderSide(width: 3.0, color: AppTheme.vinho),
-                            ),
-                          )
-                        : BoxDecoration(
-                            border: Border(
-                              top: BorderSide(width: 1.0, color: Colors.grey),
-                              left: BorderSide(width: 1.0, color: Colors.grey),
-                              right: BorderSide(width: 1.0, color: Colors.grey),
-                              bottom:
-                                  BorderSide(width: 1.0, color: Colors.grey),
-                            ),
-                          ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Expanded(
-                          flex: 1,
-                          child: Center(
-                            child: Text(text, style: AppTheme.subtitle),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 4,
-                          child: SizedBox(
-                            child: look != null
-                                ? Image.network(
-                                    look,
-                                    width: 100,
-                                    height: 60,
-                                    fit: BoxFit.cover,
-                                  )
-                                : SizedBox
-                                    .shrink(), // If photoUrl is null, display an empty container
-                          ),
-                        ),
-                        Gap(3),
-                        Expanded(
-                          flex: 1,
-                          child: Padding(
-                            padding:
-                                const EdgeInsets.only(left: 3.0, right: 3.0),
-                            child: Text(
-                              diadasemana,
-                              textAlign: TextAlign.center,
-                              style: AppTheme.caption,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+              },
+              child: GridView.builder(
+                  controller: scrollController,
+                  padding: EdgeInsets.zero,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4,
+                    childAspectRatio: 0.4,
                   ),
-                );
-              }))
+                  itemCount: daysInMonth,
+                  itemBuilder: (context, index) {
+                    DateTime date =
+                        DateTime(month.year, month.month, index + 1);
+                    bool selecionada = data.isAtSameMomentAs(date);
+                    String text = date.day.toString();
+                    String diadasemana = DateFormat.EEEE('pt_BR').format(date);
+
+                    Map<String, dynamic>? calendarItem;
+                    try {
+                      calendarItem = calendarItems.firstWhere(
+                        (item) => _isSameDay(item['data'].toDate(), date),
+                      );
+                    } catch (e) {
+                      calendarItem = null;
+                    }
+
+                    String? look =
+                        calendarItem != null ? calendarItem['look'] : null;
+
+                    return InkWell(
+                      onTap: () {
+                        if (isWidget) {
+                          DateTime today = DateTime.now();
+                          DateTime todayNormalized =
+                              DateTime(today.year, today.month, today.day);
+                          DateTime dateNormalized =
+                              DateTime(date.year, date.month, date.day);
+
+                          if (dateNormalized.isBefore(todayNormalized)) {
+                            // Ação caso a data seja anterior ao dia de hoje
+                          } else {
+                            onDateSelected(date);
+                          }
+                        } else {
+                          // go to see look page
+                        }
+                      },
+                      child: Container(
+                        decoration: selecionada
+                            ? BoxDecoration(
+                                border: Border(
+                                  top: BorderSide(
+                                      width: 3.0, color: AppTheme.vinho),
+                                  left: BorderSide(
+                                      width: 3.0, color: AppTheme.vinho),
+                                  right: BorderSide(
+                                      width: 3.0, color: AppTheme.vinho),
+                                  bottom: BorderSide(
+                                      width: 3.0, color: AppTheme.vinho),
+                                ),
+                              )
+                            : BoxDecoration(
+                                border: Border(
+                                  top: BorderSide(
+                                      width: 1.0, color: Colors.grey),
+                                  left: BorderSide(
+                                      width: 1.0, color: Colors.grey),
+                                  right: BorderSide(
+                                      width: 1.0, color: Colors.grey),
+                                  bottom: BorderSide(
+                                      width: 1.0, color: Colors.grey),
+                                ),
+                              ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Expanded(
+                              flex: 1,
+                              child: Center(
+                                child: Text(text, style: AppTheme.subtitle),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 4,
+                              child: SizedBox(
+                                child: look != null
+                                    ? Image.network(
+                                        look,
+                                        width: 100,
+                                        height: 60,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : !isWidget
+                                        ? Builder(
+                                            builder: (context) {
+                                              // Defina as variáveis dentro do Builder
+                                              DateTime today = DateTime.now();
+                                              DateTime todayNormalized =
+                                                  DateTime(today.year,
+                                                      today.month, today.day);
+                                              DateTime dateNormalized =
+                                                  DateTime(date.year,
+                                                      date.month, date.day);
+
+                                              return dateNormalized
+                                                      .isBefore(todayNormalized)
+                                                  ? SizedBox
+                                                      .shrink() // Se a data for anterior ao dia de hoje, não exibe nada
+                                                  : InkWell(
+                                                      child: Column(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                        children: [
+                                                          Icon(Icons.add_circle,
+                                                              color: AppTheme
+                                                                  .vinho),
+                                                          Gap(5),
+                                                          Text("Add look",
+                                                              style: AppTheme
+                                                                  .subtitle),
+                                                        ],
+                                                      ),
+                                                      onTap: () {
+                                                        Navigator.push(
+                                                          context,
+                                                          MaterialPageRoute(
+                                                            builder: (context) =>
+                                                                TinderScreen(
+                                                              uid: FirebaseAuth
+                                                                  .instance
+                                                                  .currentUser!
+                                                                  .uid,
+                                                              datainicial:
+                                                                  dateNormalized,
+                                                            ),
+                                                          ),
+                                                        );
+                                                      },
+                                                    );
+                                            },
+                                          )
+                                        : SizedBox
+                                            .shrink(), // Se `isWidget` for verdadeiro, não exibe nada
+                              ),
+                            ),
+                            Gap(3),
+                            Expanded(
+                              flex: 1,
+                              child: Padding(
+                                padding: const EdgeInsets.only(
+                                    left: 3.0, right: 3.0),
+                                child: Text(
+                                  diadasemana,
+                                  textAlign: TextAlign.center,
+                                  style: AppTheme.caption,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  })))
     ],
   );
 }

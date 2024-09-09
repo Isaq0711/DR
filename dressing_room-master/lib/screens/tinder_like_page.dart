@@ -20,8 +20,10 @@ import 'package:dressing_room/utils/utils.dart';
 
 class TinderScreen extends StatefulWidget {
   final String uid;
+  final DateTime? datainicial;
 
-  const TinderScreen({Key? key, required this.uid}) : super(key: key);
+  const TinderScreen({Key? key, required this.uid, required this.datainicial})
+      : super(key: key);
 
   @override
   _TinderScreenState createState() => _TinderScreenState();
@@ -215,8 +217,8 @@ class _TinderScreenState extends State<TinderScreen> {
     setState(() {
       gettempo = getWheather(true, "");
     });
-    indexTempo = (calculateIndexFromDate(DateTime.now()));
-    dataEscolhida = DateTime.now();
+    indexTempo = (calculateIndexFromDate(widget.datainicial ?? DateTime.now()));
+    dataEscolhida = widget.datainicial ?? DateTime.now();
     initializeDateFormatting('pt_BR', null);
 
     getData();
@@ -236,7 +238,7 @@ class _TinderScreenState extends State<TinderScreen> {
         isLoading = true;
       });
       tempo = await getWheather(true, "");
-      indexTempo = calculateIndexFromDate(DateTime.now());
+      indexTempo = calculateIndexFromDate(widget.datainicial ?? DateTime.now());
     } catch (e) {
       print(e);
       // Handle the error appropriately here
@@ -254,7 +256,7 @@ class _TinderScreenState extends State<TinderScreen> {
           return Dialog(
             backgroundColor: AppTheme.cinza,
             child: CalendarWidget(
-              title: "Choose Date",
+              title: "Escolha uma data",
               Dataaa: dataEscolhida!,
               isWidget: true,
             ),
@@ -279,7 +281,7 @@ class _TinderScreenState extends State<TinderScreen> {
             child: Container(
                 decoration: BoxDecoration(
                   color: AppTheme.cinza,
-                  borderRadius: BorderRadius.vertical(
+                  borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(30),
                   ),
                 ),
@@ -298,12 +300,12 @@ class _TinderScreenState extends State<TinderScreen> {
                             color: AppTheme.nearlyWhite,
                           ),
                         ),
-                        Gap(5),
+                        const Gap(5),
                         Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 10),
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
                             child: SizedBox(
                                 height: 580.h,
-                                child: FavoritesScreen(
+                                child: const FavoritesScreen(
                                   isShoppingBag: true,
                                 )))
                       ]))
@@ -410,7 +412,9 @@ class _TinderScreenState extends State<TinderScreen> {
 
   Widget buildImageList(List<String>? images, int Index) {
     if (images == null || images.isEmpty) {
-      return SizedBox(); // or any other appropriate fallback widget
+      return SizedBox(
+        height: 70.h,
+      ); // or any other appropriate fallback widget
     }
     return SizedBox(
       height: 120.h,
@@ -419,8 +423,7 @@ class _TinderScreenState extends State<TinderScreen> {
         children: [
           Image.network(
             images[Index],
-            fit: BoxFit.contain,
-            width: 700.h,
+            fit: BoxFit.cover,
           ),
         ],
       ),
@@ -469,7 +472,7 @@ class _TinderScreenState extends State<TinderScreen> {
                 onPressed: () {
                   Navigator.pop(context);
                 },
-                icon: Icon(
+                icon: const Icon(
                   Icons.arrow_back_ios,
                 ),
               ),
@@ -489,14 +492,14 @@ class _TinderScreenState extends State<TinderScreen> {
               ],
             ),
             body: Column(children: [
-              Gap(10),
+              const Gap(10),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     indexTempo >= 40
-                        ? SizedBox.shrink()
+                        ? const SizedBox.shrink()
                         : tempo != null
                             ? Row(
                                 children: [
@@ -521,15 +524,15 @@ class _TinderScreenState extends State<TinderScreen> {
                                       ),
                                     ],
                                   ),
-                                  Gap(8),
+                                  const Gap(8),
                                   Text(
                                     getIcon(tempo!.condition[indexTempo]),
-                                    style: TextStyle(fontSize: 25),
+                                    style: const TextStyle(fontSize: 25),
                                   ),
                                 ],
                               )
                             : Container(),
-                    Gap(35),
+                    const Gap(35),
                     FloatingActionButton.extended(
                       onPressed: () {
                         setState(() {});
@@ -537,7 +540,8 @@ class _TinderScreenState extends State<TinderScreen> {
                       backgroundColor: AppTheme.vinho,
                       elevation: 2.0,
                       label: Text("CANVAS", style: AppTheme.subtitlewhite),
-                      icon: Icon(Icons.draw_outlined, color: Colors.white),
+                      icon:
+                          const Icon(Icons.draw_outlined, color: Colors.white),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10.0),
                         side: BorderSide(color: AppTheme.darkerText),
@@ -546,27 +550,43 @@ class _TinderScreenState extends State<TinderScreen> {
                   ],
                 ),
               ),
-              Gap(15),
+              const Gap(15),
               Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Gap(35),
-                      Expanded(
-                        child: Center(
+                      Center(
+                        child: InkWell(
                           child: Text(
                             '${DateFormat('dd', 'pt_BR').format(dataEscolhida!)} de ${DateFormat('MMMM', 'pt_BR').format(dataEscolhida!)} ',
                             style: AppTheme.subheadline,
                           ),
+                          onTap: () {
+                            showCalendar(context);
+                          },
                         ),
                       ),
                       IconButton(
                           onPressed: () {
                             showCalendar(context);
                           },
-                          icon:
-                              Icon(Icons.calendar_today, color: AppTheme.vinho))
+                          icon: Icon(Icons.calendar_today,
+                              color: AppTheme.vinho)),
+                      const Spacer(),
+                      InkWell(
+                          onTap: () {
+                            showTimePickerDialog(context);
+                          },
+                          child: Row(
+                            children: [
+                              Text(
+                                DateFormat('HH:mm').format(DateTime.now()),
+                                style: AppTheme.subheadline,
+                              ),
+                              Icon(Icons.av_timer, color: AppTheme.vinho),
+                            ],
+                          ))
                     ],
                   )),
               Gap(7.h),
@@ -598,7 +618,7 @@ class _TinderScreenState extends State<TinderScreen> {
                           buildImageList(
                               categoryItems['Pernas'] ?? [], pernaIndex),
                           buildImageList(categoryItems['Pés'] ?? [], pesIndex),
-                          Gap(20.h),
+                          const Spacer(),
                           Padding(
                             padding: const EdgeInsets.all(16.0),
                             child: Row(
@@ -728,6 +748,16 @@ class _TinderScreenState extends State<TinderScreen> {
     return true;
   }
 
+  Future<Map<String, DateTime>?> showTimePickerDialog(
+      BuildContext context) async {
+    return await showDialog<Map<String, DateTime>>(
+      context: context,
+      builder: (BuildContext context) {
+        return TimePickerWidget();
+      },
+    );
+  }
+
   bool _onUndo(
     int? previousIndex,
     int currentIndex,
@@ -738,22 +768,155 @@ class _TinderScreenState extends State<TinderScreen> {
     );
 
     setState(() {
-      // Verificar se as listas não estão vazias antes de acessar o último elemento
-      if (troncoIndexes.isNotEmpty &&
-          pernasIndexes.isNotEmpty &&
-          pesIndexes.isNotEmpty) {
-        // Atribuir os últimos índices antes de removê-los das listas
+      // Verifica se há índices salvos antes de desfazer a ação
+      if (categoryItems.containsKey('Tronco') &&
+          categoryItems['Tronco']!.isNotEmpty &&
+          troncoIndexes.isNotEmpty) {
         troncoIndex = troncoIndexes.last;
-        pernaIndex = pernasIndexes.last;
-        pesIndex = pesIndexes.last;
-
-        // Remover os últimos índices das listas
         troncoIndexes.removeLast();
+      }
+      if (categoryItems.containsKey('Pernas') &&
+          categoryItems['Pernas']!.isNotEmpty &&
+          pernasIndexes.isNotEmpty) {
+        pernaIndex = pernasIndexes.last;
         pernasIndexes.removeLast();
+      }
+      if (categoryItems.containsKey('Pés') &&
+          categoryItems['Pés']!.isNotEmpty &&
+          pesIndexes.isNotEmpty) {
+        pesIndex = pesIndexes.last;
         pesIndexes.removeLast();
       }
     });
 
     return true;
+  }
+}
+
+class TimePickerWidget extends StatefulWidget {
+  @override
+  _TimePickerWidgetState createState() => _TimePickerWidgetState();
+}
+
+class _TimePickerWidgetState extends State<TimePickerWidget> {
+  late DateTime selectedStartTime;
+  late DateTime selectedEndTime;
+
+  @override
+  void initState() {
+    super.initState();
+    List<DateTime> timeSlots = generateTimeSlots();
+    selectedStartTime = timeSlots.first;
+    selectedEndTime = selectedStartTime.add(const Duration(hours: 1));
+  }
+
+  // Função para gerar uma lista de horários de meia em meia hora
+  List<DateTime> generateTimeSlots() {
+    List<DateTime> times = [];
+    DateTime now = DateTime.now().add(const Duration(minutes: 30));
+    DateTime start = DateTime(
+        now.year, now.month, now.day, now.hour, now.minute >= 30 ? 30 : 0);
+    for (int i = 0; i < 48; i++) {
+      times.add(start.add(Duration(minutes: 30 * i)));
+    }
+    return times;
+  }
+
+  String formatTime(DateTime time) {
+    return DateFormat('HH:mm').format(time);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    List<DateTime> timeSlots = generateTimeSlots();
+
+    return Dialog(
+      backgroundColor: AppTheme.cinza,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Gap(5),
+          Text(
+            "Selecione o horário que usará o look",
+            style: AppTheme.barapp.copyWith(shadows: [
+              const Shadow(
+                blurRadius: 1.0,
+                color: Colors.black,
+              ),
+            ], fontSize: 15.h),
+          ),
+          const Gap(5),
+          DropdownButton<DateTime>(
+            dropdownColor: AppTheme.cinza,
+            iconEnabledColor: AppTheme.vinho,
+            value: timeSlots.contains(selectedStartTime)
+                ? selectedStartTime
+                : timeSlots.first,
+            onChanged: (DateTime? newValue) {
+              setState(() {
+                selectedStartTime = newValue!;
+                // Atualizar o horário final para ser 1h após o inicial
+                selectedEndTime =
+                    selectedStartTime.add(const Duration(hours: 1));
+              });
+            },
+            items: timeSlots.map<DropdownMenuItem<DateTime>>((DateTime value) {
+              return DropdownMenuItem<DateTime>(
+                value: value,
+                child: Text(
+                  formatTime(value),
+                  style: AppTheme.title,
+                ),
+              );
+            }).toList(),
+          ),
+          const Gap(5),
+          Text(
+            "Até: ",
+            style: AppTheme.dividerfont,
+          ),
+          const Gap(5),
+          // Menu para selecionar o horário final
+          DropdownButton<DateTime>(
+            dropdownColor: AppTheme.cinza,
+            iconEnabledColor: AppTheme.vinho,
+            value: timeSlots.contains(selectedEndTime)
+                ? selectedEndTime
+                : selectedStartTime.add(const Duration(hours: 1)),
+            onChanged: (DateTime? newValue) {
+              setState(() {
+                selectedEndTime = newValue!;
+              });
+            },
+            items: timeSlots.map<DropdownMenuItem<DateTime>>((DateTime value) {
+              return DropdownMenuItem<DateTime>(
+                value: value,
+                child: Text(
+                  formatTime(value),
+                  style: AppTheme.title,
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+      // actions: [
+      //   TextButton(
+      //     onPressed: () {
+      //       Navigator.of(context).pop(); // Fecha o diálogo sem fazer nada
+      //     },
+      //     child: Text('Cancelar'),
+      //   ),
+      //   TextButton(
+      //     onPressed: () {
+      //       Navigator.of(context).pop({
+      //         'startTime': selectedStartTime,
+      //         'endTime': selectedEndTime,
+      //       }); // Fecha o diálogo e retorna os horários selecionados
+      //     },
+      //     child: Text('Confirmar'),
+      //   ),
+      // ],
+    );
   }
 }

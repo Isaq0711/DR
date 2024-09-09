@@ -11,10 +11,12 @@ import 'package:dressing_room/screens/forum_screen.dart';
 import 'package:dressing_room/resources/storage_methods.dart';
 import 'package:provider/provider.dart';
 import 'package:dressing_room/providers/bottton_nav_controller.dart';
+import 'package:dressing_room/utils/utils.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:math';
 import 'package:dressing_room/models/cart.dart';
 import 'package:dressing_room/models/clothes.dart';
+import 'package:http/http.dart' as http;
 
 class FireStoreMethods {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -176,7 +178,7 @@ class FireStoreMethods {
     return res;
   }
 
-  Future<String> uploadCloth(
+  Future<Map<String, String>> uploadCloth(
     String description,
     Uint8List file,
     String uid,
@@ -217,10 +219,24 @@ class FireStoreMethods {
 
       await FireStoreMethods().addToWardrobe(clothId, uid, uid);
 
-      return "success";
+      return {"message": "success", "clothId": clothId};
     } catch (err) {
-      return err.toString();
+      return {"message": err.toString()};
     }
+  }
+
+  Future<String> deleteCloth(String clothId, String uid) async {
+    String res = "Some error occurred";
+    try {
+      await _firestore.collection('clothes').doc(clothId).delete();
+
+      await FireStoreMethods().removeFromWardrobe(clothId, uid);
+
+      res = 'success';
+    } catch (err) {
+      res = err.toString();
+    }
+    return res;
   }
 
   Future<String> uploadForum(
@@ -257,7 +273,24 @@ class FireStoreMethods {
       );
 
       _firestore.collection('forum').doc(forumId).set(forum.toJson());
-      res = "success";
+
+      var request = http.MultipartRequest(
+        "POST",
+        Uri.parse('http://$server:$port/forum'),
+      );
+
+      request.fields['postId'] = forumId;
+      request.fields['description'] = description;
+      request.fields['photoUrls'] = photoUrls.join(',');
+      request.fields['userQuePostou'] = uid;
+
+      final response = await request.send();
+
+      if (response.statusCode == 200) {
+        res = 'success';
+      } else {
+        res = "Suggestion saved in Firebase but failed to send to server";
+      }
     } catch (err) {
       res = err.toString();
     }
@@ -775,13 +808,22 @@ class FireStoreMethods {
     return initialRating;
   }
 
-  Future<String> postComment(String postId, String text, String uid,
-      String name, String profilePic, String category) async {
+  Future<String> postComment(
+      String postId,
+      String? description,
+      String text,
+      double? rating,
+      String userquepostou,
+      String uid,
+      String name,
+      String profilePic,
+      String category) async {
     String res = "Some error occurred";
+
     try {
       if (text.isNotEmpty) {
         String commentId = const Uuid().v1();
-        _firestore
+        await _firestore
             .collection(category)
             .doc(postId)
             .collection('comments')
@@ -794,7 +836,27 @@ class FireStoreMethods {
           'commentId': commentId,
           'datePublished': DateTime.now(),
         });
-        res = 'success';
+
+        var request = http.MultipartRequest(
+            "POST", Uri.parse('http://$server:$port/comments'));
+
+        request.fields['postId'] = postId;
+        request.fields['rating'] = rating.toString();
+        request.fields['description'] = description!;
+        request.fields['comentario'] = text;
+        request.fields['userQueComentou'] = uid;
+        request.fields['userQuePostou'] = userquepostou;
+        request.fields['category'] = category;
+        request.fields['photoUrls'] = "";
+        request.fields['tipo'] = "comentário";
+
+        final response = await request.send();
+
+        if (response.statusCode == 200) {
+          res = 'success';
+        } else {
+          res = "Comment saved in Firebase but failed to send to server";
+        }
       } else {
         res = "Please enter text";
       }
@@ -821,24 +883,73 @@ class FireStoreMethods {
     return res;
   }
 
-  Future<String> suggest(String? postId, String text, String uid,
-      List<dynamic> photoUrls, List<String> postIds, String categoria) async {
+  Future<String> suggest(
+    String? postId,
+    String text,
+    String uid,
+    List<dynamic> photoUrls,
+    List<String> postIds,
+    String categoria,
+    String? description,
+    double? rating,
+    String? userquepostou,
+  ) async {
     String res = "Some error occurred";
     try {
-      String suggestionId = const Uuid().v1();
-      _firestore
-          .collection(categoria)
+      if (text.isNotEmpty) {
+        String suggestionId = const Uuid().v1();
+        _firestore
+            .collection(categoria)
+            .doc(postId)
+            .collection('suggestion')
+            .doc(suggestionId)
+            .set({
+          'uid': uid,
+          'text': text,
+          'photoUrls': photoUrls,
+          'suggestionId': suggestionId,
+          'postIds': postIds,
+          'datePublished': DateTime.now(),
+        });
+        var request = http.MultipartRequest(
+            "POST", Uri.parse('http://$server:$port/comments'));
+
+        request.fields['postId'] = postId!;
+        request.fields['rating'] = rating.toString();
+        request.fields['description'] = description!;
+        request.fields['photoUrls'] = photoUrls.join(',');
+        request.fields['comentario'] = text;
+        request.fields['userQueComentou'] = uid;
+        request.fields['userQuePostou'] = userquepostou!;
+        request.fields['category'] = categoria;
+        request.fields['tipo'] = "sugestão";
+
+        final response = await request.send();
+
+        if (response.statusCode == 200) {
+          res = 'success';
+        } else {
+          res = "Suggestion saved in Firebase but failed to send to server";
+        }
+      } else {
+        res = "Please enter text";
+      }
+    } catch (err) {
+      res = err.toString();
+    }
+    return res;
+  }
+
+  Future<String> deleteSuggestion(
+      String postId, String suggestionId, String category) async {
+    String res = "Some error occurred";
+    try {
+      await _firestore
+          .collection(category)
           .doc(postId)
           .collection('suggestion')
           .doc(suggestionId)
-          .set({
-        'uid': uid,
-        'text': text,
-        'photoUrls': photoUrls,
-        'suggestionId': suggestionId,
-        'postIds': postIds,
-        'datePublished': DateTime.now(),
-      });
+          .delete();
       res = 'success';
     } catch (err) {
       res = err.toString();
@@ -1044,6 +1155,28 @@ class FireStoreMethods {
   Future<String> addToWardrobe(
       String clothId, String uid, String userquecriou) async {
     try {
+      DocumentReference clothRef = _firestore
+          .collection('wardrobe')
+          .doc(uid)
+          .collection('clothes')
+          .doc(clothId);
+
+      await clothRef.set({
+        'dateAdded': DateTime.now(),
+        'userquecriou': userquecriou,
+        'clothId': clothId
+      });
+
+      return 'Success';
+    } catch (err) {
+      // Imprime o erro completo no console para ajudar na depuração
+      print('An error occurred: $err');
+      return 'An error occurred: $err';
+    }
+  }
+
+  Future<String> removeFromWardrobe(String clothId, String uid) async {
+    try {
       // Referência para o documento dentro da subcoleção 'wardrobe'
       DocumentReference clothRef = _firestore
           .collection('wardrobe')
@@ -1051,23 +1184,18 @@ class FireStoreMethods {
           .collection('clothes') // Subcoleção para roupas
           .doc(clothId); // Usando clothId como identificador do documento
 
-      // Verificar se o documento já existe
+      // Verificar se o documento existe antes de tentar removê-lo
       DocumentSnapshot clothSnapshot = await clothRef.get();
 
       if (clothSnapshot.exists) {
         // Se o documento existir, removê-lo
         await clothRef.delete();
+        return 'Success';
       } else {
-        await clothRef.set({
-          'dateAdded': DateTime.now(),
-          'userquecriou': userquecriou,
-          'clothId': clothId
-        });
+        return 'Cloth not found in wardrobe';
       }
-
-      return 'Success'; // Operação bem-sucedida
     } catch (err) {
-      return 'An error occurred: $err'; // Retornar mensagem de erro em caso de falha
+      return 'An error occurred: $err';
     }
   }
 

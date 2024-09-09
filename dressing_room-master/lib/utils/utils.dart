@@ -14,7 +14,7 @@ import 'package:http/http.dart' as http;
 
 import 'colors.dart';
 
-String server = '192.168.1.14';
+String server = '192.168.1.16';
 String port = '5000';
 
 // Future<Uint8List> removeBg(String imagePath) async {
@@ -41,13 +41,15 @@ String port = '5000';
 //   }
 // }
 
-Future<Uint8List> removeBg(String imagePath) async {
+Future<Uint8List> removeBg(String imagePath, bool save) async {
   var request =
       http.MultipartRequest("POST", Uri.parse('http://$server:$port/removebg'));
   request.files.add(await http.MultipartFile.fromPath("image_file", imagePath));
   request.headers.addAll({"X-API-Key": "dress"});
+  request.fields['save'] = save.toString();
   request.fields['user'] = FirebaseAuth.instance.currentUser!.uid;
   final response = await request.send();
+
   if (response.statusCode == 200) {
     http.Response imgRes = await http.Response.fromStream(response);
     return imgRes.bodyBytes;

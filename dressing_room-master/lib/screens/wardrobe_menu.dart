@@ -110,7 +110,9 @@ class WardrobeMenu extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder: (context) => TinderScreen(
-                                uid: FirebaseAuth.instance.currentUser!.uid),
+                              uid: FirebaseAuth.instance.currentUser!.uid,
+                              datainicial: null,
+                            ),
                           ),
                         );
                       },

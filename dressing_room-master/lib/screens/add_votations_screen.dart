@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'my_wardrobe.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:dressing_room/widgets/select_image_dialog.dart';
+import 'package:flip_card/flip_card_controller.dart';
 import 'package:dressing_room/widgets/tag_card.dart';
 import 'package:dressing_room/widgets/friends_list.dart';
 import 'package:flip_card/flip_card.dart';
@@ -30,7 +31,9 @@ class AddVotationsScreen extends StatefulWidget {
 enum SwitchOption { optionA, optionB, optionC }
 
 class _AddVotationsScreenState extends State<AddVotationsScreen> {
+  bool isFront = true;
   List<Uint8List>? _files;
+  late FlipCardController _flipCardController;
   String selectedCategory = 'Public';
   String categoria1 = 'Marcas de roupas presentes';
   String categoria2 = 'Tecido da roupa';
@@ -51,7 +54,7 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
   void initState() {
     super.initState();
     _files = [];
-
+    _flipCardController = FlipCardController();
     if (widget.image == null) {
       WidgetsBinding.instance!.addPostFrameCallback((_) {
         _selectImage(context);
@@ -365,7 +368,21 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
                 onPressed: clearImages,
               ),
               actions: <Widget>[
-                if (_files!.length > 1 && isLoading == false)
+                if (isFront)
+                  TextButton(
+                    onPressed: () {
+                      _flipCardController.toggleCard();
+                    },
+                    child: const Text(
+                      "INFO",
+                      style: TextStyle(
+                        color: Colors.blueAccent,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16.0,
+                      ),
+                    ),
+                  )
+                else if (_files!.length > 1 && isLoading == false)
                   TextButton(
                     onPressed: () => uploadVotations(
                       user.uid,
@@ -384,6 +401,12 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
               ],
             ),
             body: FlipCard(
+                onFlip: () {
+                  setState(() {
+                    isFront = !isFront;
+                  });
+                },
+                controller: _flipCardController,
                 fill: Fill.fillBack,
                 direction: FlipDirection.HORIZONTAL,
                 side: CardSide.FRONT,
@@ -410,7 +433,7 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
                                               padding: EdgeInsets.symmetric(
                                                   horizontal: 8),
                                               decoration: BoxDecoration(
-                                                color: Colors.grey[200],
+                                                color: Colors.grey[300],
                                                 borderRadius:
                                                     BorderRadius.circular(10.0),
                                               ),
@@ -751,7 +774,7 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
                               width: 360.w,
                               padding: EdgeInsets.symmetric(horizontal: 8),
                               decoration: BoxDecoration(
-                                color: Colors.grey[200],
+                                color: Colors.grey[300],
                                 borderRadius: BorderRadius.circular(10.0),
                               ),
                               child: Padding(
@@ -761,7 +784,7 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
                                   style: AppTheme.title,
                                   decoration: InputDecoration(
                                     hintText:
-                                        "Escreva a descrição da Votation...",
+                                        "Escreva a descrição da enquete...",
                                     hintStyle: AppTheme.title,
                                     border: InputBorder.none,
                                   ),
@@ -875,7 +898,7 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
                                                       .width *
                                                   0.2,
                                               decoration: BoxDecoration(
-                                                color: AppTheme.cinza,
+                                                color: Colors.grey[300],
                                                 borderRadius:
                                                     BorderRadius.circular(15),
                                               ),
@@ -896,87 +919,83 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
                                           ),
                                           // Lista rolável
                                           Expanded(
-                                            child:
-                                                marcas != null &&
-                                                        marcas!.isNotEmpty
-                                                    ? ListView.builder(
-                                                        scrollDirection:
-                                                            Axis.horizontal,
-                                                        itemCount:
-                                                            marcas!.length,
-                                                        itemBuilder:
-                                                            (ctx, index) {
-                                                          return Padding(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .all(10.0),
-                                                            child: Stack(
-                                                              children: [
-                                                                Container(
-                                                                  width: MediaQuery.of(
-                                                                              context)
-                                                                          .size
-                                                                          .width *
-                                                                      0.2,
+                                            child: marcas != null &&
+                                                    marcas!.isNotEmpty
+                                                ? ListView.builder(
+                                                    scrollDirection:
+                                                        Axis.horizontal,
+                                                    itemCount: marcas!.length,
+                                                    itemBuilder: (ctx, index) {
+                                                      return Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .all(10.0),
+                                                        child: Stack(
+                                                          children: [
+                                                            Container(
+                                                              width: MediaQuery.of(
+                                                                          context)
+                                                                      .size
+                                                                      .width *
+                                                                  0.2,
+                                                              decoration:
+                                                                  BoxDecoration(
+                                                                color: Colors
+                                                                    .grey[300],
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            15),
+                                                              ),
+                                                              child: Center(
+                                                                child: Text(
+                                                                  marcas![
+                                                                      index],
+                                                                  style: AppTheme
+                                                                      .subtitle,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            Positioned(
+                                                              top: 0,
+                                                              right: 0,
+                                                              child:
+                                                                  GestureDetector(
+                                                                onTap: () {
+                                                                  setState(() {
+                                                                    marcas!.remove(
+                                                                        marcas![
+                                                                            index]);
+                                                                  });
+                                                                },
+                                                                child:
+                                                                    Container(
+                                                                  padding:
+                                                                      EdgeInsets
+                                                                          .all(
+                                                                              2),
                                                                   decoration:
                                                                       BoxDecoration(
-                                                                    color: AppTheme
-                                                                        .cinza,
-                                                                    borderRadius:
-                                                                        BorderRadius.circular(
-                                                                            15),
+                                                                    shape: BoxShape
+                                                                        .circle,
+                                                                    color: Colors
+                                                                        .white,
                                                                   ),
-                                                                  child: Center(
-                                                                    child: Text(
-                                                                      marcas![
-                                                                          index],
-                                                                      style: AppTheme
-                                                                          .subtitle,
-                                                                    ),
+                                                                  child: Icon(
+                                                                    Icons.close,
+                                                                    color: Colors
+                                                                        .black,
+                                                                    size: 12,
                                                                   ),
                                                                 ),
-                                                                Positioned(
-                                                                  top: 0,
-                                                                  right: 0,
-                                                                  child:
-                                                                      GestureDetector(
-                                                                    onTap: () {
-                                                                      setState(
-                                                                          () {
-                                                                        marcas!.remove(
-                                                                            marcas![index]);
-                                                                      });
-                                                                    },
-                                                                    child:
-                                                                        Container(
-                                                                      padding:
-                                                                          EdgeInsets.all(
-                                                                              2),
-                                                                      decoration:
-                                                                          BoxDecoration(
-                                                                        shape: BoxShape
-                                                                            .circle,
-                                                                        color: Colors
-                                                                            .white,
-                                                                      ),
-                                                                      child:
-                                                                          Icon(
-                                                                        Icons
-                                                                            .close,
-                                                                        color: Colors
-                                                                            .black,
-                                                                        size:
-                                                                            12,
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                              ],
+                                                              ),
                                                             ),
-                                                          );
-                                                        },
-                                                      )
-                                                    : Container(),
+                                                          ],
+                                                        ),
+                                                      );
+                                                    },
+                                                  )
+                                                : Container(),
                                           ),
                                         ],
                                       ),
@@ -1012,7 +1031,7 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
                                                         .width *
                                                     0.2,
                                                 decoration: BoxDecoration(
-                                                  color: AppTheme.cinza,
+                                                  color: Colors.grey[300],
                                                   borderRadius:
                                                       BorderRadius.circular(15),
                                                 ),
@@ -1057,8 +1076,8 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
                                                                           0.2,
                                                                       decoration:
                                                                           BoxDecoration(
-                                                                        color: AppTheme
-                                                                            .cinza,
+                                                                        color: Colors
+                                                                            .grey[300],
                                                                         borderRadius:
                                                                             BorderRadius.circular(15),
                                                                       ),
@@ -1147,7 +1166,7 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
                                                       .width *
                                                   0.2,
                                               decoration: BoxDecoration(
-                                                color: AppTheme.cinza,
+                                                color: Colors.grey[300],
                                                 borderRadius:
                                                     BorderRadius.circular(15),
                                               ),
@@ -1188,8 +1207,9 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
                                                                   Container(
                                                                     decoration:
                                                                         BoxDecoration(
-                                                                      color: AppTheme
-                                                                          .cinza,
+                                                                      color: Colors
+                                                                              .grey[
+                                                                          300],
                                                                       borderRadius:
                                                                           BorderRadius.circular(
                                                                               15),
