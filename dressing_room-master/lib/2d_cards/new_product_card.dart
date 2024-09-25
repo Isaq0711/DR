@@ -56,7 +56,7 @@ class _NewProductCardState extends State<NewProductCard> {
   @override
   void initState() {
     super.initState();
-    generateAvailableSizes();
+
     fetchCommentLen();
     isOnFav(
       widget.snap['productId'],
@@ -64,19 +64,6 @@ class _NewProductCardState extends State<NewProductCard> {
     isOnCart(
       widget.snap['productId'],
     );
-  }
-
-  void generateAvailableSizes() {
-    List<dynamic>? sizesIndices =
-        widget.snap['variations'][0]['sizesAvailable'] as List<dynamic>;
-
-    if (sizesIndices.isNotEmpty) {
-      String selectedCategory = widget.snap['category'];
-
-      availableSizes = sizesIndices.map((index) {
-        return categorySizes[selectedCategory]![index];
-      }).toList();
-    }
   }
 
   Future<bool> isOnCart(String productId) async {
@@ -221,17 +208,16 @@ class _NewProductCardState extends State<NewProductCard> {
           return Container();
         }
 
-        return Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
-            ),
+        return Padding(
+            padding: EdgeInsets.symmetric(horizontal: 5, vertical: 10),
             child: Container(
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: Colors.grey,
+                  color: AppTheme.nearlyBlack,
+                  width: 0.5,
                 ),
-                color: AppTheme.nearlyWhite,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(
+                    10.0), // Raio da borda, se desejar bordas arredondadas
               ),
               child: GestureDetector(
                 onTap: () {
@@ -239,6 +225,7 @@ class _NewProductCardState extends State<NewProductCard> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => SeePost(
+                          isSuggestioncliked: false,
                           isTagclicked: false,
                           postId: widget.snap['productId']),
                     ),
@@ -364,20 +351,15 @@ class _NewProductCardState extends State<NewProductCard> {
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    SizedBox(
-                        width: double.infinity,
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10.0),
+                      child: Image.network(
+                        widget.snap['variations'][0]['photoUrls'][0],
+                        fit: BoxFit.contain,
                         height: double.infinity,
-                        child: AspectRatio(
-                          aspectRatio: 9 / 16,
-                          child: ClipRRect(
-                              borderRadius: BorderRadius.circular(10.0),
-                              child: ClipRRect(
-                                child: Image.network(
-                                  widget.snap['variations'][0]['photoUrls'][0],
-                                  fit: BoxFit.cover,
-                                ),
-                              )),
-                        )),
+                        width: double.infinity,
+                      ),
+                    ),
                     widget.snap['variations'].length > 1
                         ? Positioned(
                             top: 10,
@@ -404,35 +386,11 @@ class _NewProductCardState extends State<NewProductCard> {
                       right: 10,
                       child: Column(
                         children: [
-                          Gap(5.h),
-                          SpeedDial(
-                            direction: SpeedDialDirection.down,
-                            child: Icon(
-                              Icons.more_vert_rounded,
-                              size: 28,
-                            ),
-                            buttonSize: Size(1.0, 29.0),
-                            closeManually: false,
-                            curve: Curves.bounceIn,
-                            overlayColor: Colors.black,
-                            overlayOpacity: 0.5,
-                            backgroundColor: AppTheme.cinza,
-                            foregroundColor: Colors.black,
-                            elevation: 8.0,
-                            shape: CircleBorder(),
-                            children: [
-                              SpeedDialChild(
-                                child: isAddedOnFav
-                                    ? Icon(
-                                        CupertinoIcons.heart_fill,
-                                        color: Colors.black.withOpacity(0.6),
-                                      )
-                                    : Icon(
-                                        CupertinoIcons.heart,
-                                        color: Colors.black.withOpacity(0.6),
-                                      ),
-                                backgroundColor: AppTheme.cinza,
-                                onTap: () {
+                          SizedBox(
+                            width: 35.0,
+                            height: 38.0,
+                            child: FloatingActionButton(
+                                onPressed: () {
                                   setState(() {
                                     isAddedOnFav = !isAddedOnFav;
                                     Future.delayed(Duration(milliseconds: 500),
@@ -449,39 +407,52 @@ class _NewProductCardState extends State<NewProductCard> {
                                         FirebaseAuth.instance.currentUser!.uid);
                                   });
                                 },
-                              ),
-                              SpeedDialChild(
-                                child: isAddedOnCart
+                                backgroundColor: AppTheme.cinza,
+                                elevation: 8.0,
+                                shape:
+                                    CircleBorder(), // Makes the button more circular
+                                child: isAddedOnFav
                                     ? Icon(
-                                        Icons.shopping_cart,
+                                        Icons.folder_copy_rounded,
                                         color: Colors.black.withOpacity(0.6),
+                                        size: 22,
                                       )
                                     : Icon(
-                                        Icons.shopping_cart_outlined,
+                                        Icons.folder_copy_outlined,
                                         color: Colors.black.withOpacity(0.6),
-                                      ),
-                                backgroundColor: AppTheme.cinza,
-                                labelStyle: TextStyle(fontSize: 18.0),
-                                onTap: () {
-                                  setState(() {
-                                    isAddedOnCart = !isAddedOnCart;
-                                  });
-                                  Future.microtask(() {
-                                    handleCartAction(
-                                        FirebaseAuth.instance.currentUser!.uid);
-                                  });
-                                },
-                              ),
-                              SpeedDialChild(
-                                child: Icon(
-                                  CupertinoIcons.bag,
-                                  color: Colors.black.withOpacity(0.6),
-                                ),
-                                backgroundColor: AppTheme.cinza,
-                                labelStyle: TextStyle(fontSize: 18.0),
-                                onTap: () => print('THIRD CHILD'),
-                              ),
-                            ],
+                                        size: 22,
+                                      )),
+                          ),
+                          Gap(5.h),
+                          SizedBox(
+                            width: 35.0,
+                            height: 38.0,
+                            child: FloatingActionButton(
+                              onPressed: () {
+                                setState(() {
+                                  isAddedOnCart = !isAddedOnCart;
+                                });
+                                Future.microtask(() {
+                                  handleCartAction(
+                                      FirebaseAuth.instance.currentUser!.uid);
+                                });
+                              },
+                              backgroundColor: AppTheme.cinza,
+                              elevation: 8.0,
+                              shape:
+                                  CircleBorder(), // Makes the button more circular
+                              child: isAddedOnCart
+                                  ? Icon(
+                                      Icons.shopping_cart,
+                                      size: 22,
+                                      color: Colors.black.withOpacity(0.6),
+                                    )
+                                  : Icon(
+                                      size: 22,
+                                      Icons.shopping_cart_outlined,
+                                      color: Colors.black.withOpacity(0.6),
+                                    ),
+                            ),
                           ),
                         ],
                       ),

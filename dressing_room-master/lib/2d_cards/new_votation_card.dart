@@ -33,6 +33,7 @@ class _NewVotationCardState extends State<NewVotationCard> {
   bool isLikeAnimating = false;
   bool showPecas = false;
   bool existemPecas = false;
+  Map<String, dynamic>? snapDialog;
   bool isAddedOnFav = false;
   int currentImageIndex = 0;
   List<String> descriptions = [];
@@ -40,6 +41,7 @@ class _NewVotationCardState extends State<NewVotationCard> {
   void initState() {
     super.initState();
     fetchCommentLen();
+    snapDialog = widget.snap;
     extractDescriptions();
     isOnFav(widget.snap['votationId']);
     checkExistemPecas();
@@ -194,6 +196,7 @@ class _NewVotationCardState extends State<NewVotationCard> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => SeePost(
+                          isSuggestioncliked: false,
                           postId: widget.snap['votationId'],
                           isTagclicked: false),
                     ),
@@ -222,8 +225,10 @@ class _NewVotationCardState extends State<NewVotationCard> {
                                               borderRadius:
                                                   BorderRadius.circular(10.0),
                                               child: PageView.builder(
-                                                itemCount: widget
-                                                    .snap['options'].length,
+                                                itemCount:
+                                                    snapDialog?['options']
+                                                            ?.length ??
+                                                        0,
                                                 controller: PageController(
                                                     initialPage:
                                                         currentImageIndex),
@@ -238,8 +243,10 @@ class _NewVotationCardState extends State<NewVotationCard> {
                                                         BorderRadius.circular(
                                                             25.0),
                                                     child: Image.network(
-                                                      widget.snap['options']
-                                                          [index]['photoUrl'],
+                                                      snapDialog?['options']
+                                                                  [index]
+                                                              ['photoUrl'] ??
+                                                          '',
                                                       fit: BoxFit.cover,
                                                     ),
                                                   );
@@ -248,54 +255,53 @@ class _NewVotationCardState extends State<NewVotationCard> {
                                             ),
                                           ),
                                           Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      vertical: 4.5),
-                                              child: DotsIndicator(
-                                                dotsCount: widget
-                                                    .snap['options'].length,
-                                                position:
-                                                    currentImageIndex.toInt(),
-                                                decorator: DotsDecorator(
-                                                  color: AppTheme.cinza,
-                                                  activeColor: AppTheme.vinho,
-                                                  spacing: const EdgeInsets
-                                                      .symmetric(
-                                                      horizontal: 4.0),
-                                                  size: const Size.square(8.0),
-                                                  activeSize:
-                                                      const Size(16.0, 8.0),
-                                                  activeShape:
-                                                      RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            4.0),
-                                                  ),
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 4.5),
+                                            child: DotsIndicator(
+                                              dotsCount: snapDialog?['options']
+                                                      ?.length ??
+                                                  0,
+                                              position: currentImageIndex,
+                                              decorator: DotsDecorator(
+                                                color: AppTheme.cinza,
+                                                activeColor: AppTheme.vinho,
+                                                spacing:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 4.0),
+                                                size: const Size.square(8.0),
+                                                activeSize:
+                                                    const Size(16.0, 8.0),
+                                                activeShape:
+                                                    RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          4.0),
                                                 ),
-                                              )),
+                                              ),
+                                            ),
+                                          ),
                                           Text("Vote:",
                                               style: AppTheme.subheadline),
-                                          Gap(10),
+                                          Gap(5.sp),
                                           Align(
                                             alignment: Alignment.centerLeft,
                                             child: Padding(
                                               padding: const EdgeInsets.only(
                                                   left: 4),
-                                              child: Container(
-                                                  child: ListView.builder(
+                                              child: ListView.builder(
                                                 shrinkWrap: true,
                                                 itemCount: descriptions.length,
                                                 itemBuilder: (context, index) {
-                                                  bool isVoted = widget
-                                                          .snap['votes']
-                                                          ?.any((vote) {
-                                                        return vote['uid'] ==
-                                                                user.uid &&
-                                                            vote['optionDescription'] ==
-                                                                descriptions[
-                                                                    index];
-                                                      }) ??
-                                                      false;
+                                                  bool isVoted =
+                                                      snapDialog?['votes']
+                                                              ?.any((vote) {
+                                                            return vote['uid'] ==
+                                                                    user.uid &&
+                                                                vote['optionDescription'] ==
+                                                                    descriptions[
+                                                                        index];
+                                                          }) ??
+                                                          false;
 
                                                   bool hasVoted(
                                                       List<dynamic>? votes,
@@ -306,8 +312,8 @@ class _NewVotationCardState extends State<NewVotationCard> {
                                                         false;
                                                   }
 
-                                                  int optionVotes = widget
-                                                          .snap['votes']
+                                                  int optionVotes = snapDialog?[
+                                                              'votes']
                                                           ?.where((vote) {
                                                         return vote[
                                                                 'optionDescription'] ==
@@ -315,10 +321,10 @@ class _NewVotationCardState extends State<NewVotationCard> {
                                                       })?.length ??
                                                       0;
 
-                                                  int totalVotes = widget
-                                                          .snap['votes']
-                                                          ?.length ??
-                                                      0;
+                                                  int totalVotes =
+                                                      snapDialog?['votes']
+                                                              ?.length ??
+                                                          0;
 
                                                   double percentage =
                                                       calculatePercentage(
@@ -326,27 +332,35 @@ class _NewVotationCardState extends State<NewVotationCard> {
                                                           totalVotes);
 
                                                   return InkWell(
-                                                    onTap: () {
+                                                    onTap: () async {
                                                       String votationId = widget
                                                           .snap['votationId']
                                                           .toString();
                                                       String uid = user.uid;
                                                       int optionIndex = index;
-                                                      FireStoreMethods()
+
+                                                      // Realiza o voto
+                                                      await FireStoreMethods()
                                                           .votePost(votationId,
-                                                              uid, optionIndex)
-                                                          .then((res) {
-                                                        setState(() {
-                                                          isLikeAnimating =
-                                                              res == 'success';
-                                                        });
-                                                        showSnackBar(
-                                                            context,
-                                                            res ??
-                                                                'An error occurred');
+                                                              uid, optionIndex);
+
+                                                      // Pega os votos atualizados do Firestore
+                                                      var updatedSnap =
+                                                          await FirebaseFirestore
+                                                              .instance
+                                                              .collection(
+                                                                  'votations')
+                                                              .doc(votationId)
+                                                              .get();
+
+                                                      setState(() {
+                                                        // Atualiza os dados do snapData com os votos atualizados
+                                                        snapDialog = updatedSnap
+                                                                .data() ??
+                                                            {};
                                                       });
                                                     },
-                                                    child: Container(
+                                                    child: SizedBox(
                                                       width: 50,
                                                       height: 35,
                                                       child: Card(
@@ -373,14 +387,13 @@ class _NewVotationCardState extends State<NewVotationCard> {
                                                                 ? Icon(
                                                                     Icons
                                                                         .check_circle_outline,
-                                                                    size: 15,
-                                                                  )
+                                                                    size: 15)
                                                                 : SizedBox
                                                                     .shrink(),
                                                             Gap(2),
                                                             Text(
                                                               hasVoted(
-                                                                      widget.snap[
+                                                                      snapDialog?[
                                                                           'votes'],
                                                                       user.uid)
                                                                   ? '${percentage.toStringAsFixed(0)}% voted for ${descriptions[index]}'
@@ -399,7 +412,7 @@ class _NewVotationCardState extends State<NewVotationCard> {
                                                     ),
                                                   );
                                                 },
-                                              )),
+                                              ),
                                             ),
                                           ),
                                           Gap(10),
@@ -448,123 +461,132 @@ class _NewVotationCardState extends State<NewVotationCard> {
                       ),
                     ),
                     Positioned(
-                        top: 5,
-                        right: 10,
-                        child: Column(
-                          children: [
-                            Gap(5),
-                            SizedBox(
-                              width: 29.0,
-                              height: 32.0,
-                              child: FloatingActionButton(
+                      top: 5,
+                      right: 10,
+                      child: Column(
+                        children: [
+                          Gap(5.h),
+                          SizedBox(
+                            width: 29.0,
+                            height: 32.0,
+                            child: FloatingActionButton(
+                              onPressed: () {
+                                setState(() {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => SeePost(
+                                          isSuggestioncliked: true,
+                                          postId: widget.snap['votationId'],
+                                          isTagclicked: false),
+                                    ),
+                                  );
+                                });
+                              },
+                              backgroundColor: AppTheme.cinza,
+                              elevation: 8.0,
+                              shape:
+                                  CircleBorder(), // Makes the button more circular
+                              child: ImageIcon(
+                                AssetImage(
+                                  'assets/ELECTION.png',
+                                ),
+                                size: 19,
+                                color: AppTheme.nearlyBlack,
+                              ),
+                            ),
+                          ),
+                          Gap(5.h),
+                          SizedBox(
+                            width: 35.0,
+                            height: 38.0,
+                            child: FloatingActionButton(
+                              onPressed: () {},
+                              backgroundColor: AppTheme.cinza,
+                              elevation: 8.0,
+                              shape:
+                                  CircleBorder(), // Makes the button more circular
+                              child: ImageIcon(
+                                AssetImage(
+                                  'assets/SUGGESTION-OUTLINED.png',
+                                ),
+                                color: AppTheme.nearlyBlack,
+                                size: 22,
+                              ),
+                            ),
+                          ),
+                          Gap(5.h),
+                          Visibility(
+                              visible: existemPecas,
+                              child: SizedBox(
+                                width: 35.0,
+                                height: 38.0,
+                                child: FloatingActionButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => SeePost(
+                                              isSuggestioncliked: false,
+                                              postId: widget.snap['votationId'],
+                                              isTagclicked: true),
+                                        ),
+                                      );
+                                    });
+                                  },
+                                  backgroundColor: AppTheme.cinza,
+                                  elevation: 8.0,
+                                  shape:
+                                      CircleBorder(), // Makes the button more circular
+                                  child: Icon(
+                                    CupertinoIcons.tag,
+                                    size: 22,
+                                    color: AppTheme.nearlyBlack,
+                                  ),
+                                ),
+                              )),
+                          Gap(5.h),
+                          SizedBox(
+                            width: 35.0,
+                            height: 38.0,
+                            child: FloatingActionButton(
                                 onPressed: () {
-                                  setState(() {});
+                                  setState(() {
+                                    isAddedOnFav = !isAddedOnFav;
+                                    Future.delayed(Duration(milliseconds: 500),
+                                        () {
+                                      isAddedOnFav
+                                          ? showSnackBar(
+                                              context, 'Added to Favorites')
+                                          : showSnackBar(context,
+                                              'Removed from Favorites');
+                                    });
+                                  });
+                                  Future.microtask(() {
+                                    handleFavAction(
+                                        FirebaseAuth.instance.currentUser!.uid);
+                                  });
                                 },
                                 backgroundColor: AppTheme.cinza,
                                 elevation: 8.0,
                                 shape:
                                     CircleBorder(), // Makes the button more circular
-                                child: ImageIcon(
-                                  AssetImage(
-                                    'assets/ELECTION.png',
-                                  ),
-                                  size: 19,
-                                  color: AppTheme.nearlyBlack,
-                                ),
-                              ),
-                            ),
-                            Gap(5.h),
-                            SpeedDial(
-                              direction: SpeedDialDirection.down,
-                              child: Icon(
-                                Icons.more_vert_rounded,
-                                size: 28,
-                              ),
-                              buttonSize: Size(1.0, 29.0),
-                              closeManually: false,
-                              curve: Curves.bounceIn,
-                              overlayColor: Colors.black,
-                              overlayOpacity: 0.5,
-                              backgroundColor: AppTheme.cinza,
-                              foregroundColor: Colors.black,
-                              elevation: 8.0,
-                              shape: CircleBorder(),
-                              children: [
-                                SpeedDialChild(
-                                  child: isAddedOnFav
-                                      ? Icon(
-                                          CupertinoIcons.heart_fill,
-                                          color: Colors.black.withOpacity(0.6),
-                                        )
-                                      : Icon(
-                                          CupertinoIcons.heart,
-                                          color: Colors.black.withOpacity(0.6),
-                                        ),
-                                  backgroundColor: AppTheme.cinza,
-                                  onTap: () {
-                                    setState(() {
-                                      isAddedOnFav = !isAddedOnFav;
-                                      Future.delayed(
-                                          Duration(milliseconds: 500), () {
-                                        isAddedOnFav
-                                            ? showSnackBar(
-                                                context, 'Added to Favorites')
-                                            : showSnackBar(context,
-                                                'Removed from Favorites');
-                                      });
-                                    });
-                                    Future.microtask(() {
-                                      handleFavAction(FirebaseAuth
-                                          .instance.currentUser!.uid);
-                                    });
-                                  },
-                                ),
-                                SpeedDialChild(
-                                  child: ImageIcon(
-                                    AssetImage(
-                                      'assets/SUGGESTION-OUTLINED.png',
-                                    ),
-                                    color: Colors.black.withOpacity(0.6),
-                                  ),
-                                  backgroundColor: AppTheme.cinza,
-                                  labelStyle: TextStyle(fontSize: 18.0),
-                                  onTap: () {},
-                                ),
-                              ],
-                            ),
-                            Gap(5),
-                            Visibility(
-                                visible: existemPecas,
-                                child: SizedBox(
-                                  width: 29.0,
-                                  height: 32.0,
-                                  child: FloatingActionButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => SeePost(
-                                                postId:
-                                                    widget.snap['votationId'],
-                                                isTagclicked: true),
-                                          ),
-                                        );
-                                      });
-                                    },
-                                    backgroundColor: AppTheme.cinza,
-                                    elevation: 8.0,
-                                    shape:
-                                        CircleBorder(), // Makes the button more circular
-                                    child: Icon(
-                                      CupertinoIcons.tag,
-                                      size: 18,
-                                      color: AppTheme.nearlyBlack,
-                                    ),
-                                  ),
-                                ))
-                          ],
-                        )),
+                                child: isAddedOnFav
+                                    ? Icon(
+                                        Icons.folder_copy_rounded,
+                                        color: Colors.black.withOpacity(0.6),
+                                        size: 22,
+                                      )
+                                    : Icon(
+                                        Icons.folder_copy_outlined,
+                                        color: Colors.black.withOpacity(0.6),
+                                        size: 22,
+                                      )),
+                          )
+                        ],
+                      ),
+                    ),
                     Positioned(
                         bottom: 0,
                         left: 0,

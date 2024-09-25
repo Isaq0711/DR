@@ -418,6 +418,8 @@ class _VotationCardState extends State<VotationCard> {
                                                     MaterialPageRoute(
                                                       builder: (context) =>
                                                           SeePost(
+                                                        isSuggestioncliked:
+                                                            false,
                                                         isTagclicked: false,
                                                         postId: widget.snap[
                                                                     'options'][

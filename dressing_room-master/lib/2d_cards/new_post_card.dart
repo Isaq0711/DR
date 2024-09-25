@@ -224,7 +224,9 @@ class _NewPostCardState extends State<NewPostCard> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => SeePost(
-                          postId: widget.snap['postId'], isTagclicked: false),
+                          postId: widget.snap['postId'],
+                          isTagclicked: false,
+                          isSuggestioncliked: false),
                     ),
                   );
                 },
@@ -309,8 +311,8 @@ class _NewPostCardState extends State<NewPostCard> {
                                             )
                                           : SizedBox.shrink(),
                                     ),
-                                    Gap(5),
-                                    Text("Rate this post:",
+                                    Gap(5.h),
+                                    Text("Avalie esse post:",
                                         style: AppTheme.subheadline),
                                     Gap(5.sp),
                                     RatingBar.builder(
@@ -333,7 +335,6 @@ class _NewPostCardState extends State<NewPostCard> {
                                       itemSize: 30.0,
                                       unratedColor: Colors.grey,
                                       onRatingUpdate: (rating) async {
-                                        print("Rating: $rating");
                                         String uid = user.uid;
                                         String postId =
                                             widget.snap['postId'].toString();
@@ -362,11 +363,9 @@ class _NewPostCardState extends State<NewPostCard> {
                           aspectRatio: 9 / 16,
                           child: ClipRRect(
                               borderRadius: BorderRadius.circular(10.0),
-                              child: ClipRRect(
-                                child: Image.network(
-                                  widget.snap['photoUrls'][0],
-                                  fit: BoxFit.cover,
-                                ),
+                              child: Image.network(
+                                widget.snap['photoUrls'][0],
+                                fit: BoxFit.cover,
                               )),
                         )),
                     widget.snap['photoUrls'].length > 1
@@ -395,34 +394,74 @@ class _NewPostCardState extends State<NewPostCard> {
                       right: 10,
                       child: Column(
                         children: [
-                          SpeedDial(
-                            direction: SpeedDialDirection.down,
-                            child: Icon(
-                              Icons.more_vert_rounded,
-                              size: 28,
-                            ),
-                            buttonSize: Size(1.0, 29.0),
-                            closeManually: false,
-                            curve: Curves.bounceIn,
-                            overlayColor: Colors.black,
-                            overlayOpacity: 0.5,
-                            backgroundColor: AppTheme.cinza,
-                            foregroundColor: Colors.black,
-                            elevation: 8.0,
-                            shape: CircleBorder(),
-                            children: [
-                              SpeedDialChild(
-                                child: isAddedOnFav
-                                    ? Icon(
-                                        CupertinoIcons.heart_fill,
-                                        color: Colors.black.withOpacity(0.6),
-                                      )
-                                    : Icon(
-                                        CupertinoIcons.heart,
-                                        color: Colors.black.withOpacity(0.6),
+                          SizedBox(
+                            width: 35.0,
+                            height: 38.0,
+                            child: FloatingActionButton(
+                              onPressed: () {
+                                setState(() {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => SeePost(
+                                        postId: widget.snap['postId'],
+                                        isTagclicked: false,
+                                        isSuggestioncliked: true,
                                       ),
-                                backgroundColor: AppTheme.cinza,
-                                onTap: () {
+                                    ),
+                                  );
+                                });
+                              },
+                              backgroundColor: AppTheme.cinza,
+                              elevation: 8.0,
+                              shape:
+                                  CircleBorder(), // Makes the button more circular
+                              child: ImageIcon(
+                                AssetImage(
+                                  'assets/SUGGESTION-OUTLINED.png',
+                                ),
+                                color: AppTheme.nearlyBlack,
+                                size: 22,
+                              ),
+                            ),
+                          ),
+                          Gap(5.h),
+                          Visibility(
+                              visible: existemPecas,
+                              child: SizedBox(
+                                width: 35.0,
+                                height: 38.0,
+                                child: FloatingActionButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => SeePost(
+                                              postId: widget.snap['postId'],
+                                              isSuggestioncliked: false,
+                                              isTagclicked: true),
+                                        ),
+                                      );
+                                    });
+                                  },
+                                  backgroundColor: AppTheme.cinza,
+                                  elevation: 8.0,
+                                  shape:
+                                      CircleBorder(), // Makes the button more circular
+                                  child: Icon(
+                                    CupertinoIcons.tag,
+                                    size: 22,
+                                    color: AppTheme.nearlyBlack,
+                                  ),
+                                ),
+                              )),
+                          Gap(5.h),
+                          SizedBox(
+                            width: 35.0,
+                            height: 38.0,
+                            child: FloatingActionButton(
+                                onPressed: () {
                                   setState(() {
                                     isAddedOnFav = !isAddedOnFav;
                                     Future.delayed(Duration(milliseconds: 500),
@@ -439,49 +478,22 @@ class _NewPostCardState extends State<NewPostCard> {
                                         FirebaseAuth.instance.currentUser!.uid);
                                   });
                                 },
-                              ),
-                              SpeedDialChild(
-                                  child: ImageIcon(
-                                    AssetImage(
-                                      'assets/SUGGESTION-OUTLINED.png',
-                                    ),
-                                    color: Colors.black.withOpacity(0.6),
-                                  ),
-                                  backgroundColor: AppTheme.cinza,
-                                  labelStyle: TextStyle(fontSize: 18.0),
-                                  onTap: () => print('THIRD CHILD')),
-                            ],
-                          ),
-                          Gap(5),
-                          Visibility(
-                              visible: existemPecas,
-                              child: SizedBox(
-                                width: 29.0,
-                                height: 32.0,
-                                child: FloatingActionButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => SeePost(
-                                              postId: widget.snap['postId'],
-                                              isTagclicked: true),
-                                        ),
-                                      );
-                                    });
-                                  },
-                                  backgroundColor: AppTheme.cinza,
-                                  elevation: 8.0,
-                                  shape:
-                                      CircleBorder(), // Makes the button more circular
-                                  child: Icon(
-                                    CupertinoIcons.tag,
-                                    size: 18,
-                                    color: AppTheme.nearlyBlack,
-                                  ),
-                                ),
-                              ))
+                                backgroundColor: AppTheme.cinza,
+                                elevation: 8.0,
+                                shape:
+                                    CircleBorder(), // Makes the button more circular
+                                child: isAddedOnFav
+                                    ? Icon(
+                                        Icons.folder_copy_rounded,
+                                        color: Colors.black.withOpacity(0.6),
+                                        size: 22,
+                                      )
+                                    : Icon(
+                                        Icons.folder_copy_outlined,
+                                        color: Colors.black.withOpacity(0.6),
+                                        size: 22,
+                                      )),
+                          )
                         ],
                       ),
                     ),

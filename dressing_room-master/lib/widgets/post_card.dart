@@ -23,11 +23,13 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 class PostCard extends StatefulWidget {
   final snap;
   final bool isTagCliked;
+  final bool isSuggestioncliked;
 
   const PostCard({
     Key? key,
     required this.snap,
     required this.isTagCliked,
+    required this.isSuggestioncliked,
   }) : super(key: key);
 
   @override
@@ -61,6 +63,11 @@ class _PostCardState extends State<PostCard> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.isTagCliked) {
         _showClothes(context);
+      }
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.isSuggestioncliked) {
+        _showSuggestionMenu(context);
       }
     });
   }
@@ -125,7 +132,7 @@ class _PostCardState extends State<PostCard> {
       context: context,
       isScrollControlled: true,
       builder: (BuildContext context) {
-        return Container(
+        return SizedBox(
             height: 650.h,
             child: Container(
                 decoration: BoxDecoration(
@@ -259,6 +266,7 @@ class _PostCardState extends State<PostCard> {
                                     builder: (context) => SeePost(
                                       isTagclicked: false,
                                       postId: widget.snap['pecasIds']![index],
+                                      isSuggestioncliked: false,
                                     ),
                                   ),
                                 );
@@ -520,475 +528,443 @@ class _PostCardState extends State<PostCard> {
           return Container();
         }
 
-        return Container(
-          child: Column(
-            children: [
-              GestureDetector(
-                onHorizontalDragUpdate: canScroll
-                    ? (details) {
-                        if (details.primaryDelta! > 0) {
-                          Navigator.pop(context);
-                        }
+        return Column(
+          children: [
+            GestureDetector(
+              onHorizontalDragUpdate: canScroll
+                  ? (details) {
+                      if (details.primaryDelta! > 0) {
+                        Navigator.pop(context);
                       }
-                    : null,
-                onVerticalDragStart: canScroll
-                    ? (details) {
-                        _showComments(context);
-                      }
-                    : null,
-                onTap: () {
-                  setState(() {
-                    showinfo = !showinfo;
-                  });
-                },
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    SizedBox(
-                      height: 690.h,
-                      child: AspectRatio(
-                        aspectRatio: 9 / 16,
-                        child: PageView.builder(
-                          itemCount: widget.snap['photoUrls'].length,
-                          controller:
-                              PageController(initialPage: currentImageIndex),
-                          physics: events.length >= 2
-                              ? const NeverScrollableScrollPhysics()
-                              : null,
-                          onPageChanged: (index) {
-                            setState(() {
-                              currentImageIndex = index;
-                            });
-                          },
-                          itemBuilder: (context, index) {
-                            return Listener(
-                                onPointerDown: (event) {
-                                  events.add(event.pointer);
-                                  print("event add");
-                                },
-                                onPointerUp: (event) {
-                                  events.clear();
-                                  print("events cleared");
+                    }
+                  : null,
+              onVerticalDragStart: canScroll
+                  ? (details) {
+                      _showComments(context);
+                    }
+                  : null,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  SizedBox(
+                    height: 690.h,
+                    child: AspectRatio(
+                      aspectRatio: 9 / 16,
+                      child: PageView.builder(
+                        itemCount: widget.snap['photoUrls'].length,
+                        controller:
+                            PageController(initialPage: currentImageIndex),
+                        physics: events.length >= 2
+                            ? const NeverScrollableScrollPhysics()
+                            : null,
+                        onPageChanged: (index) {
+                          setState(() {
+                            currentImageIndex = index;
+                          });
+                        },
+                        itemBuilder: (context, index) {
+                          return Listener(
+                              onPointerDown: (event) {
+                                events.add(event.pointer);
+                                print("event add");
+                              },
+                              onPointerUp: (event) {
+                                events.clear();
+                                print("events cleared");
 
+                                setState(() {
+                                  canScroll = true;
+                                  _zoomToMin();
+                                });
+
+                                context.read<ZoomProvider>().setZoom(false);
+                              },
+                              onPointerMove: (event) {
+                                if (events.length > 1) {
                                   setState(() {
-                                    canScroll = true;
-                                    _zoomToMin();
+                                    canScroll = false;
                                   });
-
-                                  context.read<ZoomProvider>().setZoom(false);
-                                },
-                                onPointerMove: (event) {
-                                  if (events.length > 1) {
-                                    setState(() {
-                                      canScroll = false;
-                                    });
-                                    context.read<ZoomProvider>().setZoom(true);
-                                  }
-                                },
-                                child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(10.0),
-                                    child: InteractiveViewer(
+                                  context.read<ZoomProvider>().setZoom(true);
+                                }
+                              },
+                              child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  child: InteractiveViewer(
                                       transformationController:
                                           _transformationController,
                                       clipBehavior: Clip.none,
                                       minScale: 1,
                                       maxScale: 16,
-                                      child: Image.network(
-                                        widget.snap['photoUrls'][index],
-                                        fit: BoxFit.cover,
-                                      ),
-                                    )));
-                          },
-                        ),
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            showinfo = !showinfo;
+                                          });
+                                        },
+                                        child: Image.network(
+                                          widget.snap['photoUrls'][index],
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ))));
+                        },
                       ),
                     ),
-                    Positioned(
-                      top: 5,
-                      right: 10,
-                      child: Visibility(
-                        visible: showinfo,
-                        child: Column(
-                          children: [
-                            SpeedDial(
-                              direction: SpeedDialDirection.down,
-                              child: Icon(
-                                Icons.more_vert_rounded,
-                                size: 28,
-                              ),
-                              buttonSize: Size(1.0, 29.0),
-                              closeManually: false,
-                              curve: Curves.bounceIn,
-                              overlayColor: Colors.black,
-                              overlayOpacity: 0.5,
-                              backgroundColor: AppTheme.cinza,
-                              foregroundColor: Colors.black,
-                              elevation: 8.0,
-                              shape: CircleBorder(),
-                              children: [
-                                SpeedDialChild(
-                                  child: isAddedOnFav
-                                      ? Icon(
-                                          CupertinoIcons.heart_fill,
-                                          color: Colors.black.withOpacity(0.6),
-                                        )
-                                      : Icon(
-                                          CupertinoIcons.heart,
-                                          color: Colors.black.withOpacity(0.6),
-                                        ),
-                                  backgroundColor: AppTheme.cinza,
-                                  onTap: () {
+                  ),
+                  Positioned(
+                    top: 5,
+                    right: 10,
+                    child: Visibility(
+                      visible: showinfo,
+                      child: Column(
+                        children: [
+                          Visibility(
+                              visible: existemPecas,
+                              child: SizedBox(
+                                width: 35.0,
+                                height: 38.0,
+                                child: FloatingActionButton(
+                                  onPressed: () {
                                     setState(() {
-                                      isAddedOnFav = !isAddedOnFav;
-                                      Future.delayed(
-                                          Duration(milliseconds: 500), () {
-                                        isAddedOnFav
-                                            ? showSnackBar(
-                                                context, 'Added to Favorites')
-                                            : showSnackBar(context,
-                                                'Removed from Favorites');
-                                      });
-                                    });
-                                    Future.microtask(() {
-                                      handleFavAction(FirebaseAuth
-                                          .instance.currentUser!.uid);
+                                      _showClothes(context);
                                     });
                                   },
-                                ),
-                                FirebaseAuth.instance.currentUser!.uid !=
-                                        widget.snap['uid']
-                                    ? SpeedDialChild(
-                                        child: ImageIcon(
-                                          const AssetImage(
-                                            'assets/SUGGESTION-OUTLINED.png',
-                                          ),
-                                          color: Colors.black.withOpacity(0.6),
-                                        ),
-                                        backgroundColor: AppTheme.cinza,
-                                        labelStyle: TextStyle(fontSize: 18.0),
-                                        onTap: () {
-                                          _showSuggestionMenu(context);
-                                        })
-                                    : SpeedDialChild(
-                                        child: Icon(
-                                          Icons.delete_outline,
-                                          color: Colors.black.withOpacity(0.6),
-                                        ),
-                                        onTap: () {
-                                          showDeleteItemDialog(context);
-                                        },
-                                        backgroundColor: AppTheme.cinza,
-                                      )
-                              ],
-                            ),
-                            Gap(5),
-                            Visibility(
-                                visible: existemPecas,
-                                child: SizedBox(
-                                  width: 29.0,
-                                  height: 32.0,
-                                  child: FloatingActionButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        _showClothes(context);
-                                      });
-                                    },
-                                    backgroundColor: AppTheme.cinza,
-                                    elevation: 8.0,
-                                    shape:
-                                        CircleBorder(), // Makes the button more circular
-                                    child: Icon(
-                                      CupertinoIcons.tag,
-                                      size: 18,
-                                      color: AppTheme.nearlyBlack,
-                                    ),
+                                  backgroundColor: AppTheme.cinza,
+                                  elevation: 8.0,
+                                  shape:
+                                      CircleBorder(), // Makes the button more circular
+                                  child: Icon(
+                                    CupertinoIcons.tag,
+                                    size: 18,
+                                    color: AppTheme.nearlyBlack,
                                   ),
-                                ))
-                          ],
-                        ),
+                                ),
+                              )),
+                          Gap(5.h),
+                          SizedBox(
+                            width: 35.0,
+                            height: 38.0,
+                            child: FloatingActionButton(
+                                onPressed: () {
+                                  setState(() {
+                                    isAddedOnFav = !isAddedOnFav;
+                                    Future.delayed(Duration(milliseconds: 500),
+                                        () {
+                                      isAddedOnFav
+                                          ? showSnackBar(
+                                              context, 'Added to Favorites')
+                                          : showSnackBar(context,
+                                              'Removed from Favorites');
+                                    });
+                                  });
+                                  Future.microtask(() {
+                                    handleFavAction(
+                                        FirebaseAuth.instance.currentUser!.uid);
+                                  });
+                                },
+                                backgroundColor: AppTheme.cinza,
+                                elevation: 8.0,
+                                shape:
+                                    CircleBorder(), // Makes the button more circular
+                                child: isAddedOnFav
+                                    ? Icon(
+                                        Icons.folder_copy_rounded,
+                                        color: Colors.black.withOpacity(0.6),
+                                        size: 22,
+                                      )
+                                    : Icon(
+                                        Icons.folder_copy_outlined,
+                                        color: Colors.black.withOpacity(0.6),
+                                        size: 22,
+                                      )),
+                          ),
+                          Gap(5.h),
+                          FirebaseAuth.instance.currentUser!.uid ==
+                                  widget.snap['uid']
+                              ? SizedBox(
+                                  width: 35.0,
+                                  height: 38.0,
+                                  child: FloatingActionButton(
+                                      onPressed: () {
+                                        showDeleteItemDialog(context);
+                                      },
+                                      backgroundColor: AppTheme.cinza,
+                                      elevation: 8.0,
+                                      shape:
+                                          CircleBorder(), // Makes the button more circular
+                                      child: Icon(
+                                        Icons.delete_outline,
+                                        color: Colors.black.withOpacity(0.6),
+                                        size: 22,
+                                      )),
+                                )
+                              : SizedBox.shrink()
+                        ],
                       ),
                     ),
-                    Positioned(
-                        bottom: 0,
-                        left: 0,
-                        child: Visibility(
-                            visible: showinfo,
-                            child: Column(children: [
-                              SizedBox(
-                                  width: MediaQuery.of(context).size.width,
-                                  child: Container(
-                                      color: AppTheme.cinza,
-                                      width: double.infinity,
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.end,
-                                        children: [
-                                          Padding(
+                  ),
+                  Positioned(
+                      bottom: 0,
+                      left: 0,
+                      child: Visibility(
+                          visible: showinfo,
+                          child: Column(children: [
+                            SizedBox(
+                                width: MediaQuery.of(context).size.width,
+                                child: Container(
+                                    color: AppTheme.cinza,
+                                    width: double.infinity,
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 4.5),
+                                          child: widget.snap['photoUrls']
+                                                      .length >
+                                                  1
+                                              ? DotsIndicator(
+                                                  dotsCount: widget
+                                                      .snap['photoUrls'].length,
+                                                  position:
+                                                      currentImageIndex.toInt(),
+                                                  decorator: DotsDecorator(
+                                                    color: Colors.grey,
+                                                    activeColor: AppTheme.vinho,
+                                                    spacing: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 4.0),
+                                                    size:
+                                                        const Size.square(8.0),
+                                                    activeSize:
+                                                        const Size(16.0, 8.0),
+                                                    activeShape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              4.0),
+                                                    ),
+                                                  ),
+                                                )
+                                              : SizedBox.shrink(),
+                                        ),
+                                        Padding(
                                             padding: const EdgeInsets.symmetric(
-                                                vertical: 4.5),
-                                            child: widget.snap['photoUrls']
-                                                        .length >
-                                                    1
-                                                ? DotsIndicator(
-                                                    dotsCount: widget
-                                                        .snap['photoUrls']
-                                                        .length,
-                                                    position: currentImageIndex
-                                                        .toInt(),
-                                                    decorator: DotsDecorator(
-                                                      color: Colors.grey,
-                                                      activeColor:
-                                                          AppTheme.vinho,
-                                                      spacing: const EdgeInsets
-                                                          .symmetric(
-                                                          horizontal: 4.0),
-                                                      size: const Size.square(
-                                                          8.0),
-                                                      activeSize:
-                                                          const Size(16.0, 8.0),
-                                                      activeShape:
-                                                          RoundedRectangleBorder(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(4.0),
-                                                      ),
+                                                horizontal: 10, vertical: 5),
+                                            child: Column(children: [
+                                              Row(
+                                                children: <Widget>[
+                                                  CircleAvatar(
+                                                    radius: 16,
+                                                    backgroundImage:
+                                                        NetworkImage(
+                                                      widget.snap['profImage']
+                                                          .toString(),
                                                     ),
-                                                  )
-                                                : SizedBox.shrink(),
-                                          ),
-                                          Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 10,
-                                                      vertical: 5),
-                                              child: Column(children: [
-                                                Row(
-                                                  children: <Widget>[
-                                                    CircleAvatar(
-                                                      radius: 16,
-                                                      backgroundImage:
-                                                          NetworkImage(
-                                                        widget.snap['profImage']
-                                                            .toString(),
+                                                    backgroundColor: Colors
+                                                        .transparent, // Define o fundo como transparente
+                                                  ),
+                                                  Expanded(
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                        left: 8,
                                                       ),
-                                                      backgroundColor: Colors
-                                                          .transparent, // Define o fundo como transparente
-                                                    ),
-                                                    Expanded(
-                                                      child: Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .only(
-                                                          left: 8,
-                                                        ),
-                                                        child: Column(
-                                                          mainAxisSize:
-                                                              MainAxisSize.min,
-                                                          crossAxisAlignment:
-                                                              CrossAxisAlignment
-                                                                  .start,
-                                                          children: <Widget>[
-                                                            InkWell(
-                                                              onTap: () {
-                                                                if (widget.snap[
-                                                                        'username'] !=
-                                                                    "Anonymous User") {
-                                                                  Navigator.of(
-                                                                          context)
-                                                                      .push(
-                                                                    MaterialPageRoute(
-                                                                      builder:
-                                                                          (context) =>
-                                                                              ProfileScreen(
-                                                                        uid: widget
-                                                                            .snap['uid'],
-                                                                        isMainn:
-                                                                            false,
-                                                                      ),
+                                                      child: Column(
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: <Widget>[
+                                                          InkWell(
+                                                            onTap: () {
+                                                              if (widget.snap[
+                                                                      'username'] !=
+                                                                  "Anonymous User") {
+                                                                Navigator.of(
+                                                                        context)
+                                                                    .push(
+                                                                  MaterialPageRoute(
+                                                                    builder:
+                                                                        (context) =>
+                                                                            ProfileScreen(
+                                                                      uid: widget
+                                                                              .snap[
+                                                                          'uid'],
+                                                                      isMainn:
+                                                                          false,
                                                                     ),
-                                                                  );
-                                                                }
-                                                              },
+                                                                  ),
+                                                                );
+                                                              }
+                                                            },
+                                                            child: Text(
+                                                                widget.snap[
+                                                                    'username'],
+                                                                style: AppTheme
+                                                                    .subtitle),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              (widget.snap['description']
+                                                          .toString() !=
+                                                      "")
+                                                  ? Column(
+                                                      children: [
+                                                        Gap(10),
+                                                        Align(
+                                                            alignment: Alignment
+                                                                .topLeft,
+                                                            child: Padding(
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                      .only(
+                                                                      left: 4),
                                                               child: Text(
                                                                   widget.snap[
-                                                                      'username'],
+                                                                          'description']
+                                                                      .toString(),
                                                                   style: AppTheme
                                                                       .subtitle),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                (widget.snap['description']
-                                                            .toString() !=
-                                                        "")
-                                                    ? Column(
-                                                        children: [
-                                                          Gap(10),
-                                                          Align(
-                                                              alignment:
-                                                                  Alignment
-                                                                      .topLeft,
-                                                              child: Padding(
-                                                                padding:
-                                                                    const EdgeInsets
-                                                                        .only(
-                                                                        left:
-                                                                            4),
-                                                                child: Text(
-                                                                    widget.snap[
-                                                                            'description']
-                                                                        .toString(),
-                                                                    style: AppTheme
-                                                                        .subtitle),
-                                                              ))
-                                                        ],
-                                                      )
-                                                    : SizedBox.shrink()
-                                              ])),
-                                          DefaultTextStyle(
-                                            style: TextStyle(
-                                                color: AppTheme.nearlyBlack,
-                                                fontFamily: 'Quicksand',
-                                                fontWeight: FontWeight.bold),
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Row(
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  children: <Widget>[
-                                                    Gap(10),
-                                                    Text(
-                                                        widget.snap['grade']
-                                                            .toString(),
-                                                        style: AppTheme.caption
-                                                            .copyWith(
-                                                                fontSize: 12.h,
-                                                                color: AppTheme
-                                                                    .vinhoescuro)),
-                                                    RatingBar.builder(
-                                                      initialRating: rating,
-                                                      minRating: 0,
-                                                      direction:
-                                                          Axis.horizontal,
-                                                      allowHalfRating: true,
-                                                      itemCount: 5,
-                                                      itemPadding:
-                                                          EdgeInsets.symmetric(
-                                                              horizontal: 2.0),
-                                                      itemBuilder:
-                                                          (context, _) => Icon(
-                                                        Icons.star,
-                                                        color: AppTheme.vinho,
-                                                      ),
-                                                      itemSize: 28.h,
-                                                      unratedColor: Colors.grey,
-                                                      onRatingUpdate:
-                                                          (rating) async {
-                                                        String uid = user.uid;
-                                                        String postId = widget
-                                                            .snap['postId']
-                                                            .toString();
-                                                        await FireStoreMethods()
-                                                            .getUserGrade(
-                                                                postId,
-                                                                uid,
-                                                                rating);
-                                                        setState(() {});
-                                                      },
-                                                    ),
-                                                    Text(
-                                                      "(${widget.snap['votes'].length})",
+                                                            ))
+                                                      ],
+                                                    )
+                                                  : SizedBox.shrink()
+                                            ])),
+                                        DefaultTextStyle(
+                                          style: TextStyle(
+                                              color: AppTheme.nearlyBlack,
+                                              fontFamily: 'Quicksand',
+                                              fontWeight: FontWeight.bold),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: <Widget>[
+                                                  Gap(10),
+                                                  Text(
+                                                      widget.snap['grade']
+                                                          .toString(),
                                                       style: AppTheme.caption
                                                           .copyWith(
                                                               fontSize: 12.h,
-                                                              color: const Color
-                                                                  .fromARGB(
-                                                                  255,
-                                                                  100,
-                                                                  100,
-                                                                  100)),
-                                                    )
-                                                  ],
-                                                ),
-                                                Stack(children: [
-                                                  if (commentLen > 0)
-                                                    Positioned(
-                                                      right: 3,
-                                                      top: 2,
-                                                      child: Container(
-                                                        padding:
-                                                            EdgeInsets.all(2),
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          color: AppTheme.vinho,
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(7),
-                                                        ),
-                                                        constraints:
-                                                            BoxConstraints(
-                                                          minWidth: 17,
-                                                          minHeight: 17,
-                                                        ),
-                                                        child: Text(
-                                                          '$commentLen',
-                                                          style: TextStyle(
-                                                            color: Colors.white,
-                                                            fontSize: 10,
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                          ),
-                                                          textAlign:
-                                                              TextAlign.center,
-                                                        ),
-                                                      ),
+                                                              color: AppTheme
+                                                                  .vinhoescuro)),
+                                                  RatingBar.builder(
+                                                    initialRating: rating,
+                                                    minRating: 0,
+                                                    direction: Axis.horizontal,
+                                                    allowHalfRating: true,
+                                                    itemCount: 5,
+                                                    itemPadding:
+                                                        EdgeInsets.symmetric(
+                                                            horizontal: 2.0),
+                                                    itemBuilder: (context, _) =>
+                                                        Icon(
+                                                      Icons.star,
+                                                      color: AppTheme.vinho,
                                                     ),
-                                                  IconButton(
-                                                    icon: Icon(
-                                                      Icons.comment_rounded,
-                                                      color:
-                                                          AppTheme.nearlyBlack,
-                                                    ),
-                                                    // onPressed: () =>
-                                                    //     Navigator.of(context)
-                                                    //         .push(
-                                                    //   MaterialPageRoute(
-                                                    //     builder: (context) =>
-                                                    //         CommentsScreen(
-                                                    //       postId: widget
-                                                    //           .snap['postId']
-                                                    //           .toString(),
-                                                    //     ),
-                                                    //   ),
-                                                    onPressed: () {
-                                                      _showComments(context);
+                                                    itemSize: 28.h,
+                                                    unratedColor: Colors.grey,
+                                                    onRatingUpdate:
+                                                        (rating) async {
+                                                      String uid = user.uid;
+                                                      String postId = widget
+                                                          .snap['postId']
+                                                          .toString();
+                                                      await FireStoreMethods()
+                                                          .getUserGrade(postId,
+                                                              uid, rating);
+                                                      setState(() {});
                                                     },
                                                   ),
-                                                ]),
-                                                Text(
-                                                  DateFormat.yMMMd().format(
-                                                      widget
-                                                          .snap['datePublished']
-                                                          .toDate()),
-                                                  style: AppTheme.caption,
+                                                  Text(
+                                                    "(${widget.snap['votes'].length})",
+                                                    style: AppTheme.caption
+                                                        .copyWith(
+                                                            fontSize: 12.h,
+                                                            color: const Color
+                                                                .fromARGB(255,
+                                                                100, 100, 100)),
+                                                  )
+                                                ],
+                                              ),
+                                              Stack(children: [
+                                                if (commentLen > 0)
+                                                  Positioned(
+                                                    right: 3,
+                                                    top: 2,
+                                                    child: Container(
+                                                      padding:
+                                                          EdgeInsets.all(2),
+                                                      decoration: BoxDecoration(
+                                                        color: AppTheme.vinho,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(7),
+                                                      ),
+                                                      constraints:
+                                                          BoxConstraints(
+                                                        minWidth: 17,
+                                                        minHeight: 17,
+                                                      ),
+                                                      child: Text(
+                                                        '$commentLen',
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 10,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                IconButton(
+                                                  icon: Icon(
+                                                    Icons.comment_rounded,
+                                                    color: AppTheme.nearlyBlack,
+                                                  ),
+                                                  // onPressed: () =>
+                                                  //     Navigator.of(context)
+                                                  //         .push(
+                                                  //   MaterialPageRoute(
+                                                  //     builder: (context) =>
+                                                  //         CommentsScreen(
+                                                  //       postId: widget
+                                                  //           .snap['postId']
+                                                  //           .toString(),
+                                                  //     ),
+                                                  //   ),
+                                                  onPressed: () {
+                                                    _showComments(context);
+                                                  },
                                                 ),
-                                                Gap(2),
-                                              ],
-                                            ),
+                                              ]),
+                                              Text(
+                                                DateFormat.yMMMd().format(widget
+                                                    .snap['datePublished']
+                                                    .toDate()),
+                                                style: AppTheme.caption,
+                                              ),
+                                              Gap(2),
+                                            ],
                                           ),
-                                        ],
-                                      )))
-                            ])))
-                  ],
-                ),
+                                        ),
+                                      ],
+                                    )))
+                          ])))
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         );
       },
     );

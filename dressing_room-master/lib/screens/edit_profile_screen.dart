@@ -196,15 +196,122 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     Navigator.pop(context);
                   },
                 ),
-                title: Text(
-                  'Editar Perfil',
-                  style: AppTheme.barapp.copyWith(shadows: [
-                    Shadow(
-                      blurRadius: 2.0,
-                      color: Colors.black,
-                    ),
-                  ]),
-                ),
+                title: InkWell(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          String selectedServer = 'cloud'; // Valor padrão
+
+                          return StatefulBuilder(
+                            builder: (context, setState) {
+                              return AlertDialog(
+                                title: Text('Selecione o Servidor'),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    RadioListTile<String>(
+                                      title: Text('Servidor na Nuvem'),
+                                      value: 'cloud',
+                                      groupValue: selectedServer,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          selectedServer = value!;
+                                        });
+                                      },
+                                    ),
+                                    RadioListTile<String>(
+                                      title: Text('Servidor Local'),
+                                      value: 'local',
+                                      groupValue: selectedServer,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          selectedServer = value!;
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: Text('Cancelar'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      if (selectedServer == 'local') {
+                                        // Exibe outro pop-up para o campo de texto
+                                        showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            TextEditingController
+                                                localServerController =
+                                                TextEditingController();
+                                            return AlertDialog(
+                                              title: Text(
+                                                  'Digite o endereço do Servidor Local'),
+                                              content: TextField(
+                                                controller:
+                                                    localServerController,
+                                                decoration: InputDecoration(
+                                                  labelText:
+                                                      'Endereço do servidor local',
+                                                ),
+                                              ),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                  child: Text('Cancelar'),
+                                                ),
+                                                TextButton(
+                                                  onPressed: () {
+                                                    selectedServerAddress =
+                                                        localServerController
+                                                            .text; // Salva o endereço local
+                                                    print(
+                                                        'Servidor local selecionado: $selectedServerAddress');
+                                                    Navigator.of(context)
+                                                        .pop(); // Fecha o segundo diálogo
+                                                    Navigator.of(context)
+                                                        .pop(); // Fecha o primeiro diálogo
+                                                  },
+                                                  child: Text('Confirmar'),
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
+                                      } else {
+                                        selectedServerAddress =
+                                            nuvem; // Usar servidor na nuvem
+                                        print(
+                                            'Servidor na nuvem selecionado: $selectedServerAddress');
+                                        Navigator.of(context)
+                                            .pop(); // Fecha o primeiro diálogo
+                                      }
+                                    },
+                                    child: Text('Confirmar'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                      );
+                    },
+                    child: Text(
+                      'Editar Perfil',
+                      style: AppTheme.barapp.copyWith(shadows: [
+                        Shadow(
+                          blurRadius: 2.0,
+                          color: Colors.black,
+                        ),
+                      ]),
+                    )),
                 centerTitle: true,
                 backgroundColor: Colors.transparent,
                 actions: [
@@ -309,7 +416,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   Gap(10.h),
                   ListTile(
                     key: Key('primeiro item'),
-                    title: Text('Adicionar uma coleção',
+                    title: Text('Adicionar uma pasta',
                         style: AppTheme.dividerfont),
                     trailing: Icon(Icons.add, color: AppTheme.nearlyBlack),
                     onTap: () {
@@ -691,7 +798,7 @@ Future<void> createDialog(
                         children: [
                           Expanded(
                             child: Text(
-                              "Criar uma coleção",
+                              "            Criar uma coleção",
                               style: AppTheme.barapp,
                               textAlign: TextAlign.center,
                             ),
@@ -719,7 +826,7 @@ Future<void> createDialog(
                         ],
                       ),
                       Gap(10.h),
-                      Text("Nome da coleção:", style: AppTheme.dividerfont),
+                      Text("Nome da pasta:", style: AppTheme.dividerfont),
                       Gap(10),
                       Container(
                         width: 300.w,
@@ -738,7 +845,7 @@ Future<void> createDialog(
                             ),
                             decoration: InputDecoration(
                               border: InputBorder.none,
-                              hintText: 'Write collection name...',
+                              hintText: 'Escreva o nome da pasta...',
                               hintStyle: TextStyle(
                                 fontSize: 14,
                                 color: Colors.grey,
@@ -749,7 +856,7 @@ Future<void> createDialog(
                       ),
                       Divider(),
                       Gap(15.h),
-                      Text("Adicionar para a coleção",
+                      Text("Adicionar para a pasta",
                           style: AppTheme.dividerfont),
                       Gap(10),
                       SizedBox(

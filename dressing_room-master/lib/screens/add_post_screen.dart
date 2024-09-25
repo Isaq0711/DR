@@ -453,6 +453,8 @@ class _AddPostScreenState extends State<AddPostScreen> {
                                                                     builder:
                                                                         (context) =>
                                                                             SeePost(
+                                                                      isSuggestioncliked:
+                                                                          false,
                                                                       isTagclicked:
                                                                           false,
                                                                       postId: pecasID![

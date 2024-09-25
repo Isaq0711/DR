@@ -80,7 +80,7 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Container(
+              SizedBox(
                   width: 300.h,
                   child: ElevatedButton.icon(
                     icon: Icon(Icons.camera),
@@ -561,6 +561,8 @@ class _AddVotationsScreenState extends State<AddVotationsScreen> {
                                                                     builder:
                                                                         (context) =>
                                                                             SeePost(
+                                                                      isSuggestioncliked:
+                                                                          false,
                                                                       postId: pecasID[
                                                                               _currentPageIndex]![
                                                                           index],

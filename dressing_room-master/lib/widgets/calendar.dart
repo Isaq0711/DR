@@ -1,3 +1,4 @@
+import 'package:dressing_room/screens/seepost.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -66,6 +67,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
 
       calendarItems = querySnapshot.docs.map((doc) {
         return {
+          'documentName': doc.id,
           'look': doc['look'],
           'data': doc['data'],
           'troncoId': doc['troncoId'],
@@ -268,6 +270,9 @@ Widget buildCalendar(
 
                     String? look =
                         calendarItem != null ? calendarItem['look'] : null;
+                    String? documentName = calendarItem != null
+                        ? calendarItem['documentName']
+                        : null;
 
                     return InkWell(
                       onTap: () {
@@ -284,7 +289,14 @@ Widget buildCalendar(
                             onDateSelected(date);
                           }
                         } else {
-                          // go to see look page
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => SeePost(
+                                    isSuggestioncliked: false,
+                                    postId: calendarItem!['documentName'],
+                                    isTagclicked: false)),
+                          );
                         }
                       },
                       child: Container(

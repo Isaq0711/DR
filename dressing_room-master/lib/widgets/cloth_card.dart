@@ -7,7 +7,6 @@ import 'package:dressing_room/providers/user_provider.dart';
 import 'package:dressing_room/resources/firestore_methods.dart';
 import 'package:dressing_room/screens/comments_screen.dart';
 import 'package:dressing_room/screens/profile_screen.dart';
-
 import 'package:dressing_room/utils/colors.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:dressing_room/utils/global_variable.dart';
@@ -286,10 +285,10 @@ class _ClothCardState extends State<ClothCard> {
         return Column(
           children: [
             GestureDetector(
-              onTap: () {
-                setState(() {
-                  showinfo = !showinfo;
-                });
+              onHorizontalDragUpdate: (details) {
+                if (details.primaryDelta! > 0) {
+                  Navigator.pop(context);
+                }
               },
               child: Stack(
                 alignment: Alignment.center,
@@ -303,12 +302,18 @@ class _ClothCardState extends State<ClothCard> {
                               minScale: 0.1,
                               maxScale: 4,
                               child: ClipRRect(
-                                borderRadius: BorderRadius.circular(10.0),
-                                child: Image.network(
-                                  widget.snap['photoUrl'],
-                                  fit: BoxFit.contain,
-                                ),
-                              )))),
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        showinfo = !showinfo;
+                                      });
+                                    },
+                                    child: Image.network(
+                                      widget.snap['photoUrl'],
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ))))),
                   Positioned(
                     top: 5,
                     right: 10,

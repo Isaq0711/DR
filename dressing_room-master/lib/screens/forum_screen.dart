@@ -342,6 +342,7 @@ class _ForumCardState extends State<ForumCard> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => SeePost(
+                                      isSuggestioncliked: false,
                                       isTagclicked: false,
                                       postId: widget.snap['pecasIds']![index],
                                     ),

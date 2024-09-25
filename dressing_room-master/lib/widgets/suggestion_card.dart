@@ -211,7 +211,7 @@ class _SuggestionCardState extends State<SuggestionCard>
 
                             try {
                               Uint8List? processedImage =
-                                  await removeBg(tempFile.path, false);
+                                  await removeBg(tempFile.path, false, "");
                               setState(() {
                                 photoUrls.removeLast();
                                 photoUrls.add(processedImage);

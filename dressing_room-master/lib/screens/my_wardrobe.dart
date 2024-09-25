@@ -580,6 +580,7 @@ class _BodyWidgetState extends State<BodyWidget> {
                                                 context,
                                                 MaterialPageRoute(
                                                   builder: (context) => SeePost(
+                                                    isSuggestioncliked: false,
                                                     isTagclicked: false,
                                                     postId: widget.categoryIds[
                                                         widget
@@ -649,6 +650,7 @@ class _BodyWidgetState extends State<BodyWidget> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => SeePost(
+                                        isSuggestioncliked: false,
                                         isTagclicked: false,
                                         postId: widget.clothItems[index],
                                       ),

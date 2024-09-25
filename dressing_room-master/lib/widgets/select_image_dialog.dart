@@ -3,17 +3,13 @@ import 'package:dressing_room/screens/add_product_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:gap/gap.dart';
-
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:dressing_room/utils/colors.dart';
-import 'package:dressing_room/screens/2_store_screen.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dressing_room/screens/2_store_screen.dart';
+import 'package:dressing_room/screens/web_view.dart';
 import 'package:dressing_room/screens/create_store_screen.dart';
-
-import 'package:firebase_auth/firebase_auth.dart';
-
 import 'package:dressing_room/utils/utils.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SelectImageDialog extends StatelessWidget {
   final Function(Uint8List) onImageSelected;
@@ -181,6 +177,205 @@ class SelectImageDialog1por1 extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class Selectimageinitial916 extends StatelessWidget {
+  final Function(Uint8List) onImageSelected;
+
+  Selectimageinitial916({required this.onImageSelected});
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: AppTheme.nearlyWhite,
+      title: Align(
+        alignment: Alignment.center,
+        child: Text(
+          'UPLOAD',
+          style: AppTheme.subheadline,
+        ),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Container(
+            width: 300.h,
+            child: ElevatedButton.icon(
+              icon: Icon(Icons.camera),
+              label: const Text(
+                'Câmera',
+                style: TextStyle(
+                  fontFamily: 'Quicksand',
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(primary: AppTheme.vinho),
+              onPressed: () async {
+                Navigator.pop(context);
+                bool? fullImage = await _showConfirmationDialog(context);
+                if (fullImage == true) {
+                  Uint8List? file =
+                      await pickImageinicial916(source: ImageSource.camera);
+                  if (file != null) {
+                    onImageSelected(file);
+                  }
+                } else {
+                  Uint8List? file =
+                      await pickImageOriginal(ImageSource.gallery);
+
+                  if (file != null) {
+                    onImageSelected(file);
+                  }
+                }
+              },
+            ),
+          ),
+          Gap(2.h),
+          Container(
+            width: 300.h,
+            child: ElevatedButton.icon(
+              icon: Icon(Icons.photo_library),
+              label: const Text(
+                'Galeria',
+                style: TextStyle(
+                  fontFamily: 'Quicksand',
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(primary: AppTheme.vinho),
+              onPressed: () async {
+                Navigator.pop(context);
+                bool? fullimage = await _showConfirmationDialog(context);
+                if (fullimage == true) {
+                  Uint8List? file =
+                      await pickImageinicial916(source: ImageSource.gallery);
+                  if (file != null) {
+                    onImageSelected(file);
+                  }
+                } else {
+                  Uint8List? file =
+                      await pickImageOriginal(ImageSource.gallery);
+
+                  if (file != null) {
+                    onImageSelected(file);
+                  }
+                }
+              },
+            ),
+          ),
+          Gap(2.h),
+          Container(
+            width: 300.h,
+            child: ElevatedButton.icon(
+              icon: Icon(Icons.web),
+              label: const Text(
+                'Web',
+                style: TextStyle(
+                  fontFamily: 'Quicksand',
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(primary: AppTheme.vinho),
+              onPressed: () async {
+                Navigator.pop(context);
+                bool? fullimage = await _showConfirmationDialog(context);
+                if (fullimage == true) {
+                  Uint8List? file = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => WebViewPage916(
+                        onImageCaptured: (Uint8List capturedFile) {
+                          Navigator.pop(context, capturedFile);
+                        },
+                      ),
+                    ),
+                  );
+                  if (file != null) {
+                    onImageSelected(file);
+                  }
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<bool?> _showConfirmationDialog(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppTheme.nearlyWhite,
+          title: Align(
+            alignment: Alignment.center,
+            child: Text(
+              'TIPO DE IMAGEM',
+              style: AppTheme.subheadline,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Container(
+                  width: 300.h,
+                  child: ElevatedButton.icon(
+                    icon: Icon(Icons.zoom_out_map),
+                    label: const Text(
+                      'Ajustada',
+                      style: TextStyle(
+                        fontFamily: 'Quicksand',
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(primary: AppTheme.vinho),
+                    onPressed: () {
+                      Navigator.of(context).pop(true);
+                    },
+                  )),
+              Gap(
+                2.h,
+              ),
+              Container(
+                  width: 300.h,
+                  child: ElevatedButton.icon(
+                    icon: Icon(Icons.crop_original),
+                    label: const Text(
+                      'Original',
+                      style: TextStyle(
+                        fontFamily: 'Quicksand',
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(primary: AppTheme.vinho),
+                    onPressed: () {
+                      Navigator.of(context).pop(false);
+                    },
+                  )),
+            ],
+          ),
+          // Text('Você deseja continuar com a seleção de imagem?'),
+          // actions: <Widget>[
+          //   TextButton(
+          //     onPressed: () {
+          //       Navigator.of(context)
+          //           .pop(true); // Retorna true se o usuário confirmar
+          //     },
+          //     child: Text('Sim'),
+          //   ),
+          //   TextButton(
+          //     onPressed: () {
+          //       Navigator.of(context)
+          //           .pop(false); // Retorna false se o usuário cancelar
+          //     },
+          //     child: Text('Não'),
+          //   ),
+          // ],
+        );
+      },
     );
   }
 }

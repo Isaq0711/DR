@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dressing_room/widgets/cloth_card.dart';
 import 'package:dressing_room/providers/bottton_nav_controller.dart';
+import 'package:dressing_room/widgets/look_card.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -12,8 +14,13 @@ import 'package:dressing_room/screens/product_card.dart';
 class SeePost extends StatefulWidget {
   final String postId;
   final bool isTagclicked;
+  final bool isSuggestioncliked;
 
-  const SeePost({Key? key, required this.postId, required this.isTagclicked})
+  const SeePost(
+      {Key? key,
+      required this.postId,
+      required this.isTagclicked,
+      required this.isSuggestioncliked})
       : super(key: key);
 
   @override
@@ -26,6 +33,7 @@ class _SeePostState extends State<SeePost> {
   late Stream<QuerySnapshot<Map<String, dynamic>>> _votationsStream;
   late Stream<QuerySnapshot<Map<String, dynamic>>> _productStream;
   late Stream<QuerySnapshot<Map<String, dynamic>>> _clothStream;
+  late Stream<QuerySnapshot<Map<String, dynamic>>> _lookStream;
 
   @override
   void initState() {
@@ -36,6 +44,7 @@ class _SeePostState extends State<SeePost> {
     _votationsStream = _subscribeToVotations();
     _productStream = _subscribeToProducts();
     _clothStream = _subscribeToCloth();
+    _lookStream = _subscribeToLooks();
     context.read<ZoomProvider>().setZoom(false);
   }
 
@@ -54,6 +63,15 @@ class _SeePostState extends State<SeePost> {
     return FirebaseFirestore.instance
         .collection('anonymous_posts')
         .doc(widget.postId)
+        .snapshots();
+  }
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> _subscribeToLooks() {
+    return FirebaseFirestore.instance
+        .collection('calendar')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .collection('looks')
+        .where('lookId', isEqualTo: widget.postId)
         .snapshots();
   }
 
@@ -107,7 +125,10 @@ class _SeePostState extends State<SeePost> {
                     }
                     final post = snapshot.data!.data();
                     return PostCard(
-                        snap: post, isTagCliked: widget.isTagclicked);
+                      snap: post,
+                      isTagCliked: widget.isTagclicked,
+                      isSuggestioncliked: widget.isSuggestioncliked,
+                    );
                   },
                 ),
                 StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
@@ -128,7 +149,9 @@ class _SeePostState extends State<SeePost> {
                     }
                     final anonymousPost = snapshot.data!.data();
                     return PostCard(
-                        snap: anonymousPost, isTagCliked: widget.isTagclicked);
+                        snap: anonymousPost,
+                        isTagCliked: widget.isTagclicked,
+                        isSuggestioncliked: widget.isSuggestioncliked);
                   },
                 ),
                 StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
@@ -139,7 +162,10 @@ class _SeePostState extends State<SeePost> {
                     }
                     final votations = snapshot.data!.docs;
 
-                    return VotationCard(snap: votations[0].data());
+                    return VotationCard(
+                      snap: votations[0].data(),
+                      isSuggestioncliked: widget.isSuggestioncliked,
+                    );
                   },
                 ),
                 StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
@@ -150,6 +176,16 @@ class _SeePostState extends State<SeePost> {
                     }
                     final cloth = snapshot.data!.docs;
                     return ClothCard(snap: cloth[0].data());
+                  },
+                ),
+                StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                  stream: _lookStream,
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return Container();
+                    }
+                    final look = snapshot.data!.docs;
+                    return LookCard(snap: look[0].data());
                   },
                 ),
               ],

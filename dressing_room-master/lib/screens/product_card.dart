@@ -6,11 +6,14 @@ import 'package:dressing_room/providers/user_provider.dart';
 import 'package:dressing_room/resources/firestore_methods.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:dressing_room/utils/colors.dart';
+import 'package:dressing_room/models/products.dart';
 import 'package:dressing_room/utils/utils.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:dots_indicator/dots_indicator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:dressing_room/screens/shopping_cart.dart';
-import 'package:dots_indicator/dots_indicator.dart';
 
 class ProductCard extends StatefulWidget {
   final dynamic snap;
@@ -25,38 +28,70 @@ class ProductCard extends StatefulWidget {
 }
 
 class _ProductCardState extends State<ProductCard> {
-  int selectedSize = 0;
+  String selectedSize = "";
   bool showinfo = true;
   bool isLoading = false;
-  Map<String, List<String>> categorySizes = {
-    'Pernas': ['34', '36', '38', '40', '42', '44'],
-    'Pés': ['34', '35', '36', '37', '38', '39', '40', '41', '42'],
-    'Tronco': ['PP', 'P', 'M', 'G', 'GG', 'XGG'],
-    'Body (corpo inteiro)': ['PP', 'P', 'M', 'G', 'GG', 'XGG'],
-    'Top (cabeça)': ['P', 'M', 'G'],
-    "Mão": [],
-    "Pulso": [],
-    "Pescoço": [],
-    "Cintura": ['34', '36', '38', '40', '42', '44'],
-    'Rosto': [],
-  };
+  bool isAddedOnFav = false;
+  bool isFavorite = false;
   int _currentPageIndex = 0;
   int _currentPhotoIndex = 0;
-  List<String> availableSizes = [];
+
   late PageController _pageController;
 
   @override
   void initState() {
     super.initState();
-    generateAvailableSizes();
+    isOnFav(
+      widget.snap['productId'],
+    );
     _pageController = PageController(initialPage: 0);
+  }
+
+  Future<bool> isOnFav(String postId) async {
+    try {
+      DocumentSnapshot fav = await FirebaseFirestore.instance
+          .collection('favorites')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .collection('userFavorites')
+          .doc(postId)
+          .get();
+
+      if (fav.exists) {
+        setState(() {
+          isAddedOnFav = true; // Defina o estado inicial do ícone
+        });
+        return true;
+      } else {
+        setState(() {
+          isAddedOnFav = false; // Defina o estado inicial do ícone
+        });
+        return false;
+      }
+    } catch (e) {
+      showSnackBar(
+        context,
+        e.toString(),
+      );
+      return false;
+    }
+  }
+
+  Future<void> handleFavAction(String uid) async {
+    setState(() {});
+
+    try {
+      await FireStoreMethods().toggleFavorite(widget.snap['productId'], uid);
+    } catch (err) {
+      showSnackBar(context, err.toString());
+    }
+
+    setState(() {});
   }
 
   void addtocart(String uid) async {
     setState(() {
       isLoading = true;
     });
-
     try {
       String res = await FireStoreMethods().uploadtoCart(
           widget.snap['description'],
@@ -65,7 +100,7 @@ class _ProductCardState extends State<ProductCard> {
           widget.snap['productId'],
           widget.snap['type'],
           widget.snap['variations'][_currentPageIndex]['variationdescription'],
-          availableSizes[selectedSize],
+          selectedSize,
           widget.snap['variations'][_currentPageIndex]['photoUrls'][0],
           widget.snap['variations'][_currentPageIndex]['price'],
           context);
@@ -86,19 +121,6 @@ class _ProductCardState extends State<ProductCard> {
     });
   }
 
-  void generateAvailableSizes() {
-    List<dynamic>? sizesIndices = widget.snap['variations'][_currentPageIndex]
-        ['sizesAvailable'] as List<dynamic>;
-
-    if (sizesIndices.isNotEmpty) {
-      String selectedCategory = widget.snap['category'];
-
-      availableSizes = sizesIndices.map((index) {
-        return categorySizes[selectedCategory]![index];
-      }).toList();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Consumer<UserProvider>(
@@ -113,14 +135,15 @@ class _ProductCardState extends State<ProductCard> {
         }
 
         return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             GestureDetector(
-              onDoubleTap: () {},
               onTap: () {
                 setState(() {
                   showinfo = !showinfo;
                 });
+              },
+              onDoubleTap: () {
+                print(selectedSize);
               },
               child: Stack(
                 alignment: Alignment.center,
@@ -130,37 +153,88 @@ class _ProductCardState extends State<ProductCard> {
                     child: AspectRatio(
                       aspectRatio: 9 / 16,
                       child: PageView.builder(
-                        itemCount: widget
-                            .snap['variations'][_currentPageIndex]['photoUrls']
-                            .length,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: widget.snap['variations'].length,
                         controller: _pageController,
                         onPageChanged: (index) {
                           setState(() {
-                            if (_currentPhotoIndex != index) {
-                              setState(() {
-                                _currentPhotoIndex = index;
-                                print(_currentPhotoIndex);
-                                print(index);
-                              });
-                            } else {
-                              _pageController.jumpToPage(_currentPhotoIndex);
+                            if (_currentPageIndex != index) {
+                              _currentPageIndex = index;
+                              _currentPhotoIndex =
+                                  0; // Reset photo index when variation changes
                             }
                           });
                         },
                         itemBuilder: (context, index) {
-                          return ClipRRect(
-                            borderRadius: BorderRadius.circular(10.0),
-                            child: Image.network(
-                              widget.snap['variations'][_currentPageIndex]
-                                      ['photoUrls'][_currentPhotoIndex]
-                                  .toString(),
-                              fit: BoxFit.cover,
-                            ),
+                          return PageView.builder(
+                            itemCount: widget
+                                .snap['variations'][index]['photoUrls'].length,
+                            controller:
+                                PageController(initialPage: _currentPhotoIndex),
+                            onPageChanged: (photoIndex) {
+                              setState(() {
+                                _currentPhotoIndex = photoIndex;
+                              });
+                            },
+                            itemBuilder: (context, photoIndex) {
+                              return ClipRRect(
+                                borderRadius: BorderRadius.circular(10.0),
+                                child: Image.network(
+                                  widget.snap['variations'][index]['photoUrls']
+                                          [photoIndex]
+                                      .toString(),
+                                  fit: BoxFit.contain,
+                                ),
+                              );
+                            },
                           );
                         },
                       ),
                     ),
                   ),
+                  Positioned(
+                      top: 5,
+                      right: 10,
+                      child: Column(children: [
+                        Gap(5.h),
+                        SizedBox(
+                          width: 35.0,
+                          height: 38.0,
+                          child: FloatingActionButton(
+                              onPressed: () {
+                                setState(() {
+                                  isAddedOnFav = !isAddedOnFav;
+                                  Future.delayed(Duration(milliseconds: 500),
+                                      () {
+                                    isAddedOnFav
+                                        ? showSnackBar(
+                                            context, 'Added to Favorites')
+                                        : showSnackBar(
+                                            context, 'Removed from Favorites');
+                                  });
+                                });
+                                Future.microtask(() {
+                                  handleFavAction(
+                                      FirebaseAuth.instance.currentUser!.uid);
+                                });
+                              },
+                              backgroundColor: AppTheme.cinza,
+                              elevation: 8.0,
+                              shape:
+                                  CircleBorder(), // Makes the button more circular
+                              child: isAddedOnFav
+                                  ? Icon(
+                                      Icons.folder_copy_rounded,
+                                      color: Colors.black.withOpacity(0.6),
+                                      size: 22,
+                                    )
+                                  : Icon(
+                                      Icons.folder_copy_outlined,
+                                      color: Colors.black.withOpacity(0.6),
+                                      size: 22,
+                                    )),
+                        ),
+                      ])),
                   Positioned(
                       bottom: -19,
                       left: 0,
@@ -180,17 +254,16 @@ class _ProductCardState extends State<ProductCard> {
                                             vertical: 4.5),
                                         child: widget
                                                     .snap['variations']
-                                                        [_currentPageIndex]![
-                                                        'photoUrls']
+                                                        [_currentPageIndex]
+                                                        ['photoUrls']
                                                     .length >
                                                 1
                                             ? DotsIndicator(
                                                 dotsCount: widget
-                                                        .snap['variations'][
-                                                            _currentPageIndex]![
-                                                            'photoUrls']
-                                                        .length ??
-                                                    0,
+                                                    .snap['variations']
+                                                        [_currentPageIndex]
+                                                        ['photoUrls']
+                                                    .length,
                                                 position: _currentPhotoIndex,
                                                 decorator: DotsDecorator(
                                                   color: AppTheme.nearlyWhite,
@@ -276,50 +349,46 @@ class _ProductCardState extends State<ProductCard> {
                                                 ],
                                               ),
                                             ),
-                                            Gap(15),
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Expanded(
-                                                  child: Text(
-                                                    widget.snap['description'],
-                                                    style: AppTheme.subheadline,
-                                                  ),
-                                                ),
-                                                Gap(10),
-                                                Text(
-                                                  '\$${widget.snap['variations'][_currentPageIndex]['price'].toString()}',
-                                                  style:
-                                                      AppTheme.subheadlinevinho,
-                                                ),
-                                              ],
-                                            ),
-                                            Gap(
-                                              size.height * 0.006,
-                                            ),
+                                            Gap(10.h),
                                             Padding(
-                                              padding: const EdgeInsets.only(
-                                                  left: 10.0,
-                                                  top: 18.0,
-                                                  bottom: 10.0),
+                                                padding: EdgeInsets.symmetric(
+                                                    horizontal: 10.w),
+                                                child: Row(
+                                                  children: [
+                                                    Expanded(
+                                                      child: Text(
+                                                        widget.snap[
+                                                            'description'],
+                                                        style: AppTheme
+                                                            .subheadline,
+                                                      ),
+                                                    ),
+                                                    Spacer(),
+                                                    Text(
+                                                      '\$${widget.snap['variations'][_currentPageIndex]['price'].toString()}',
+                                                      style: AppTheme
+                                                          .subheadlinevinho,
+                                                    ),
+                                                  ],
+                                                )),
+                                            Padding(
+                                              padding: EdgeInsets.symmetric(
+                                                  horizontal: 15.w,
+                                                  vertical: 5),
                                               child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
                                                 children: [
                                                   widget.snap['variations']
                                                               .length >
                                                           1
                                                       ? Text(
-                                                          "Selecionar variação",
-                                                          style: AppTheme.title,
+                                                          "Selecionar variação: ",
+                                                          style:
+                                                              AppTheme.subtitle,
                                                         )
                                                       : Container(),
+                                                  Spacer(),
                                                   Text(
-                                                    '${widget.snap['variations'][_currentPageIndex]['itemCount'].toString()}' +
-                                                        " Items disponíveis",
+                                                    '${widget.snap['variations'][_currentPageIndex]['itemCount'].toString()} ${widget.snap['variations'][_currentPageIndex]['itemCount'] == 1 ? 'Item disponível' : 'Itens disponíveis'}',
                                                     style: AppTheme.caption,
                                                   ),
                                                 ],
@@ -356,12 +425,12 @@ class _ProductCardState extends State<ProductCard> {
                                                               setState(() {
                                                                 _currentPageIndex =
                                                                     index;
-                                                                generateAvailableSizes();
+
                                                                 _currentPhotoIndex =
                                                                     0;
                                                                 _pageController
                                                                     .jumpToPage(
-                                                                        0);
+                                                                        _currentPageIndex);
                                                               });
                                                             },
                                                             child: Padding(
@@ -408,7 +477,7 @@ class _ProductCardState extends State<ProductCard> {
                                                                             [0]
                                                                         .toString(),
                                                                     fit: BoxFit
-                                                                        .cover,
+                                                                        .contain,
                                                                   ),
                                                                 ),
                                                               ),
@@ -416,9 +485,6 @@ class _ProductCardState extends State<ProductCard> {
                                                           );
                                                         },
                                                       ),
-                                                    ),
-                                                    Gap(
-                                                      size.height * 0.003,
                                                     ),
                                                     Align(
                                                         alignment: Alignment
@@ -430,241 +496,11 @@ class _ProductCardState extends State<ProductCard> {
                                                               AppTheme.caption,
                                                         )),
                                                     Gap(
-                                                      size.height * 0.006,
+                                                      size.height * 0.010,
                                                     ),
                                                   ],
                                                 )
                                             ]),
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                left: 10.0,
-                                                top: 10.0,
-                                              ),
-                                              child: Text(
-                                                "Selecionar tamanho",
-                                                style: AppTheme.dividerfont
-                                                    .copyWith(
-                                                        fontSize: 13,
-                                                        color: AppTheme
-                                                            .nearlyBlack),
-                                              ),
-                                            ),
-                                            SizedBox(
-                                              width: size.width * 0.9,
-                                              height: size.height * 0.08,
-                                              child: ListView.builder(
-                                                scrollDirection:
-                                                    Axis.horizontal,
-                                                itemCount:
-                                                    availableSizes.length,
-                                                itemBuilder: (ctx, index) {
-                                                  var currentSize =
-                                                      availableSizes[index];
-                                                  return GestureDetector(
-                                                    onTap: () {
-                                                      setState(() {
-                                                        selectedSize = index;
-                                                      });
-                                                    },
-                                                    child: Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                              10.0),
-                                                      child: AnimatedContainer(
-                                                        width:
-                                                            size.width * 0.12,
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          color: selectedSize ==
-                                                                  index
-                                                              ? AppTheme.vinho
-                                                              : Colors
-                                                                  .transparent,
-                                                          border: Border.all(
-                                                            color:
-                                                                AppTheme.vinho,
-                                                            width: 2,
-                                                          ),
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(15),
-                                                        ),
-                                                        duration:
-                                                            const Duration(
-                                                                milliseconds:
-                                                                    200),
-                                                        child: Center(
-                                                          child: Text(
-                                                            currentSize,
-                                                            style: TextStyle(
-                                                              fontSize: 17,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w500,
-                                                              color:
-                                                                  selectedSize ==
-                                                                          index
-                                                                      ? Colors
-                                                                          .white
-                                                                      : Colors
-                                                                          .black,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                            ),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.all(10.0),
-                                              child: Center(
-                                                child: ElevatedButton(
-                                                  onPressed: () {
-                                                    addtocart(FirebaseAuth
-                                                        .instance
-                                                        .currentUser!
-                                                        .uid);
-                                                    showModalBottomSheet(
-                                                      context: context,
-                                                      builder: (context) {
-                                                        return Container(
-                                                          color: AppTheme.cinza,
-                                                          padding:
-                                                              EdgeInsets.all(
-                                                                  16),
-                                                          child: Column(
-                                                            mainAxisSize:
-                                                                MainAxisSize
-                                                                    .min,
-                                                            children: [
-                                                              Row(
-                                                                children: [
-                                                                  Icon(
-                                                                    Icons
-                                                                        .check_circle,
-                                                                    color: AppTheme
-                                                                        .vinho,
-                                                                  ),
-                                                                  Gap(
-                                                                    size.width *
-                                                                        0.01,
-                                                                  ),
-                                                                  Text(
-                                                                    "Added to cart",
-                                                                    style: AppTheme
-                                                                        .subtitle,
-                                                                  )
-                                                                ],
-                                                              ),
-                                                              Gap(
-                                                                size.height *
-                                                                    0.02,
-                                                              ),
-                                                              Row(
-                                                                mainAxisAlignment:
-                                                                    MainAxisAlignment
-                                                                        .spaceBetween,
-                                                                children: [
-                                                                  Container(
-                                                                    width: size
-                                                                            .width *
-                                                                        0.45,
-                                                                    decoration:
-                                                                        BoxDecoration(
-                                                                      borderRadius:
-                                                                          BorderRadius.circular(
-                                                                              8),
-                                                                      color: AppTheme
-                                                                          .vinho,
-                                                                    ),
-                                                                    child:
-                                                                        TextButton(
-                                                                      onPressed:
-                                                                          () {
-                                                                        Navigator.pop(
-                                                                            context);
-                                                                      },
-                                                                      child: Text(
-                                                                          'Continue Shopping',
-                                                                          style:
-                                                                              AppTheme.subtitlewhite),
-                                                                    ),
-                                                                  ),
-                                                                  Container(
-                                                                    width: size
-                                                                            .width *
-                                                                        0.45,
-                                                                    decoration:
-                                                                        BoxDecoration(
-                                                                      borderRadius:
-                                                                          BorderRadius.circular(
-                                                                              8),
-                                                                      color: AppTheme
-                                                                          .vinho,
-                                                                    ),
-                                                                    child:
-                                                                        TextButton(
-                                                                      onPressed:
-                                                                          () {
-                                                                        Navigator
-                                                                            .push(
-                                                                          context,
-                                                                          MaterialPageRoute(
-                                                                              builder: (context) => ShoppingCart(uid: FirebaseAuth.instance.currentUser!.uid)),
-                                                                        );
-                                                                      },
-                                                                      child: Text(
-                                                                          'Go to Cart',
-                                                                          style:
-                                                                              AppTheme.subtitlewhite),
-                                                                    ),
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        );
-                                                      },
-                                                    );
-                                                  },
-                                                  child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            12.0),
-                                                    child: Row(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      children: [
-                                                        Text(
-                                                          'Adicionar ao carrinho',
-                                                          style: TextStyle(
-                                                              fontSize: 16),
-                                                        ),
-                                                        Gap(8),
-                                                        Icon(
-                                                          Icons.shopping_cart,
-                                                          size: 20,
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  style:
-                                                      ElevatedButton.styleFrom(
-                                                    primary: AppTheme.vinho,
-                                                    onPrimary: Colors.white,
-                                                    shape:
-                                                        RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              16),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            )
                                           ],
                                         ),
                                       ),
@@ -675,6 +511,178 @@ class _ProductCardState extends State<ProductCard> {
                 ],
               ),
             ),
+            Gap(15),
+            Padding(
+              padding: const EdgeInsets.only(
+                left: 20.0,
+                top: 10.0,
+              ),
+              child: Align(
+                  alignment: Alignment.topLeft,
+                  child: Text(
+                    "Selecionar tamanho:",
+                    style: AppTheme.subtitle,
+                  )),
+            ),
+            SizedBox(
+              width: size.width * 0.9,
+              height: size.height * 0.08,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: widget
+                    .snap['variations'][_currentPageIndex]['sizesAvailable']
+                    .length,
+                itemBuilder: (ctx, index) {
+                  var currentSize = widget.snap['variations'][_currentPageIndex]
+                      ['sizesAvailable'][index];
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        selectedSize = currentSize;
+                      });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: AnimatedContainer(
+                        width: size.width * 0.12,
+                        decoration: BoxDecoration(
+                          color: selectedSize == currentSize
+                              ? AppTheme.vinho
+                              : Colors.transparent,
+                          border: Border.all(
+                            color: AppTheme.vinho,
+                            width: 2,
+                          ),
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        duration: const Duration(milliseconds: 200),
+                        child: Center(
+                          child: Text(
+                            currentSize, // Exibe o tamanho correto em vez do índice
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w500,
+                              color: selectedSize == currentSize
+                                  ? Colors.white
+                                  : Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Center(
+                child: ElevatedButton(
+                  onPressed: () {
+                    addtocart(FirebaseAuth.instance.currentUser!.uid);
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (context) {
+                        return Container(
+                          color: AppTheme.cinza,
+                          padding: EdgeInsets.all(16),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.check_circle,
+                                    color: AppTheme.vinho,
+                                  ),
+                                  Gap(
+                                    size.width * 0.01,
+                                  ),
+                                  Text(
+                                    "Adicionado ao carrinho",
+                                    style: AppTheme.subtitle,
+                                  )
+                                ],
+                              ),
+                              Gap(
+                                size.height * 0.02,
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Container(
+                                    width: size.width * 0.45,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8),
+                                      color: AppTheme.vinho,
+                                    ),
+                                    child: TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: Text('Continuar comprando',
+                                          style: AppTheme.subtitlewhite),
+                                    ),
+                                  ),
+                                  Container(
+                                    width: size.width * 0.45,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8),
+                                      color: AppTheme.vinho,
+                                    ),
+                                    child: TextButton(
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  ShoppingCart(
+                                                      uid: FirebaseAuth.instance
+                                                          .currentUser!.uid)),
+                                        );
+                                      },
+                                      child: Text(
+                                        'Ir para o\n Carrinho',
+                                        style: AppTheme.subtitlewhite,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Adicionar ao carrinho',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        Gap(8),
+                        Icon(
+                          Icons.shopping_cart,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    primary: AppTheme.vinho,
+                    onPrimary: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                ),
+              ),
+            )
           ],
         );
       },

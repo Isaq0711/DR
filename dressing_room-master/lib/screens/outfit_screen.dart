@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:dressing_room/resources/firestore_methods.dart';
+import 'package:dressing_room/responsive/mobile_screen_layout.dart';
+import 'package:dressing_room/responsive/responsive_layout.dart';
 import 'package:dressing_room/screens/wardrobe_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -63,6 +65,17 @@ class _OutfitScreenState extends State<OutfitScreen> {
     return await CallToWeatherApi().callWeatherAPi(
       isCurrentCity,
       cityName,
+    );
+  }
+
+  void clearImages() {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (context) => const ResponsiveLayout(
+          mobileScreenLayout: MobileScreenLayout(),
+        ),
+      ),
+      (route) => false,
     );
   }
 
@@ -516,13 +529,21 @@ class _OutfitScreenState extends State<OutfitScreen> {
                         isLoadingmenor = true;
                       });
 
-                      await FireStoreMethods().planLook(
-                          capturedImage,
-                          widget.uid,
-                          dataEscolhida!,
-                          widget.TroncoIds![_shirtController.page!.round()],
-                          widget.PernasIds![_pantsController.page!.round()],
-                          widget.PesIds![_shoesController.page!.round()]);
+                      String res = await FireStoreMethods().planLook(
+                        capturedImage,
+                        widget.uid,
+                        dataEscolhida!,
+                        widget.TroncoIds![_shirtController.page!.round()],
+                        widget.PernasIds![_pantsController.page!.round()],
+                        widget.PesIds![_shoesController.page!.round()],
+                      );
+
+                      if (res == "Success") {
+                        showSnackBar(context, 'Look criado com sucesso!');
+                        clearImages();
+                      } else {
+                        showSnackBar(context, res);
+                      }
 
                       setState(() {
                         notPrinting = true;
@@ -620,21 +641,21 @@ class _OutfitScreenState extends State<OutfitScreen> {
                                       )
                                     : SizedBox.shrink(),
                             Gap(35),
-                            FloatingActionButton.extended(
-                              onPressed: () {
-                                setState(() {});
-                              },
-                              backgroundColor: AppTheme.vinho,
-                              elevation: 2.0,
-                              label:
-                                  Text("CANVAS", style: AppTheme.subtitlewhite),
-                              icon: Icon(Icons.draw_outlined,
-                                  color: Colors.white),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                                side: BorderSide(color: AppTheme.darkerText),
-                              ),
-                            ),
+                            // FloatingActionButton.extended(
+                            //   onPressed: () {
+                            //     setState(() {});
+                            //   },
+                            //   backgroundColor: AppTheme.vinho,
+                            //   elevation: 2.0,
+                            //   label:
+                            //       Text("CANVAS", style: AppTheme.subtitlewhite),
+                            //   icon: Icon(Icons.draw_outlined,
+                            //       color: Colors.white),
+                            //   shape: RoundedRectangleBorder(
+                            //     borderRadius: BorderRadius.circular(10.0),
+                            //     side: BorderSide(color: AppTheme.darkerText),
+                            //   ),
+                            // ),
                           ],
                         ),
                       ),

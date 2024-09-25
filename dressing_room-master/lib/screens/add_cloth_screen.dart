@@ -47,6 +47,19 @@ class _AddClothScreenState extends State<AddClothScreen> {
   String categoria3 = 'Locais ou ocasião';
   List<String>? marcas;
   List<String>? tecido;
+  List<String> icons = [
+    'icons8-head-profile-100.png',
+    'icons8-pés-100.png',
+    'icons8-camisa-100.png',
+    'icons8-calças-100.png',
+    'icons8-cinto-100.png',
+    'icons8-joalheria-100.png',
+    'icons8-vista-frontal-de-relógios-100.png',
+    'icons8-toda-a-mão-100.png',
+    'icons8-tipo-de-corpo-alto-100.png',
+    'icons8-óculos-de-sol-100.png',
+  ];
+
   final Map<String, List<String>> clothingItems = {
     "Top (cabeça)": [
       "chapéu",
@@ -264,7 +277,10 @@ class _AddClothScreenState extends State<AddClothScreen> {
           File tempFile2 = await saveBytesToFile(pngBytes);
 
           try {
-            Uint8List? processedImage2 = await removeBg(tempFile2.path, true);
+            Uint8List? processedImage2 = selectedCategory == "Pés"
+                ? await removeBg(tempFile2.path, true, 'retrato')
+                : await removeBg(tempFile2.path, true, 'paisagem');
+
             setState(() {
               isLoading = true;
             });
@@ -395,15 +411,15 @@ class _AddClothScreenState extends State<AddClothScreen> {
             });
 
             try {
-              Uint8List? processedImage = await removeBg(tempFile.path, false);
+              Uint8List? processedImage =
+                  await removeBg(tempFile.path, false, 'retrato');
               setState(() {
                 _files!.removeLast();
-                _files!.add(processedImage!);
+                _files!.add(processedImage);
                 isLoading = false;
               });
             } catch (e) {
               print("Erro ao remover o fundo da imagem: $e");
-
               setState(() {
                 isLoading = false;
               });
@@ -457,97 +473,97 @@ class _AddClothScreenState extends State<AddClothScreen> {
                           !_isPaintingMode || !_isDraggingImage
                               ? Row(
                                   children: [
-                                    IconButton(
-                                      icon: Icon(
-                                        Icons.undo,
-                                        color: _paintHistory.isNotEmpty
-                                            ? AppTheme.vinho
-                                            : Colors.grey,
-                                      ),
-                                      onPressed: _paintHistory.isNotEmpty
-                                          ? () {
-                                              setState(() {
-                                                //_performUndo();
-                                                int removeCount =
-                                                    _paintHistory.last.length;
-                                                for (int i = 0;
-                                                    i < removeCount;
-                                                    i++) {
-                                                  if (_sliderValues
-                                                      .isNotEmpty) {
-                                                    _sliderValues.removeLast();
-                                                  }
-                                                }
+                                    // IconButton(
+                                    //   icon: Icon(
+                                    //     Icons.undo,
+                                    //     color: _paintHistory.isNotEmpty
+                                    //         ? AppTheme.vinho
+                                    //         : Colors.grey,
+                                    //   ),
+                                    //   onPressed: _paintHistory.isNotEmpty
+                                    //       ? () {
+                                    //           setState(() {
+                                    //             //_performUndo();
+                                    //             int removeCount =
+                                    //                 _paintHistory.last.length;
+                                    //             for (int i = 0;
+                                    //                 i < removeCount;
+                                    //                 i++) {
+                                    //               if (_sliderValues
+                                    //                   .isNotEmpty) {
+                                    //                 _sliderValues.removeLast();
+                                    //               }
+                                    //             }
 
-                                                _paintHistory.removeLast();
-                                                _selectedPositionsMap[
-                                                        _currentPageIndex] =
-                                                    List.from(
-                                                        _paintHistory.isNotEmpty
-                                                            ? _paintHistory.last
-                                                            : []);
-                                              });
-                                              print(_sliderValues);
-                                            }
-                                          : null,
-                                    ),
-                                    if (_isPaintingMode) ...[
-                                      PopupMenuButton(
-                                        itemBuilder: (BuildContext context) {
-                                          return [
-                                            PopupMenuItem(
-                                              child: StatefulBuilder(
-                                                builder: (BuildContext context,
-                                                    StateSetter setState) {
-                                                  return Row(
-                                                    children: [
-                                                      ImageIcon(
-                                                        AssetImage(
-                                                          'assets/BORRACHA.png',
-                                                        ),
-                                                        color: AppTheme
-                                                            .nearlyWhite,
-                                                      ),
-                                                      Expanded(
-                                                        child: Slider(
-                                                          value: _sliderValue,
-                                                          min: 10,
-                                                          max: 120,
-                                                          onChanged: (value) {
-                                                            setState(() {
-                                                              _sliderValue =
-                                                                  value;
-                                                            });
-                                                          },
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  );
-                                                },
-                                              ),
-                                            ),
-                                          ];
-                                        },
-                                        child: Icon(Icons.circle,
-                                            color: AppTheme.vinho),
-                                      ),
-                                    ],
-                                    IconButton(
-                                        icon: ImageIcon(
-                                            AssetImage(
-                                              'assets/BORRACHA.png',
-                                            ),
-                                            color: _isPaintingMode
-                                                ? AppTheme.vinho
-                                                : Colors.grey),
-                                        onPressed: () {
-                                          setState(() {
-                                            _isPaintingMode = !_isPaintingMode;
-                                            if (_isPaintingMode) {
-                                              _isDraggingImage = false;
-                                            }
-                                          });
-                                        }),
+                                    //             _paintHistory.removeLast();
+                                    //             _selectedPositionsMap[
+                                    //                     _currentPageIndex] =
+                                    //                 List.from(
+                                    //                     _paintHistory.isNotEmpty
+                                    //                         ? _paintHistory.last
+                                    //                         : []);
+                                    //           });
+                                    //           print(_sliderValues);
+                                    //         }
+                                    //       : null,
+                                    // ),
+                                    // if (_isPaintingMode) ...[
+                                    //   PopupMenuButton(
+                                    //     itemBuilder: (BuildContext context) {
+                                    //       return [
+                                    //         PopupMenuItem(
+                                    //           child: StatefulBuilder(
+                                    //             builder: (BuildContext context,
+                                    //                 StateSetter setState) {
+                                    //               return Row(
+                                    //                 children: [
+                                    //                   ImageIcon(
+                                    //                     AssetImage(
+                                    //                       'assets/BORRACHA.png',
+                                    //                     ),
+                                    //                     color: AppTheme
+                                    //                         .nearlyWhite,
+                                    //                   ),
+                                    //                   Expanded(
+                                    //                     child: Slider(
+                                    //                       value: _sliderValue,
+                                    //                       min: 10,
+                                    //                       max: 120,
+                                    //                       onChanged: (value) {
+                                    //                         setState(() {
+                                    //                           _sliderValue =
+                                    //                               value;
+                                    //                         });
+                                    //                       },
+                                    //                     ),
+                                    //                   ),
+                                    //                 ],
+                                    //               );
+                                    //             },
+                                    //           ),
+                                    //         ),
+                                    //       ];
+                                    //     },
+                                    //     child: Icon(Icons.circle,
+                                    //         color: AppTheme.vinho),
+                                    //   ),
+                                    // ],
+                                    // IconButton(
+                                    //     icon: ImageIcon(
+                                    //         AssetImage(
+                                    //           'assets/BORRACHA.png',
+                                    //         ),
+                                    //         color: _isPaintingMode
+                                    //             ? AppTheme.vinho
+                                    //             : Colors.grey),
+                                    //     onPressed: () {
+                                    //       setState(() {
+                                    //         _isPaintingMode = !_isPaintingMode;
+                                    //         if (_isPaintingMode) {
+                                    //           _isDraggingImage = false;
+                                    //         }
+                                    //       });
+                                    //     }),
                                     IconButton(
                                       icon: Icon(Icons.my_location,
                                           color: _isDraggingImage
@@ -562,6 +578,7 @@ class _AddClothScreenState extends State<AddClothScreen> {
                                         });
                                       },
                                     ),
+                                    Gap(20),
                                   ],
                                 )
                               : Row(
@@ -583,7 +600,7 @@ class _AddClothScreenState extends State<AddClothScreen> {
                             _saveImage(user.uid);
                           } else {
                             showSnackBar(
-                                context, "Choose a category for your cloth");
+                                context, "Escolha uma categoria para sua peça");
                           }
                         },
                         icon: const Icon(
@@ -805,7 +822,7 @@ class _AddClothScreenState extends State<AddClothScreen> {
                                 child: Column(
                                   children: [
                                     Text(
-                                      "Description",
+                                      "Descrição",
                                       style: AppTheme.dividerfont,
                                     ),
                                     Padding(
@@ -844,7 +861,7 @@ class _AddClothScreenState extends State<AddClothScreen> {
                                                     BorderRadius.circular(10.0),
                                               ),
                                             ),
-                                            child: Text('Public',
+                                            child: Text('Publico',
                                                 style: AppTheme.subtitlewhite),
                                           ),
                                           ElevatedButton(
@@ -862,7 +879,7 @@ class _AddClothScreenState extends State<AddClothScreen> {
                                                     BorderRadius.circular(10.0),
                                               ),
                                             ),
-                                            child: Text('Private',
+                                            child: Text('Privado',
                                                 style: AppTheme.subtitlewhite),
                                           ),
                                         ]),
@@ -871,7 +888,7 @@ class _AddClothScreenState extends State<AddClothScreen> {
                                       color: AppTheme.cinza,
                                     ),
                                     Text(
-                                      "Category of the cloth",
+                                      "Categoria da roupa",
                                       style: AppTheme.dividerfont,
                                     ),
                                     Gap(10),
@@ -918,10 +935,13 @@ class _AddClothScreenState extends State<AddClothScreen> {
                                                                 .circular(10.0),
                                                       ),
                                                     ),
-                                                    child: Text(
-                                                      category,
-                                                      style: AppTheme
-                                                          .subtitlewhite,
+                                                    child: ImageIcon(
+                                                      AssetImage(
+                                                        'assets/${icons[index]}',
+                                                      ),
+                                                      color:
+                                                          AppTheme.nearlyWhite,
+                                                      size: 20,
                                                     ),
                                                   ),
                                                 );
@@ -983,7 +1003,7 @@ class _AddClothScreenState extends State<AddClothScreen> {
                                       color: AppTheme.cinza,
                                     ),
                                     Text(
-                                      "Post information",
+                                      "Características da roupa",
                                       style: AppTheme.dividerfont,
                                     ),
                                     Gap(10),

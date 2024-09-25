@@ -301,7 +301,9 @@ class _ShoppingCartState extends State<ShoppingCart> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => SeePost(
-                            isTagclicked: false, postId: itens[i]['postId']),
+                            isSuggestioncliked: false,
+                            isTagclicked: false,
+                            postId: itens[i]['postId']),
                       ),
                     );
                   },

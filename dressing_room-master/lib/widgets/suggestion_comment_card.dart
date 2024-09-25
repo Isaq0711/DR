@@ -154,6 +154,8 @@ class _SuggestionCommentCardState extends State<SuggestionCommentCard> {
                                                       MaterialPageRoute(
                                                         builder: (context) =>
                                                             SeePost(
+                                                          isSuggestioncliked:
+                                                              false,
                                                           isTagclicked: false,
                                                           postId: widget.snap
                                                                   .data()[

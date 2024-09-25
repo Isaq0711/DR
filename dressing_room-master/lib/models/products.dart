@@ -75,11 +75,11 @@ class Product {
 class VariationInfo {
   String variationdescription;
   int itemCount;
-  List<int> sizesAvailable;
+  List<String> sizesAvailable;
   List<Uint8List> photos;
   List<String> photoUrls;
 
-  double price;
+  double? price;
 
   VariationInfo({
     required this.variationdescription,
@@ -94,7 +94,7 @@ class VariationInfo {
     return VariationInfo(
       variationdescription: map['variationdescription'] ?? '',
       itemCount: map['itemCount'] ?? 0,
-      sizesAvailable: List<int>.from(map['sizesAvailable'] ?? []),
+      sizesAvailable: List<String>.from(map['sizesAvailable'] ?? []),
       photos: (map['photos'] as List<dynamic>?)
               ?.map((photo) => photo as Uint8List)
               .toList() ??
@@ -119,3 +119,16 @@ class VariationInfo {
     };
   }
 }
+
+Map<String, List<String>> categorySizes = {
+  'Pernas': ['34', '36', '38', '40', '42', '44'],
+  'Pés': ['34', '35', '36', '37', '38', '39', '40', '41', '42'],
+  'Tronco': ['PP', 'P', 'M', 'G', 'GG', 'XGG'],
+  'Body (corpo inteiro)': ['PP', 'P', 'M', 'G', 'GG', 'XGG'],
+  'Top (cabeça)': ['P', 'M', 'G'],
+  "Mão": [],
+  "Pulso": [],
+  "Pescoço": [],
+  "Cintura": ['34', '36', '38', '40', '42', '44'],
+  'Rosto': [],
+};

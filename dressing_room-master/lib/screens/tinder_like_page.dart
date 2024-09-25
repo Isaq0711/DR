@@ -8,12 +8,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:dressing_room/resources/comn[1].dart';
 import 'package:dressing_room/utils/colors.dart';
 import 'package:dressing_room/models/clothes.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:dressing_room/screens/chat_page[1].dart';
 import 'package:dressing_room/screens/outfit_screen.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:dressing_room/screens/favorites_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gap/gap.dart';
 import 'dart:convert';
 import 'package:dressing_room/utils/utils.dart';
@@ -480,15 +479,18 @@ class _TinderScreenState extends State<TinderScreen> {
               backgroundColor: Colors.transparent,
               actions: [
                 IconButton(
-                    onPressed: () {
-                      enviarTexto();
-                    },
-                    icon: Icon(
-                      shadows: <Shadow>[
-                        Shadow(color: AppTheme.nearlyBlack, blurRadius: 5.0)
-                      ],
-                      CupertinoIcons.info,
-                    ))
+                  icon: Image.asset(
+                    'assets/I.A.R.A.png',
+                    height: 25,
+                    color: AppTheme.vinho,
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => ChatPage()),
+                    );
+                  },
+                ),
               ],
             ),
             body: Column(children: [
@@ -533,20 +535,20 @@ class _TinderScreenState extends State<TinderScreen> {
                               )
                             : Container(),
                     const Gap(35),
-                    FloatingActionButton.extended(
-                      onPressed: () {
-                        setState(() {});
-                      },
-                      backgroundColor: AppTheme.vinho,
-                      elevation: 2.0,
-                      label: Text("CANVAS", style: AppTheme.subtitlewhite),
-                      icon:
-                          const Icon(Icons.draw_outlined, color: Colors.white),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                        side: BorderSide(color: AppTheme.darkerText),
-                      ),
-                    ),
+                    // FloatingActionButton.extended(
+                    //   onPressed: () {
+                    //     setState(() {});
+                    //   },
+                    //   backgroundColor: AppTheme.vinho,
+                    //   elevation: 2.0,
+                    //   label: Text("CANVAS", style: AppTheme.subtitlewhite),
+                    //   icon:
+                    //       const Icon(Icons.draw_outlined, color: Colors.white),
+                    //   shape: RoundedRectangleBorder(
+                    //     borderRadius: BorderRadius.circular(10.0),
+                    //     side: BorderSide(color: AppTheme.darkerText),
+                    //   ),
+                    // ),
                   ],
                 ),
               ),
@@ -612,7 +614,9 @@ class _TinderScreenState extends State<TinderScreen> {
                             Border.all(color: Colors.grey.shade600, width: 3.0),
                       ),
                       child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
+                          Gap(20.h),
                           buildImageList(
                               categoryItems['Tronco'] ?? [], troncoIndex),
                           buildImageList(

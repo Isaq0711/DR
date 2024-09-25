@@ -194,6 +194,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                                                   MaterialPageRoute(
                                                     builder: (context) =>
                                                         SeePost(
+                                                      isSuggestioncliked: false,
                                                       postId: postId,
                                                       isTagclicked: false,
                                                     ),
@@ -261,6 +262,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                                                 context,
                                                 MaterialPageRoute(
                                                   builder: (context) => SeePost(
+                                                    isSuggestioncliked: false,
                                                     isTagclicked: false,
                                                     postId: favorites[index]
                                                         ['postId'],
@@ -371,6 +373,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                                                   MaterialPageRoute(
                                                     builder: (context) =>
                                                         SeePost(
+                                                      isSuggestioncliked: false,
                                                       isTagclicked: false,
                                                       postId: postId,
                                                     ),
@@ -475,6 +478,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                                                   MaterialPageRoute(
                                                     builder: (context) =>
                                                         SeePost(
+                                                      isSuggestioncliked: false,
                                                       isTagclicked: false,
                                                       postId: postId,
                                                     ),
@@ -579,6 +583,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                                                   MaterialPageRoute(
                                                     builder: (context) =>
                                                         SeePost(
+                                                      isSuggestioncliked: false,
                                                       isTagclicked: false,
                                                       postId: postId,
                                                     ),

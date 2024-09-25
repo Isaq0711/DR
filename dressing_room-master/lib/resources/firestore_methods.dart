@@ -1169,8 +1169,6 @@ class FireStoreMethods {
 
       return 'Success';
     } catch (err) {
-      // Imprime o erro completo no console para ajudar na depuração
-      print('An error occurred: $err');
       return 'An error occurred: $err';
     }
   }
@@ -1214,7 +1212,8 @@ class FireStoreMethods {
         'uid': uid,
         'troncoId': troncoId,
         'pernasId': pernasId,
-        'pesId': pesId
+        'pesId': pesId,
+        'lookId': collectionRef.id,
       });
 
       return 'Success';

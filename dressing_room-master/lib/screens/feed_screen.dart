@@ -2,30 +2,23 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:math' as math;
 import 'package:dressing_room/providers/bottton_nav_controller.dart';
 import 'package:dressing_room/providers/isshop_provider.dart';
+import 'package:flutter/rendering.dart';
 import 'package:dressing_room/responsive/mobile_screen_layout.dart';
 import 'package:dressing_room/responsive/responsive_layout.dart';
 import 'package:dressing_room/screens/shopping_cart.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:dressing_room/screens/chat_page[1].dart';
-import 'package:dressing_room/screens/2_store_screen.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter/rendering.dart';
-import 'package:dressing_room/models/post.dart';
-
 import 'package:dressing_room/models/votations.dart';
-
 import 'package:flutter/foundation.dart';
-
 import 'package:dressing_room/resources/comn[1].dart';
 import 'package:dressing_room/utils/colors.dart';
-
 import 'dart:convert';
-
 import 'package:dressing_room/2d_cards/new_votation_card.dart';
-
 import 'package:dressing_room/2d_cards/new_post_card.dart';
 import 'package:dressing_room/2d_cards/new_product_card.dart';
 
@@ -205,9 +198,7 @@ class _FeedScreenState extends State<FeedScreen> {
                     width: 55,
                     height: 55,
                   ),
-                  onTap: () {
-                    enviarTexto();
-                  },
+                  onTap: () {},
                 ),
               ),
               actions: [
@@ -226,18 +217,18 @@ class _FeedScreenState extends State<FeedScreen> {
                           onPressed: () {},
                         ),
                         IconButton(
-                          icon: Icon(
-                            shadows: <Shadow>[
-                              Shadow(color: AppTheme.vinho, blurRadius: 3.0)
-                            ],
-                            CupertinoIcons.info_circle,
-                            color: AppTheme.vinho,
+                          icon: Image.asset(
+                            'assets/I.A.R.A_2.png',
+                            height: 28,
+                            color: AppTheme
+                                .vinho, // Aplica a cor ao SVG, se o arquivo permitir
                           ),
                           onPressed: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => ChatPage()),
+                                builder: (context) => ChatPage(),
+                              ),
                             );
                           },
                         ),
@@ -275,7 +266,7 @@ class _FeedScreenState extends State<FeedScreen> {
                                       shadows: <Shadow>[
                                         Shadow(
                                           color: AppTheme.vinho,
-                                          blurRadius: 3.0,
+                                          blurRadius: 1.0,
                                         ),
                                       ],
                                       CupertinoIcons.shopping_cart,

@@ -120,3 +120,121 @@ class _WebViewPageState extends State<WebViewPage> {
     }
   }
 }
+
+class WebViewPage916 extends StatefulWidget {
+  final Function(Uint8List) onImageCaptured;
+
+  WebViewPage916({required this.onImageCaptured});
+
+  @override
+  WebViewPage916State createState() => WebViewPage916State();
+}
+
+class WebViewPage916State extends State<WebViewPage916> {
+  late WebViewController _webViewController;
+  final GlobalKey _repaintKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    _webViewController = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setBackgroundColor(Colors.transparent)
+      ..loadRequest(Uri.parse('https://www.google.com'));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          icon: Icon(
+            Icons.arrow_back_ios,
+            color: AppTheme.nearlyBlack,
+          ),
+        ),
+        title: Text(
+          "Imagem da web",
+          style: AppTheme.barapp.copyWith(
+            shadows: [
+              Shadow(
+                blurRadius: 2.0,
+                color: Colors.black,
+              ),
+            ],
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: Center(
+        child: AspectRatio(
+          aspectRatio: 9 / 16, // Define a proporção de 9:16
+          child: RepaintBoundary(
+            key: _repaintKey,
+            child: WebViewWidget(controller: _webViewController),
+          ),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: BottomAppBar(
+        color: Colors.transparent,
+        shape: CircularNotchedRectangle(),
+        notchMargin: 6.0,
+        child: InkWell(
+          child: Row(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Icon(
+                Icons.camera_alt,
+                color: AppTheme.nearlyBlack,
+                shadows: [
+                  Shadow(
+                    blurRadius: 1.5,
+                    color: Colors.black,
+                  )
+                ],
+              ),
+              SizedBox(width: 10),
+              Text(
+                "Capturar Tela",
+                style: AppTheme.barapp.copyWith(
+                  shadows: [
+                    Shadow(
+                      blurRadius: 2.0,
+                      color: Colors.black,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          onTap: _takeScreenshot916,
+        ),
+      ),
+    );
+  }
+
+  void _takeScreenshot916() async {
+    try {
+      RenderRepaintBoundary boundary = _repaintKey.currentContext!
+          .findRenderObject() as RenderRepaintBoundary;
+      ui.Image image = await boundary.toImage(pixelRatio: 1.0);
+      ByteData? byteData =
+          await image.toByteData(format: ui.ImageByteFormat.png);
+      Uint8List pngBytes = byteData!.buffer.asUint8List();
+
+      Uint8List? croppedImage = await pickImageinicial916(imageData: pngBytes);
+
+      if (croppedImage != null) {
+        widget.onImageCaptured(croppedImage);
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+}
